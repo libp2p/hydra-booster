@@ -17,5 +17,9 @@ Try to only run a dht-node on machines with public IP addresses. Having more
 dht nodes behind NATs makes dht queries in general slower, as connecting in
 generally takes longer and sometimes doesnt even work (resulting in a timeout).
 
+When running with `-many`, please make sure to bump the ulimit to something
+fairly high. Expect ~500 connections per node youre running (so with
+`-many=10`, try setting `ulimit -n 5000`)
+
 ## License
 MIT - @whyrusleeping
