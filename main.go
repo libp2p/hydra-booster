@@ -6,6 +6,8 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"runtime"
 	"time"
@@ -129,8 +131,16 @@ func makeAndStartDHT(ds ds.Batching, addr string) (host.Host, *dht.IpfsDHT, erro
 
 func main() {
 	many := flag.Int("many", -1, "Instead of running one dht, run many!")
+	pprofport := flag.Int("pprof-port", -1, "Specify a port to run pprof http server on")
 	flag.Parse()
 	id.ClientVersion = "dhtbooster/1"
+
+	if *pprofport >= 0 {
+		go func() {
+			fmt.Printf("Http server listening on port: %d\n", *pprofport)
+			panic(http.ListenAndServe(fmt.Sprintf(":%d", *pprofport), nil))
+		}()
+	}
 
 	if *many == -1 {
 		runSingleDHTWithUI()
