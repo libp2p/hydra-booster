@@ -146,7 +146,7 @@ func main() {
 		runSingleDHTWithUI()
 	}
 
-	ds, err := levelds.NewDatastore("data", nil)
+	ds, err := levelds.NewDatastore("dht-data", nil)
 	if err != nil {
 		panic(err)
 	}

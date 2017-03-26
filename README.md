@@ -4,7 +4,7 @@ Run a libp2p dht node for the good of the network!
 ## Installation
 Currently, you must build from source. To do so, make sure you have go installed and run:
 ```
-go get github.com/ipfs/dht-node
+go get -u github.com/ipfs/dht-node
 ```
 
 ## Usage
