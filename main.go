@@ -191,6 +191,7 @@ func runSingleDHTWithUI() {
 		panic(err)
 	}
 
+	uniqpeers := make(map[peer.ID]struct{})
 	messages := make(chan string, 16)
 	provs := make(chan *provInfo, 16)
 	r, w := io.Pipe()
@@ -200,10 +201,11 @@ func runSingleDHTWithUI() {
 	ga := &GooeyApp{Title: "Libp2p DHT Node", Log: NewLog(15, 15)}
 	ga.NewDataLine(3, "Peer ID", h.ID().Pretty())
 	econs := ga.NewDataLine(4, "Connections", "0")
-	emem := ga.NewDataLine(5, "Memory Allocated", "0MB")
-	eprov := ga.NewDataLine(6, "Stored Provider Records", "0")
-	eprlat := ga.NewDataLine(7, "Store Provider Latency", "0s")
-	etime := ga.NewDataLine(8, "Uptime", "0h 0m 0s")
+	uniqprs := ga.NewDataLine(5, "Unique Peers Seen", "0")
+	emem := ga.NewDataLine(6, "Memory Allocated", "0MB")
+	eprov := ga.NewDataLine(7, "Stored Provider Records", "0")
+	eprlat := ga.NewDataLine(8, "Store Provider Latency", "0s")
+	etime := ga.NewDataLine(9, "Uptime", "0h 0m 0s")
 	ga.Print()
 	mt := time.NewTicker(time.Second * 3)
 	second := time.NewTicker(time.Second)
@@ -220,7 +222,12 @@ func runSingleDHTWithUI() {
 			var mstat runtime.MemStats
 			runtime.ReadMemStats(&mstat)
 			emem.SetVal(human.Bytes(mstat.Alloc))
-			econs.SetVal(fmt.Sprintf("%d peers", len(h.Network().Peers())))
+			peers := h.Network().Peers()
+			econs.SetVal(fmt.Sprintf("%d peers", len(peers)))
+			for _, p := range peers {
+				uniqpeers[p] = struct{}{}
+			}
+			uniqprs.SetVal(fmt.Sprint(len(uniqpeers)))
 		case p := <-provs:
 			totalprovs++
 			totalprovtime += p.Duration
