@@ -154,6 +154,7 @@ func main() {
 	start := time.Now()
 	var hosts []host.Host
 	var dhts []*dht.IpfsDHT
+	uniqpeers := make(map[peer.ID]struct{})
 	fmt.Fprintf(os.Stderr, "Running %d DHT Instances...", *many)
 	for i := 0; i < *many; i++ {
 		h, d, err := makeAndStartDHT(ds, "/ip4/0.0.0.0/tcp/0")
@@ -165,20 +166,24 @@ func main() {
 	}
 
 	for range time.Tick(time.Second * 5) {
-		printStatusLine(*many, start, hosts, dhts)
+		printStatusLine(*many, start, hosts, dhts, uniqpeers)
 	}
 }
 
-func printStatusLine(ndht int, start time.Time, hosts []host.Host, dhts []*dht.IpfsDHT) {
+func printStatusLine(ndht int, start time.Time, hosts []host.Host, dhts []*dht.IpfsDHT, uniqprs map[peer.ID]struct{}) {
 	uptime := time.Second * time.Duration(int(time.Since(start).Seconds()))
 	var mstat runtime.MemStats
 	runtime.ReadMemStats(&mstat)
 	var totalpeers int
 	for _, h := range hosts {
-		totalpeers += len(h.Network().Peers())
+		peers := h.Network().Peers()
+		totalpeers += len(peers)
+		for _, p := range peers {
+			uniqprs[p] = struct{}{}
+		}
 	}
 
-	fmt.Fprintf(os.Stderr, "[NumDhts: %d, Uptime: %s, Memory Usage: %s, TotalPeers: %d]\n", ndht, uptime, human.Bytes(mstat.Alloc), totalpeers)
+	fmt.Fprintf(os.Stderr, "[NumDhts: %d, Uptime: %s, Memory Usage: %s, TotalPeers: %d/%d]\n", ndht, uptime, human.Bytes(mstat.Alloc), totalpeers, len(uniqprs))
 }
 
 func runSingleDHTWithUI() {
