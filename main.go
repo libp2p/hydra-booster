@@ -131,6 +131,8 @@ func makeAndStartDHT(ds ds.Batching, addr string) (host.Host, *dht.IpfsDHT, erro
 
 func main() {
 	many := flag.Int("many", -1, "Instead of running one dht, run many!")
+	dbpath := flag.String("db", "dht-data", "Database folder")
+	inmem := flag.Bool("mem", false, "Use an in-memory database. This overrides the -db option")
 	pprofport := flag.Int("pprof-port", -1, "Specify a port to run pprof http server on")
 	flag.Parse()
 	id.ClientVersion = "dhtbooster/1"
@@ -142,11 +144,14 @@ func main() {
 		}()
 	}
 
+	if *inmem {
+		*dbpath = ""
+	}
 	if *many == -1 {
-		runSingleDHTWithUI()
+		runSingleDHTWithUI(*dbpath)
 	}
 
-	ds, err := levelds.NewDatastore("dht-data", nil)
+	ds, err := levelds.NewDatastore(*dbpath, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -186,8 +191,8 @@ func printStatusLine(ndht int, start time.Time, hosts []host.Host, dhts []*dht.I
 	fmt.Fprintf(os.Stderr, "[NumDhts: %d, Uptime: %s, Memory Usage: %s, TotalPeers: %d/%d]\n", ndht, uptime, human.Bytes(mstat.Alloc), totalpeers, len(uniqprs))
 }
 
-func runSingleDHTWithUI() {
-	ds, err := levelds.NewDatastore("data", nil)
+func runSingleDHTWithUI(path string) {
+	ds, err := levelds.NewDatastore(path, nil)
 	if err != nil {
 		panic(err)
 	}
