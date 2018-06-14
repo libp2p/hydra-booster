@@ -15,50 +15,23 @@ import (
 	human "github.com/dustin/go-humanize"
 	ds "github.com/ipfs/go-datastore"
 	levelds "github.com/ipfs/go-ds-leveldb"
-	golog "github.com/ipfs/go-log"
+	namesys "github.com/ipfs/go-ipfs/namesys"
+	logging "github.com/ipfs/go-log"
+	logwriter "github.com/ipfs/go-log/writer"
+	libp2p "github.com/libp2p/go-libp2p"
+	circuit "github.com/libp2p/go-libp2p-circuit"
 	host "github.com/libp2p/go-libp2p-host"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	peer "github.com/libp2p/go-libp2p-peer"
 	pstore "github.com/libp2p/go-libp2p-peerstore"
-	swarm "github.com/libp2p/go-libp2p-swarm"
-	bhost "github.com/libp2p/go-libp2p/p2p/host/basic"
+	record "github.com/libp2p/go-libp2p-record"
 	id "github.com/libp2p/go-libp2p/p2p/protocol/identify"
-	testutil "github.com/libp2p/go-testutil"
 	ma "github.com/multiformats/go-multiaddr"
 )
 
-var log = golog.Logger("dhtbooster")
+var _ = circuit.P_CIRCUIT
 
-func makeBasicHost(listen string) (host.Host, error) {
-	addr, err := ma.NewMultiaddr(listen)
-	if err != nil {
-		return nil, err
-	}
-
-	ps := pstore.NewPeerstore()
-	var pid peer.ID
-
-	ident, err := testutil.RandIdentity()
-	if err != nil {
-		return nil, err
-	}
-
-	ident.PrivateKey()
-	ps.AddPrivKey(ident.ID(), ident.PrivateKey())
-	ps.AddPubKey(ident.ID(), ident.PublicKey())
-	pid = ident.ID()
-	fmt.Println("I am peer: ", pid.Pretty())
-
-	ctx := context.Background()
-
-	// create a new swarm to be used by the service host
-	netw, err := swarm.NewNetwork(ctx, []ma.Multiaddr{addr}, pid, ps, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return bhost.New(netw), nil
-}
+var log = logging.Logger("dhtbooster")
 
 type Event struct {
 	Event  string
@@ -80,6 +53,7 @@ func waitForNotifications(r io.Reader, provs chan *provInfo, mesout chan string)
 			panic(err)
 		}
 		event := e["event"]
+		// TODO: this is broken now, the log format for go-log eventlogs has changed
 		if event == "handleAddProvider" {
 			provs <- &provInfo{
 				Key:      e["key"].(string),
@@ -106,15 +80,29 @@ func boostrapper() pstore.PeerInfo {
 	}
 }
 
-func makeAndStartDHT(ds ds.Batching, addr string) (host.Host, *dht.IpfsDHT, error) {
-	h, err := makeBasicHost(addr)
+func makeAndStartNode(ds ds.Batching, addr string, relay bool) (host.Host, *dht.IpfsDHT, error) {
+	h, err := libp2p.New(context.Background(), libp2p.ListenAddrStrings(addr))
 	if err != nil {
 		panic(err)
+	}
+
+	if relay {
+		/* TODO: fix this, need @stebalien advice
+		_, err := circuit.NewRelay(context.Background(), h, circuit.OptHop)
+		if err != nil {
+			panic(err)
+		}
+		*/
 	}
 
 	d := dht.NewDHT(context.Background(), h, ds)
 	if err != nil {
 		panic(err)
+	}
+
+	d.Validator = record.NamespacedValidator{
+		"pk":   record.PublicKeyValidator{},
+		"ipns": namesys.IpnsValidator{KeyBook: h.Peerstore()},
 	}
 
 	go func() {
@@ -134,8 +122,13 @@ func main() {
 	dbpath := flag.String("db", "dht-data", "Database folder")
 	inmem := flag.Bool("mem", false, "Use an in-memory database. This overrides the -db option")
 	pprofport := flag.Int("pprof-port", -1, "Specify a port to run pprof http server on")
+	relay := flag.Bool("relay", false, "Enable libp2p circuit relaying for this node")
 	flag.Parse()
-	id.ClientVersion = "dhtbooster/1"
+	id.ClientVersion = "dhtbooster/2"
+
+	if *relay {
+		id.ClientVersion += "+relay"
+	}
 
 	if *pprofport >= 0 {
 		go func() {
@@ -148,7 +141,7 @@ func main() {
 		*dbpath = ""
 	}
 	if *many == -1 {
-		runSingleDHTWithUI(*dbpath)
+		runSingleDHTWithUI(*dbpath, *relay)
 	}
 
 	ds, err := levelds.NewDatastore(*dbpath, nil)
@@ -162,7 +155,7 @@ func main() {
 	uniqpeers := make(map[peer.ID]struct{})
 	fmt.Fprintf(os.Stderr, "Running %d DHT Instances...", *many)
 	for i := 0; i < *many; i++ {
-		h, d, err := makeAndStartDHT(ds, "/ip4/0.0.0.0/tcp/0")
+		h, d, err := makeAndStartNode(ds, "/ip4/0.0.0.0/tcp/0", *relay)
 		if err != nil {
 			panic(err)
 		}
@@ -191,12 +184,12 @@ func printStatusLine(ndht int, start time.Time, hosts []host.Host, dhts []*dht.I
 	fmt.Fprintf(os.Stderr, "[NumDhts: %d, Uptime: %s, Memory Usage: %s, TotalPeers: %d/%d]\n", ndht, uptime, human.Bytes(mstat.Alloc), totalpeers, len(uniqprs))
 }
 
-func runSingleDHTWithUI(path string) {
+func runSingleDHTWithUI(path string, relay bool) {
 	ds, err := levelds.NewDatastore(path, nil)
 	if err != nil {
 		panic(err)
 	}
-	h, _, err := makeAndStartDHT(ds, "/ip4/0.0.0.0/tcp/19264")
+	h, _, err := makeAndStartNode(ds, "/ip4/0.0.0.0/tcp/19264", relay)
 	if err != nil {
 		panic(err)
 	}
@@ -205,7 +198,7 @@ func runSingleDHTWithUI(path string) {
 	messages := make(chan string, 16)
 	provs := make(chan *provInfo, 16)
 	r, w := io.Pipe()
-	golog.WriterGroup.AddWriter(w)
+	logwriter.WriterGroup.AddWriter(w)
 	go waitForNotifications(r, provs, messages)
 
 	ga := &GooeyApp{Title: "Libp2p DHT Node", Log: NewLog(15, 15)}
