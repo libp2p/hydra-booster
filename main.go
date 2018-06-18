@@ -15,7 +15,7 @@ import (
 	human "github.com/dustin/go-humanize"
 	ds "github.com/ipfs/go-datastore"
 	levelds "github.com/ipfs/go-ds-leveldb"
-	namesys "github.com/ipfs/go-ipfs/namesys"
+	ipns "github.com/ipfs/go-ipns"
 	logging "github.com/ipfs/go-log"
 	logwriter "github.com/ipfs/go-log/writer"
 	libp2p "github.com/libp2p/go-libp2p"
@@ -102,7 +102,7 @@ func makeAndStartNode(ds ds.Batching, addr string, relay bool) (host.Host, *dht.
 
 	d.Validator = record.NamespacedValidator{
 		"pk":   record.PublicKeyValidator{},
-		"ipns": namesys.IpnsValidator{KeyBook: h.Peerstore()},
+		"ipns": ipns.Validator{KeyBook: h.Peerstore()},
 	}
 
 	go func() {
