@@ -81,18 +81,14 @@ func boostrapper() pstore.PeerInfo {
 }
 
 func makeAndStartNode(ds ds.Batching, addr string, relay bool) (host.Host, *dht.IpfsDHT, error) {
-	h, err := libp2p.New(context.Background(), libp2p.ListenAddrStrings(addr))
-	if err != nil {
-		panic(err)
+	opts := []libp2p.Option{libp2p.ListenAddrStrings(addr)}
+	if relay {
+		opts = append(opts, libp2p.EnableRelay(circuit.OptHop))
 	}
 
-	if relay {
-		/* TODO: fix this, need @stebalien advice
-		_, err := circuit.NewRelay(context.Background(), h, circuit.OptHop)
-		if err != nil {
-			panic(err)
-		}
-		*/
+	h, err := libp2p.New(context.Background(), opts...)
+	if err != nil {
+		panic(err)
 	}
 
 	d := dht.NewDHT(context.Background(), h, ds)
