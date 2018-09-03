@@ -80,7 +80,7 @@ func boostrapper() pstore.PeerInfo {
 	}
 }
 
-func makeAndStartNode(ds ds.Batching, addr string, relay bool) (host.Host, *dht.IpfsDHT, error) {
+func makeAndStartNode(ds ds.Batching, addr string, relay bool, retries int) (host.Host, *dht.IpfsDHT, error) {
 	opts := []libp2p.Option{libp2p.ListenAddrStrings(addr)}
 	if relay {
 		opts = append(opts, libp2p.EnableRelay(circuit.OptHop))
@@ -102,7 +102,15 @@ func makeAndStartNode(ds ds.Batching, addr string, relay bool) (host.Host, *dht.
 	}
 
 	go func() {
-		err = h.Connect(context.Background(), boostrapper())
+		var err error
+		for r := 0; r < retries; r++ {
+			err = h.Connect(context.Background(), boostrapper())
+			if err == nil {
+				break
+			}
+			time.Sleep(6000 * time.Millisecond)
+			fmt.Fprintf(os.Stderr, "Error starting node: %s\n", err.Error())
+		}
 		if err != nil {
 			panic(err)
 		}
@@ -115,6 +123,7 @@ func makeAndStartNode(ds ds.Batching, addr string, relay bool) (host.Host, *dht.
 
 func main() {
 	many := flag.Int("many", -1, "Instead of running one dht, run many!")
+	retries := flag.Int("retries", 1, "Number of times to retry starting nodes")
 	dbpath := flag.String("db", "dht-data", "Database folder")
 	inmem := flag.Bool("mem", false, "Use an in-memory database. This overrides the -db option")
 	pprofport := flag.Int("pprof-port", -1, "Specify a port to run pprof http server on")
@@ -137,7 +146,7 @@ func main() {
 		*dbpath = ""
 	}
 	if *many == -1 {
-		runSingleDHTWithUI(*dbpath, *relay)
+		runSingleDHTWithUI(*dbpath, *relay, *retries)
 	}
 
 	ds, err := levelds.NewDatastore(*dbpath, nil)
@@ -149,9 +158,9 @@ func main() {
 	var hosts []host.Host
 	var dhts []*dht.IpfsDHT
 	uniqpeers := make(map[peer.ID]struct{})
-	fmt.Fprintf(os.Stderr, "Running %d DHT Instances...", *many)
+	fmt.Fprintf(os.Stderr, "Running %d DHT Instances...\n", *many)
 	for i := 0; i < *many; i++ {
-		h, d, err := makeAndStartNode(ds, "/ip4/0.0.0.0/tcp/0", *relay)
+		h, d, err := makeAndStartNode(ds, "/ip4/0.0.0.0/tcp/0", *relay, *retries)
 		if err != nil {
 			panic(err)
 		}
@@ -180,12 +189,12 @@ func printStatusLine(ndht int, start time.Time, hosts []host.Host, dhts []*dht.I
 	fmt.Fprintf(os.Stderr, "[NumDhts: %d, Uptime: %s, Memory Usage: %s, TotalPeers: %d/%d]\n", ndht, uptime, human.Bytes(mstat.Alloc), totalpeers, len(uniqprs))
 }
 
-func runSingleDHTWithUI(path string, relay bool) {
+func runSingleDHTWithUI(path string, relay bool, retries int) {
 	ds, err := levelds.NewDatastore(path, nil)
 	if err != nil {
 		panic(err)
 	}
-	h, _, err := makeAndStartNode(ds, "/ip4/0.0.0.0/tcp/19264", relay)
+	h, _, err := makeAndStartNode(ds, "/ip4/0.0.0.0/tcp/19264", relay, retries)
 	if err != nil {
 		panic(err)
 	}
