@@ -1,0 +1,30 @@
+{
+  "author": "ipfs",
+  "bugs": {
+    "URL": "https://github.com/ipfs/dht-node/issues",
+    "url": "https://github.com/ipfs/dht-node/issues"
+  },
+  "gx": {
+    "dvcsimport": "github.com/ipfs/dht-node"
+  },
+  "gxDependencies": [
+    {
+      "hash": "QmfM7kwroZsKhKFmnJagPvM28MZMyKxG3QV2AqfvZvEEqS",
+      "name": "go-libp2p-kad-dht",
+      "version": "4.4.26"
+    },
+    {
+      "author": "stebalien",
+      "hash": "QmdboayjE53q27kq6zGk5vkx4u7LDGdcbVoi5NXMCtfiKS",
+      "name": "go-ipns",
+      "version": "0.1.22"
+    }
+  ],
+  "gxVersion": "0.14.0",
+  "language": "go",
+  "license": "MIT",
+  "name": "dht-node",
+  "releaseCmd": "git commit -a -m \"gx publish $VERSION\"",
+  "version": "0.0.0"
+}
+
