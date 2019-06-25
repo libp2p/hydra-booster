@@ -119,11 +119,23 @@ func main() {
 	inmem := flag.Bool("mem", false, "Use an in-memory database. This overrides the -db option")
 	pprofport := flag.Int("pprof-port", -1, "Specify a port to run pprof http server on")
 	relay := flag.Bool("relay", false, "Enable libp2p circuit relaying for this node")
+	portBegin := flag.Int("portBegin", 0, "If set, begin port allocation here")
 	flag.Parse()
 	id.ClientVersion = "dhtbooster/2"
 
 	if *relay {
 		id.ClientVersion += "+relay"
+	}
+
+	port := *portBegin
+	getPort := func() int {
+		if port == 0 {
+			return 0
+		}
+
+		out := port
+		port++
+		return out
 	}
 
 	if *pprofport >= 0 {
@@ -151,7 +163,8 @@ func main() {
 	uniqpeers := make(map[peer.ID]struct{})
 	fmt.Fprintf(os.Stderr, "Running %d DHT Instances...", *many)
 	for i := 0; i < *many; i++ {
-		h, d, err := makeAndStartNode(ds, "/ip4/0.0.0.0/tcp/0", *relay)
+		laddr := fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", getPort())
+		h, d, err := makeAndStartNode(ds, laddr, *relay)
 		if err != nil {
 			panic(err)
 		}
