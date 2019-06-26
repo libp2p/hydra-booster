@@ -11,6 +11,7 @@ import (
 	"net/http/pprof"
 	"os"
 	"runtime"
+	"sync/atomic"
 	"time"
 
 	"contrib.go.opencensus.io/exporter/prometheus"
@@ -91,6 +92,8 @@ func boostrapper() pstore.PeerInfo {
 	}
 }
 
+var bootstrapDone int64
+
 func makeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int, limiter chan struct{}) (host.Host, *dht.IpfsDHT, error) {
 	opts := []libp2p.Option{libp2p.ListenAddrStrings(addr)}
 	if relay {
@@ -123,10 +126,12 @@ func makeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int, l
 
 		time.Sleep(time.Second)
 
-		d.BootstrapOnce(context.Background(), dht.BootstrapConfig{Queries: 2})
+		d.BootstrapOnce(context.Background(), dht.BootstrapConfig{Queries: 4})
+		d.FindPeer(context.Background(), peer.ID("foo"))
 		if limiter != nil {
 			<-limiter
 		}
+		atomic.AddInt64(&bootstrapDone, 1)
 
 	}()
 	return h, d, nil
@@ -140,7 +145,7 @@ func main() {
 	relay := flag.Bool("relay", false, "Enable libp2p circuit relaying for this node")
 	portBegin := flag.Int("portBegin", 0, "If set, begin port allocation here")
 	bucketSize := flag.Int("bucketSize", defaultKValue, "Specify the bucket size")
-	bootstrapConcurency := flag.Int("bootstrapConc", 16, "How many concurrent bootstraps to run")
+	bootstrapConcurency := flag.Int("bootstrapConc", 128, "How many concurrent bootstraps to run")
 	flag.Parse()
 	id.ClientVersion = "dhtbooster/2"
 
@@ -223,7 +228,7 @@ func printStatusLine(ndht int, start time.Time, hosts []host.Host, dhts []*dht.I
 		}
 	}
 
-	fmt.Fprintf(os.Stderr, "[NumDhts: %d, Uptime: %s, Memory Usage: %s, TotalPeers: %d/%d, Total Provs: %d, BootstrapLimiter: %d/%d]]\n", ndht, uptime, human.Bytes(mstat.Alloc), totalpeers, len(uniqprs), totalprovs, len(limiter), cap(limiter))
+	fmt.Fprintf(os.Stderr, "[NumDhts: %d, Uptime: %s, Memory Usage: %s, TotalPeers: %d/%d, Total Provs: %d, BootstrapLimiter: %d/%d, BootstrapsDone: %d]\n", ndht, uptime, human.Bytes(mstat.Alloc), totalpeers, len(uniqprs), totalprovs, len(limiter), cap(limiter), atomic.LoadInt64(&bootstrapDone))
 }
 
 func runSingleDHTWithUI(path string, relay bool, bucketSize int) {
