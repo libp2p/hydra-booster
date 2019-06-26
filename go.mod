@@ -12,7 +12,7 @@ require (
 	github.com/libp2p/go-libp2p-circuit v0.1.0
 	github.com/libp2p/go-libp2p-core v0.0.3 // indirect
 	github.com/libp2p/go-libp2p-host v0.1.0
-	github.com/libp2p/go-libp2p-kad-dht v0.1.2-0.20190626090905-bd07cbf37830
+	github.com/libp2p/go-libp2p-kad-dht v0.1.2-0.20190626115622-604ac88795b2
 	github.com/libp2p/go-libp2p-net v0.1.0
 	github.com/libp2p/go-libp2p-peer v0.2.0
 	github.com/libp2p/go-libp2p-peerstore v0.1.0
