@@ -123,8 +123,7 @@ func makeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int, l
 
 		time.Sleep(time.Second)
 
-		d.BootstrapSelf(context.Background())
-		d.FindPeer(context.Background(), peer.ID("foo"))
+		d.BootstrapOnce(context.Background(), dht.BootstrapConfig{Queries: 2})
 		if limiter != nil {
 			<-limiter
 		}
