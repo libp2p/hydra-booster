@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"net/http/pprof"
 	"os"
@@ -76,21 +77,28 @@ func waitForNotifications(r io.Reader, provs chan *provInfo, mesout chan string)
 	}
 }
 
-func boostrapper() pstore.PeerInfo {
-	a, err := ma.NewMultiaddr("/ip4/128.199.219.111/tcp/4001")
+var bootstrappers = []string{
+	"/ip4/104.131.131.82/tcp/4001/ipfs/QmaCpDMGvV2BGHeYERUEnRQAwe3N8SzbUtfsmvsqQLuvuJ",  // mars.i.ipfs.io
+	"/ip4/104.236.179.241/tcp/4001/ipfs/QmSoLPppuBtQSGwKDZT2M73ULpjvfd3aZ6ha4oFGL1KrGM", // pluto.i.ipfs.io
+	"/ip4/128.199.219.111/tcp/4001/ipfs/QmSoLSafTMBsPKadTEgaXctDQVcqN88CNLHXMkTNwMKPnu", // saturn.i.ipfs.io
+	"/ip4/104.236.76.40/tcp/4001/ipfs/QmSoLV4Bbm51jM9C4gDYZQ9Cy3U6aXMJDAbzgu2fzaDs64",   // venus.i.ipfs.io
+	"/ip4/178.62.158.247/tcp/4001/ipfs/QmSoLer265NRgSp2LA3dPaeykiS1J6DifTC88f5uVQKNAd",  // earth.i.ipfs.io
+}
+
+func bootstrapper() pstore.PeerInfo {
+	bsa := bootstrappers[rand.Intn(len(bootstrappers))]
+
+	a, err := ma.NewMultiaddr(bsa)
 	if err != nil {
 		panic(err)
 	}
 
-	pid, err := peer.IDB58Decode("QmSoLSafTMBsPKadTEgaXctDQVcqN88CNLHXMkTNwMKPnu")
+	ai, err := pstore.InfoFromP2pAddr(a)
 	if err != nil {
 		panic(err)
 	}
 
-	return pstore.PeerInfo{
-		ID:    pid,
-		Addrs: []ma.Multiaddr{a},
-	}
+	return *ai
 }
 
 var bootstrapDone int64
@@ -120,14 +128,17 @@ func makeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int, l
 		if limiter != nil {
 			limiter <- struct{}{}
 		}
-		err = h.Connect(context.Background(), boostrapper())
-		if err != nil {
-			panic(err)
+
+		for i := 0; i < 2; i++ {
+			if err := h.Connect(context.Background(), bootstrapper()); err != nil {
+				fmt.Println("bootstrap connect failed: ", err)
+				i--
+			}
 		}
 
 		time.Sleep(time.Second)
 
-		tctx, cancel := context.WithTimeout(context.Background(), time.Second*40)
+		tctx, cancel := context.WithTimeout(context.Background(), time.Second*300)
 		defer cancel()
 
 		d.BootstrapOnce(tctx, dht.BootstrapConfig{Queries: 4})
