@@ -185,11 +185,6 @@ func main() {
 	uniqpeers := make(map[peer.ID]struct{})
 	fmt.Fprintf(os.Stderr, "Running %d DHT Instances...", *many)
 
-	provs := make(chan *provInfo, 16)
-	r, w := io.Pipe()
-	logwriter.WriterGroup.AddWriter(w)
-	go waitForNotifications(r, provs, nil)
-
 	limiter := make(chan struct{}, *bootstrapConcurency)
 	for i := 0; i < *many; i++ {
 		laddr := fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", getPort())
@@ -205,6 +200,11 @@ func main() {
 		fmt.Println("Running metrics server on port: %d", *pprofport)
 		go setupMetrics(*pprofport)
 	}
+
+	provs := make(chan *provInfo, 16)
+	r, w := io.Pipe()
+	logwriter.WriterGroup.AddWriter(w)
+	go waitForNotifications(r, provs, nil)
 
 	totalprovs := 0
 	reportInterval := time.NewTicker(time.Second * 5)
