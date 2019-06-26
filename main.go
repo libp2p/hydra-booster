@@ -153,6 +153,19 @@ func makeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int, l
 	return h, d, nil
 }
 
+func portSelector(beg int) func() int {
+	port := beg
+	return func() int {
+		if port == 0 {
+			return 0
+		}
+
+		out := port
+		port++
+		return out + 1
+	}
+}
+
 func main() {
 	many := flag.Int("many", -1, "Instead of running one dht, run many!")
 	dbpath := flag.String("db", "dht-data", "Database folder")
@@ -169,25 +182,26 @@ func main() {
 		id.ClientVersion += "+relay"
 	}
 
-	port := *portBegin
-	getPort := func() int {
-		if port == 0 {
-			return 0
-		}
-
-		out := port
-		port++
-		return out + 1
+	if *pprofport > 0 {
+		fmt.Println("Running metrics server on port: %d", *pprofport)
+		go setupMetrics(*pprofport)
 	}
+
+	getPort := portSelector(*portBegin)
 
 	if *inmem {
 		*dbpath = ""
 	}
 	if *many == -1 {
 		runSingleDHTWithUI(*dbpath, *relay, *bucketSize)
+		return
 	}
 
-	ds, err := levelds.NewDatastore(*dbpath, nil)
+	runMany(*dbpath, getPort, *many, *bucketSize, *bootstrapConcurency, *relay)
+}
+
+func runMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, relay bool) {
+	ds, err := levelds.NewDatastore(dbpath, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -196,22 +210,17 @@ func main() {
 	var hosts []host.Host
 	var dhts []*dht.IpfsDHT
 	uniqpeers := make(map[peer.ID]struct{})
-	fmt.Fprintf(os.Stderr, "Running %d DHT Instances...\n", *many)
+	fmt.Fprintf(os.Stderr, "Running %d DHT Instances...\n", many)
 
-	limiter := make(chan struct{}, *bootstrapConcurency)
-	for i := 0; i < *many; i++ {
+	limiter := make(chan struct{}, bsCon)
+	for i := 0; i < many; i++ {
 		laddr := fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", getPort())
-		h, d, err := makeAndStartNode(ds, laddr, *relay, *bucketSize, limiter)
+		h, d, err := makeAndStartNode(ds, laddr, relay, bucketSize, limiter)
 		if err != nil {
 			panic(err)
 		}
 		hosts = append(hosts, h)
 		dhts = append(dhts, d)
-	}
-
-	if *pprofport > 0 {
-		fmt.Println("Running metrics server on port: %d", *pprofport)
-		go setupMetrics(*pprofport)
 	}
 
 	provs := make(chan *provInfo, 16)
@@ -230,12 +239,12 @@ func main() {
 				totalprovs++
 			}
 		case <-reportInterval.C:
-			printStatusLine(*many, start, hosts, dhts, uniqpeers, totalprovs, limiter)
+			printStatusLine(many, start, hosts, dhts, uniqpeers, totalprovs)
 		}
 	}
 }
 
-func printStatusLine(ndht int, start time.Time, hosts []host.Host, dhts []*dht.IpfsDHT, uniqprs map[peer.ID]struct{}, totalprovs int, limiter chan struct{}) {
+func printStatusLine(ndht int, start time.Time, hosts []host.Host, dhts []*dht.IpfsDHT, uniqprs map[peer.ID]struct{}, totalprovs int) {
 	uptime := time.Second * time.Duration(int(time.Since(start).Seconds()))
 	var mstat runtime.MemStats
 	runtime.ReadMemStats(&mstat)
@@ -248,7 +257,7 @@ func printStatusLine(ndht int, start time.Time, hosts []host.Host, dhts []*dht.I
 		}
 	}
 
-	fmt.Fprintf(os.Stderr, "[NumDhts: %d, Uptime: %s, Memory Usage: %s, TotalPeers: %d/%d, Total Provs: %d, BootstrapLimiter: %d/%d, BootstrapsDone: %d]\n", ndht, uptime, human.Bytes(mstat.Alloc), totalpeers, len(uniqprs), totalprovs, len(limiter), cap(limiter), atomic.LoadInt64(&bootstrapDone))
+	fmt.Fprintf(os.Stderr, "[NumDhts: %d, Uptime: %s, Memory Usage: %s, TotalPeers: %d/%d, Total Provs: %d, BootstrapsDone: %d]\n", ndht, uptime, human.Bytes(mstat.Alloc), totalpeers, len(uniqprs), totalprovs, atomic.LoadInt64(&bootstrapDone))
 }
 
 func runSingleDHTWithUI(path string, relay bool, bucketSize int) {
