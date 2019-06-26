@@ -22,6 +22,7 @@ import (
 	circuit "github.com/libp2p/go-libp2p-circuit"
 	host "github.com/libp2p/go-libp2p-host"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
+	dhtopts "github.com/libp2p/go-libp2p-kad-dht/opts"
 	peer "github.com/libp2p/go-libp2p-peer"
 	pstore "github.com/libp2p/go-libp2p-peerstore"
 	record "github.com/libp2p/go-libp2p-record"
@@ -94,7 +95,7 @@ func makeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int) (
 		panic(err)
 	}
 
-	d := dht.NewDHT(context.Background(), h, ds, bucketSize)
+	d, err := dht.New(context.Background(), h, dhtopts.BucketSize(bucketSize), dhtopts.Datastore(ds))
 	if err != nil {
 		panic(err)
 	}
