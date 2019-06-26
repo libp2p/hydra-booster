@@ -137,11 +137,12 @@ func makeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int, l
 		}
 
 		time.Sleep(time.Second)
+		timeout := time.Minute * 5
 
-		tctx, cancel := context.WithTimeout(context.Background(), time.Minute*5)
+		tctx, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
 
-		d.BootstrapOnce(tctx, dht.BootstrapConfig{Queries: 4})
+		d.BootstrapOnce(tctx, dht.BootstrapConfig{Queries: 4, Timeout: timeout})
 		if limiter != nil {
 			<-limiter
 		}
