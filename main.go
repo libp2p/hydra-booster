@@ -183,7 +183,7 @@ func main() {
 	var hosts []host.Host
 	var dhts []*dht.IpfsDHT
 	uniqpeers := make(map[peer.ID]struct{})
-	fmt.Fprintf(os.Stderr, "Running %d DHT Instances...", *many)
+	fmt.Fprintf(os.Stderr, "Running %d DHT Instances...\n", *many)
 
 	limiter := make(chan struct{}, *bootstrapConcurency)
 	for i := 0; i < *many; i++ {
