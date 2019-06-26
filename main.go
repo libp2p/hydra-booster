@@ -63,12 +63,12 @@ func waitForNotifications(r io.Reader, provs chan *provInfo, mesout chan string)
 		if err != nil {
 			panic(err)
 		}
-		event := e["event"]
-		// TODO: this is broken now, the log format for go-log eventlogs has changed
+
+		event := e["Operation"]
 		if event == "handleAddProvider" {
 			provs <- &provInfo{
-				Key:      e["key"].(string),
-				Duration: time.Duration(e["duration"].(float64)),
+				Key:      (e["Tags"].(map[string]interface{}))["key"].(string),
+				Duration: time.Duration(e["Duration"].(float64)),
 			}
 		}
 	}
@@ -174,6 +174,12 @@ func main() {
 	var dhts []*dht.IpfsDHT
 	uniqpeers := make(map[peer.ID]struct{})
 	fmt.Fprintf(os.Stderr, "Running %d DHT Instances...", *many)
+
+	provs := make(chan *provInfo, 16)
+	r, w := io.Pipe()
+	logwriter.WriterGroup.AddWriter(w)
+	go waitForNotifications(r, provs, nil)
+
 	for i := 0; i < *many; i++ {
 		laddr := fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", getPort()+1)
 		h, d, err := makeAndStartNode(ds, laddr, *relay, *bucketSize)
@@ -185,12 +191,20 @@ func main() {
 	}
 
 	go setupMetrics(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", *portBegin))
-	for range time.Tick(time.Second * 5) {
-		printStatusLine(*many, start, hosts, dhts, uniqpeers)
+
+	totalprovs := 0
+	reportInterval := time.NewTicker(time.Second * 5)
+	for {
+		select {
+		case <-provs:
+			totalprovs++
+		case <-reportInterval.C:
+			printStatusLine(*many, start, hosts, dhts, uniqpeers, totalprovs)
+		}
 	}
 }
 
-func printStatusLine(ndht int, start time.Time, hosts []host.Host, dhts []*dht.IpfsDHT, uniqprs map[peer.ID]struct{}) {
+func printStatusLine(ndht int, start time.Time, hosts []host.Host, dhts []*dht.IpfsDHT, uniqprs map[peer.ID]struct{}, totalprovs int) {
 	uptime := time.Second * time.Duration(int(time.Since(start).Seconds()))
 	var mstat runtime.MemStats
 	runtime.ReadMemStats(&mstat)
@@ -203,7 +217,7 @@ func printStatusLine(ndht int, start time.Time, hosts []host.Host, dhts []*dht.I
 		}
 	}
 
-	fmt.Fprintf(os.Stderr, "[NumDhts: %d, Uptime: %s, Memory Usage: %s, TotalPeers: %d/%d]\n", ndht, uptime, human.Bytes(mstat.Alloc), totalpeers, len(uniqprs))
+	fmt.Fprintf(os.Stderr, "[NumDhts: %d, Uptime: %s, Memory Usage: %s, TotalPeers: %d/%d, Total Provs: %d]\n", ndht, uptime, human.Bytes(mstat.Alloc), totalpeers, len(uniqprs), totalprovs)
 }
 
 func runSingleDHTWithUI(path string, relay bool, bucketSize int) {
