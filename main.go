@@ -22,6 +22,7 @@ import (
 	circuit "github.com/libp2p/go-libp2p-circuit"
 	host "github.com/libp2p/go-libp2p-host"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
+	dhtopts "github.com/libp2p/go-libp2p-kad-dht/opts"
 	peer "github.com/libp2p/go-libp2p-peer"
 	pstore "github.com/libp2p/go-libp2p-peerstore"
 	record "github.com/libp2p/go-libp2p-record"
@@ -31,7 +32,10 @@ import (
 
 var _ = circuit.P_CIRCUIT
 
-var log = logging.Logger("dhtbooster")
+var (
+	log           = logging.Logger("dhtbooster")
+	defaultKValue = 20
+)
 
 type Event struct {
 	Event  string
@@ -80,7 +84,7 @@ func boostrapper() pstore.PeerInfo {
 	}
 }
 
-func makeAndStartNode(ds ds.Batching, addr string, relay bool) (host.Host, *dht.IpfsDHT, error) {
+func makeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int) (host.Host, *dht.IpfsDHT, error) {
 	opts := []libp2p.Option{libp2p.ListenAddrStrings(addr)}
 	if relay {
 		opts = append(opts, libp2p.EnableRelay(circuit.OptHop))
@@ -91,7 +95,7 @@ func makeAndStartNode(ds ds.Batching, addr string, relay bool) (host.Host, *dht.
 		panic(err)
 	}
 
-	d := dht.NewDHT(context.Background(), h, ds)
+	d, err := dht.New(context.Background(), h, dhtopts.BucketSize(bucketSize), dhtopts.Datastore(ds))
 	if err != nil {
 		panic(err)
 	}
@@ -120,6 +124,7 @@ func main() {
 	pprofport := flag.Int("pprof-port", -1, "Specify a port to run pprof http server on")
 	relay := flag.Bool("relay", false, "Enable libp2p circuit relaying for this node")
 	portBegin := flag.Int("portBegin", 0, "If set, begin port allocation here")
+	bucketSize := flag.Int("bucketSize", defaultKValue, "Specify the bucket size")
 	flag.Parse()
 	id.ClientVersion = "dhtbooster/2"
 
@@ -149,7 +154,7 @@ func main() {
 		*dbpath = ""
 	}
 	if *many == -1 {
-		runSingleDHTWithUI(*dbpath, *relay)
+		runSingleDHTWithUI(*dbpath, *relay, *bucketSize)
 	}
 
 	ds, err := levelds.NewDatastore(*dbpath, nil)
@@ -164,7 +169,7 @@ func main() {
 	fmt.Fprintf(os.Stderr, "Running %d DHT Instances...", *many)
 	for i := 0; i < *many; i++ {
 		laddr := fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", getPort())
-		h, d, err := makeAndStartNode(ds, laddr, *relay)
+		h, d, err := makeAndStartNode(ds, laddr, *relay, *bucketSize)
 		if err != nil {
 			panic(err)
 		}
@@ -193,12 +198,12 @@ func printStatusLine(ndht int, start time.Time, hosts []host.Host, dhts []*dht.I
 	fmt.Fprintf(os.Stderr, "[NumDhts: %d, Uptime: %s, Memory Usage: %s, TotalPeers: %d/%d]\n", ndht, uptime, human.Bytes(mstat.Alloc), totalpeers, len(uniqprs))
 }
 
-func runSingleDHTWithUI(path string, relay bool) {
+func runSingleDHTWithUI(path string, relay bool, bucketSize int) {
 	ds, err := levelds.NewDatastore(path, nil)
 	if err != nil {
 		panic(err)
 	}
-	h, _, err := makeAndStartNode(ds, "/ip4/0.0.0.0/tcp/19264", relay)
+	h, _, err := makeAndStartNode(ds, "/ip4/0.0.0.0/tcp/19264", relay, bucketSize)
 	if err != nil {
 		panic(err)
 	}
