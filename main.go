@@ -62,7 +62,8 @@ func waitForNotifications(r io.Reader, provs chan *provInfo, mesout chan string)
 	for {
 		err := dec.Decode(&e)
 		if err != nil {
-			panic(err)
+			fmt.Printf("waitForNotifications error: %s\n", err)
+			continue
 		}
 
 		event := e["Operation"]
