@@ -31,7 +31,6 @@ import (
 	record "github.com/libp2p/go-libp2p-record"
 	id "github.com/libp2p/go-libp2p/p2p/protocol/identify"
 	ma "github.com/multiformats/go-multiaddr"
-	manet "github.com/multiformats/go-multiaddr-net"
 	prom "github.com/prometheus/client_golang/prometheus"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/zpages"
@@ -151,13 +150,6 @@ func main() {
 		return out
 	}
 
-	if *pprofport >= 0 {
-		go func() {
-			fmt.Printf("Http server listening on port: %d\n", *pprofport)
-			panic(http.ListenAndServe(fmt.Sprintf(":%d", *pprofport), nil))
-		}()
-	}
-
 	if *inmem {
 		*dbpath = ""
 	}
@@ -191,7 +183,10 @@ func main() {
 		dhts = append(dhts, d)
 	}
 
-	go setupMetrics(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", *portBegin))
+	if *pprofport > 0 {
+		fmt.Println("Running metrics server on port: %d", *pprofport)
+		go setupMetrics(*pprofport)
+	}
 
 	totalprovs := 0
 	reportInterval := time.NewTicker(time.Second * 5)
@@ -283,7 +278,7 @@ func runSingleDHTWithUI(path string, relay bool, bucketSize int) {
 	}
 }
 
-func setupMetrics(addr string) error {
+func setupMetrics(port int) error {
 	// setup Prometheus
 	registry := prom.NewRegistry()
 	goCollector := prom.NewGoCollector()
@@ -306,16 +301,6 @@ func setupMetrics(addr string) error {
 		return err
 	}
 
-	endpointAddr, err := ma.NewMultiaddr(addr)
-	if err != nil {
-		return fmt.Errorf("loadMetricsOptions: PrometheusEndpoint multiaddr: %v", err)
-	}
-
-	_, promAddr, err := manet.DialArgs(endpointAddr)
-	if err != nil {
-		return err
-	}
-
 	go func() {
 		mux := http.NewServeMux()
 		zpages.Handle(mux, "/debug")
@@ -331,7 +316,7 @@ func setupMetrics(addr string) error {
 		mux.Handle("/debug/pprof/heap", pprof.Handler("heap"))
 		// mux.Handle("/debug/pprof/mutex", pprof.Handler("mutex"))
 		// mux.Handle("/debug/pprof/threadcreate", pprof.Handler("threadcreate"))
-		if err := http.ListenAndServe(promAddr, mux); err != nil {
+		if err := http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", port), mux); err != nil {
 			log.Fatalf("Failed to run Prometheus /metrics endpoint: %v", err)
 		}
 	}()
