@@ -10,6 +10,7 @@ require (
 	github.com/ipfs/go-log v0.0.1
 	github.com/libp2p/go-libp2p v0.1.3-0.20190626170235-f299d252e778
 	github.com/libp2p/go-libp2p-circuit v0.1.0
+	github.com/libp2p/go-libp2p-connmgr v0.1.0
 	github.com/libp2p/go-libp2p-host v0.1.0
 	github.com/libp2p/go-libp2p-kad-dht v0.1.2-0.20190626191213-8fe679a4d4de
 	github.com/libp2p/go-libp2p-net v0.1.0

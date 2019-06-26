@@ -24,6 +24,7 @@ import (
 	logwriter "github.com/ipfs/go-log/writer"
 	libp2p "github.com/libp2p/go-libp2p"
 	circuit "github.com/libp2p/go-libp2p-circuit"
+	connmgr "github.com/libp2p/go-libp2p-connmgr"
 	host "github.com/libp2p/go-libp2p-host"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	dhtmetrics "github.com/libp2p/go-libp2p-kad-dht/metrics"
@@ -105,7 +106,9 @@ func bootstrapper() pstore.PeerInfo {
 var bootstrapDone int64
 
 func makeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int, limiter chan struct{}) (host.Host, *dht.IpfsDHT, error) {
-	opts := []libp2p.Option{libp2p.ListenAddrStrings(addr)}
+	cmgr := connmgr.NewConnManager(3000, 4000, time.Minute)
+
+	opts := []libp2p.Option{libp2p.ListenAddrStrings(addr), libp2p.ConnectionManager(cmgr)}
 	if relay {
 		opts = append(opts, libp2p.EnableRelay(circuit.OptHop))
 	}
