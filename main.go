@@ -138,7 +138,7 @@ func makeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int, l
 
 		time.Sleep(time.Second)
 
-		tctx, cancel := context.WithTimeout(context.Background(), time.Second*300)
+		tctx, cancel := context.WithTimeout(context.Background(), time.Minute*5)
 		defer cancel()
 
 		d.BootstrapOnce(tctx, dht.BootstrapConfig{Queries: 4})
@@ -208,7 +208,7 @@ func main() {
 	}
 
 	if *pprofport > 0 {
-		fmt.Println("Running metrics server on port: %d", *pprofport)
+		fmt.Printf("Running metrics server on port: %d\n", *pprofport)
 		go setupMetrics(*pprofport)
 	}
 
