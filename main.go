@@ -43,6 +43,7 @@ var (
 	defaultKValue = 20
 )
 
+// Event is an event.
 type Event struct {
 	Event  string
 	System string
@@ -174,7 +175,7 @@ func main() {
 	uniqpeers := make(map[peer.ID]struct{})
 	fmt.Fprintf(os.Stderr, "Running %d DHT Instances...", *many)
 	for i := 0; i < *many; i++ {
-		laddr := fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", getPort())
+		laddr := fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", getPort()+1)
 		h, d, err := makeAndStartNode(ds, laddr, *relay, *bucketSize)
 		if err != nil {
 			panic(err)
@@ -183,10 +184,10 @@ func main() {
 		dhts = append(dhts, d)
 	}
 
+	go setupMetrics(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", *portBegin))
 	for range time.Tick(time.Second * 5) {
 		printStatusLine(*many, start, hosts, dhts, uniqpeers)
 	}
-	go setupMetrics(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", getPort()))
 }
 
 func printStatusLine(ndht int, start time.Time, hosts []host.Host, dhts []*dht.IpfsDHT, uniqprs map[peer.ID]struct{}) {
