@@ -91,7 +91,7 @@ func boostrapper() pstore.PeerInfo {
 	}
 }
 
-func makeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int) (host.Host, *dht.IpfsDHT, error) {
+func makeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int, limiter chan struct{}) (host.Host, *dht.IpfsDHT, error) {
 	opts := []libp2p.Option{libp2p.ListenAddrStrings(addr)}
 	if relay {
 		opts = append(opts, libp2p.EnableRelay(circuit.OptHop))
@@ -113,13 +113,22 @@ func makeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int) (
 	}
 
 	go func() {
+		if limiter != nil {
+			limiter <- struct{}{}
+		}
 		err = h.Connect(context.Background(), boostrapper())
 		if err != nil {
 			panic(err)
 		}
 
 		time.Sleep(time.Second)
+
+		d.BootstrapSelf(context.Background())
 		d.FindPeer(context.Background(), peer.ID("foo"))
+		if limiter != nil {
+			<-limiter
+		}
+
 	}()
 	return h, d, nil
 }
@@ -132,6 +141,7 @@ func main() {
 	relay := flag.Bool("relay", false, "Enable libp2p circuit relaying for this node")
 	portBegin := flag.Int("portBegin", 0, "If set, begin port allocation here")
 	bucketSize := flag.Int("bucketSize", defaultKValue, "Specify the bucket size")
+	bootstrapConcurency := flag.Int("bootstrapConc", 16, "How many concurrent bootstraps to run")
 	flag.Parse()
 	id.ClientVersion = "dhtbooster/2"
 
@@ -173,9 +183,10 @@ func main() {
 	logwriter.WriterGroup.AddWriter(w)
 	go waitForNotifications(r, provs, nil)
 
+	limiter := make(chan struct{}, *bootstrapConcurency)
 	for i := 0; i < *many; i++ {
-		laddr := fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", getPort()+1)
-		h, d, err := makeAndStartNode(ds, laddr, *relay, *bucketSize)
+		laddr := fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", getPort())
+		h, d, err := makeAndStartNode(ds, laddr, *relay, *bucketSize, limiter)
 		if err != nil {
 			panic(err)
 		}
@@ -195,12 +206,12 @@ func main() {
 		case <-provs:
 			totalprovs++
 		case <-reportInterval.C:
-			printStatusLine(*many, start, hosts, dhts, uniqpeers, totalprovs)
+			printStatusLine(*many, start, hosts, dhts, uniqpeers, totalprovs, limiter)
 		}
 	}
 }
 
-func printStatusLine(ndht int, start time.Time, hosts []host.Host, dhts []*dht.IpfsDHT, uniqprs map[peer.ID]struct{}, totalprovs int) {
+func printStatusLine(ndht int, start time.Time, hosts []host.Host, dhts []*dht.IpfsDHT, uniqprs map[peer.ID]struct{}, totalprovs int, limiter chan struct{}) {
 	uptime := time.Second * time.Duration(int(time.Since(start).Seconds()))
 	var mstat runtime.MemStats
 	runtime.ReadMemStats(&mstat)
@@ -213,7 +224,7 @@ func printStatusLine(ndht int, start time.Time, hosts []host.Host, dhts []*dht.I
 		}
 	}
 
-	fmt.Fprintf(os.Stderr, "[NumDhts: %d, Uptime: %s, Memory Usage: %s, TotalPeers: %d/%d, Total Provs: %d]\n", ndht, uptime, human.Bytes(mstat.Alloc), totalpeers, len(uniqprs), totalprovs)
+	fmt.Fprintf(os.Stderr, "[NumDhts: %d, Uptime: %s, Memory Usage: %s, TotalPeers: %d/%d, Total Provs: %d, BootstrapLimiter: %d/%d]]\n", ndht, uptime, human.Bytes(mstat.Alloc), totalpeers, len(uniqprs), totalprovs, len(limiter), cap(limiter))
 }
 
 func runSingleDHTWithUI(path string, relay bool, bucketSize int) {
@@ -221,7 +232,7 @@ func runSingleDHTWithUI(path string, relay bool, bucketSize int) {
 	if err != nil {
 		panic(err)
 	}
-	h, _, err := makeAndStartNode(ds, "/ip4/0.0.0.0/tcp/19264", relay, bucketSize)
+	h, _, err := makeAndStartNode(ds, "/ip4/0.0.0.0/tcp/19264", relay, bucketSize, nil)
 	if err != nil {
 		panic(err)
 	}
