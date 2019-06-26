@@ -12,6 +12,7 @@ import (
 	"runtime"
 	"time"
 
+	"contrib.go.opencensus.io/exporter/prometheus"
 	human "github.com/dustin/go-humanize"
 	ds "github.com/ipfs/go-datastore"
 	levelds "github.com/ipfs/go-ds-leveldb"
@@ -22,12 +23,17 @@ import (
 	circuit "github.com/libp2p/go-libp2p-circuit"
 	host "github.com/libp2p/go-libp2p-host"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
+	dhtmetrics "github.com/libp2p/go-libp2p-kad-dht/metrics"
 	dhtopts "github.com/libp2p/go-libp2p-kad-dht/opts"
 	peer "github.com/libp2p/go-libp2p-peer"
 	pstore "github.com/libp2p/go-libp2p-peerstore"
 	record "github.com/libp2p/go-libp2p-record"
 	id "github.com/libp2p/go-libp2p/p2p/protocol/identify"
 	ma "github.com/multiformats/go-multiaddr"
+	manet "github.com/multiformats/go-multiaddr-net"
+	prom "github.com/prometheus/client_golang/prometheus"
+	"go.opencensus.io/stats/view"
+	"go.opencensus.io/zpages"
 )
 
 var _ = circuit.P_CIRCUIT
@@ -37,6 +43,7 @@ var (
 	defaultKValue = 20
 )
 
+// Event is an event.
 type Event struct {
 	Event  string
 	System string
@@ -168,7 +175,7 @@ func main() {
 	uniqpeers := make(map[peer.ID]struct{})
 	fmt.Fprintf(os.Stderr, "Running %d DHT Instances...", *many)
 	for i := 0; i < *many; i++ {
-		laddr := fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", getPort())
+		laddr := fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", getPort()+1)
 		h, d, err := makeAndStartNode(ds, laddr, *relay, *bucketSize)
 		if err != nil {
 			panic(err)
@@ -177,6 +184,7 @@ func main() {
 		dhts = append(dhts, d)
 	}
 
+	go setupMetrics(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", *portBegin))
 	for range time.Tick(time.Second * 5) {
 		printStatusLine(*many, start, hosts, dhts, uniqpeers)
 	}
@@ -258,4 +266,59 @@ func runSingleDHTWithUI(path string, relay bool, bucketSize int) {
 			etime.SetVal(fmt.Sprintf("%dh %dm %ds", h, m, s))
 		}
 	}
+}
+
+func setupMetrics(addr string) error {
+	// setup Prometheus
+	registry := prom.NewRegistry()
+	goCollector := prom.NewGoCollector()
+	procCollector := prom.NewProcessCollector(prom.ProcessCollectorOpts{})
+	registry.MustRegister(goCollector, procCollector)
+	pe, err := prometheus.NewExporter(prometheus.Options{
+		Namespace: "dht_node",
+		Registry:  registry,
+	})
+	if err != nil {
+		return err
+	}
+
+	// register prometheus with opencensus
+	view.RegisterExporter(pe)
+	view.SetReportingPeriod(2)
+
+	// register the metrics views of interest
+	if err := view.Register(dhtmetrics.DefaultViews...); err != nil {
+		return err
+	}
+
+	endpointAddr, err := ma.NewMultiaddr(addr)
+	if err != nil {
+		return fmt.Errorf("loadMetricsOptions: PrometheusEndpoint multiaddr: %v", err)
+	}
+
+	_, promAddr, err := manet.DialArgs(endpointAddr)
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		mux := http.NewServeMux()
+		zpages.Handle(mux, "/debug")
+		mux.Handle("/metrics", pe)
+		// mux.Handle("/debug/vars", expvar.Handler())
+		// mux.HandleFunc("/debug/pprof", pprof.Index)
+		// mux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+		// mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
+		// mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+		// mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
+		// mux.Handle("/debug/pprof/block", pprof.Handler("block"))
+		// mux.Handle("/debug/pprof/goroutine", pprof.Handler("goroutine"))
+		// mux.Handle("/debug/pprof/heap", pprof.Handler("heap"))
+		// mux.Handle("/debug/pprof/mutex", pprof.Handler("mutex"))
+		// mux.Handle("/debug/pprof/threadcreate", pprof.Handler("threadcreate"))
+		if err := http.ListenAndServe(promAddr, mux); err != nil {
+			log.Fatalf("Failed to run Prometheus /metrics endpoint: %v", err)
+		}
+	}()
+	return nil
 }
