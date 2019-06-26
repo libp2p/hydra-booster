@@ -64,7 +64,8 @@ func waitForNotifications(r io.Reader, provs chan *provInfo, mesout chan string)
 		err := dec.Decode(&e)
 		if err != nil {
 			fmt.Printf("waitForNotifications error: %s\n", err)
-			continue
+			close(provs)
+			return
 		}
 
 		event := e["Operation"]
@@ -209,7 +210,7 @@ func main() {
 	}
 
 	if *pprofport > 0 {
-		fmt.Printf("Running metrics server on port: %d\n", *pprofport)
+		fmt.Println("Running metrics server on port: %d", *pprofport)
 		go setupMetrics(*pprofport)
 	}
 
@@ -222,8 +223,12 @@ func main() {
 	reportInterval := time.NewTicker(time.Second * 5)
 	for {
 		select {
-		case <-provs:
-			totalprovs++
+		case _, ok := <-provs:
+			if !ok {
+				totalprovs = -1
+			} else {
+				totalprovs++
+			}
 		case <-reportInterval.C:
 			printStatusLine(*many, start, hosts, dhts, uniqpeers, totalprovs, limiter)
 		}
