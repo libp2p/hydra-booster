@@ -141,7 +141,7 @@ func makeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int, l
 		tctx, cancel := context.WithTimeout(context.Background(), time.Minute*5)
 		defer cancel()
 
-		d.BootstrapOnce(tctx, dht.BootstrapConfig{Queries: 4})
+		d.FindPeer(tctx, "this is my cats name")
 		if limiter != nil {
 			<-limiter
 		}
