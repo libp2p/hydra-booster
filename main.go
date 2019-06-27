@@ -42,6 +42,7 @@ import (
 
 var _ = dhtmetrics.DefaultViews
 var _ = circuit.P_CIRCUIT
+var _ = logwriter.WriterGroup
 
 var (
 	log           = logging.Logger("dhtbooster")
@@ -231,9 +232,9 @@ func runMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, rel
 	}
 
 	provs := make(chan *provInfo, 16)
-	r, w := io.Pipe()
-	logwriter.WriterGroup.AddWriter(w)
-	go waitForNotifications(r, provs, nil)
+	//r, w := io.Pipe()
+	//logwriter.WriterGroup.AddWriter(w)
+	//go waitForNotifications(r, provs, nil)
 
 	totalprovs := 0
 	reportInterval := time.NewTicker(time.Second * 5)
