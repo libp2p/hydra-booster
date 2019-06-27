@@ -281,9 +281,9 @@ func runSingleDHTWithUI(path string, relay bool, bucketSize int) {
 	uniqpeers := make(map[peer.ID]struct{})
 	messages := make(chan string, 16)
 	provs := make(chan *provInfo, 16)
-	r, w := io.Pipe()
-	logwriter.WriterGroup.AddWriter(w)
-	go waitForNotifications(r, provs, messages)
+	//r, w := io.Pipe()
+	//logwriter.WriterGroup.AddWriter(w)
+	//go waitForNotifications(r, provs, messages)
 
 	ga := &GooeyApp{Title: "Libp2p DHT Node", Log: NewLog(15, 15)}
 	ga.NewDataLine(3, "Peer ID", h.ID().Pretty())
