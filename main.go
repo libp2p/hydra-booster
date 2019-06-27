@@ -40,6 +40,7 @@ import (
 	"go.opencensus.io/zpages"
 )
 
+var _ = dhtmetrics.DefaultViews
 var _ = circuit.P_CIRCUIT
 
 var (
@@ -343,6 +344,8 @@ func setupMetrics(port int) error {
 		return err
 	}
 
+	_ = view.RegisterExporter
+	/* Disabling opencensus for now, it allocates too much
 	// register prometheus with opencensus
 	view.RegisterExporter(pe)
 	view.SetReportingPeriod(2)
@@ -351,6 +354,7 @@ func setupMetrics(port int) error {
 	if err := view.Register(dhtmetrics.DefaultViews...); err != nil {
 		return err
 	}
+	*/
 
 	go func() {
 		mux := http.NewServeMux()
