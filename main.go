@@ -186,7 +186,7 @@ func main() {
 	}
 
 	if *pprofport > 0 {
-		fmt.Println("Running metrics server on port: %d", *pprofport)
+		fmt.Printf("Running metrics server on port: %d\n", *pprofport)
 		go setupMetrics(*pprofport)
 	}
 
