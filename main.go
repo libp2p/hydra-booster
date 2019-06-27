@@ -25,6 +25,7 @@ import (
 	libp2p "github.com/libp2p/go-libp2p"
 	circuit "github.com/libp2p/go-libp2p-circuit"
 	connmgr "github.com/libp2p/go-libp2p-connmgr"
+	crypto "github.com/libp2p/go-libp2p-core/crypto"
 	host "github.com/libp2p/go-libp2p-host"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	dhtmetrics "github.com/libp2p/go-libp2p-kad-dht/metrics"
@@ -108,7 +109,9 @@ var bootstrapDone int64
 func makeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int, limiter chan struct{}) (host.Host, *dht.IpfsDHT, error) {
 	cmgr := connmgr.NewConnManager(3000, 4000, time.Minute)
 
-	opts := []libp2p.Option{libp2p.ListenAddrStrings(addr), libp2p.ConnectionManager(cmgr)}
+	priv, _, _ := crypto.GenerateKeyPair(crypto.Ed25519, 0)
+
+	opts := []libp2p.Option{libp2p.ListenAddrStrings(addr), libp2p.ConnectionManager(cmgr), libp2p.Identity(priv)}
 	if relay {
 		opts = append(opts, libp2p.EnableRelay(circuit.OptHop))
 	}
