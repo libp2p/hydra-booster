@@ -238,6 +238,7 @@ func runMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, rel
 		case _, ok := <-provs:
 			if !ok {
 				totalprovs = -1
+				provs = nil
 			} else {
 				totalprovs++
 			}
