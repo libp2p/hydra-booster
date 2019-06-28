@@ -109,7 +109,7 @@ func bootstrapper() pstore.PeerInfo {
 var bootstrapDone int64
 
 func makeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int, limiter chan struct{}) (host.Host, *dht.IpfsDHT, error) {
-	cmgr := connmgr.NewConnManager(3000, 4000, time.Minute)
+	cmgr := connmgr.NewConnManager(1500, 2000, time.Minute)
 
 	priv, _, _ := crypto.GenerateKeyPair(crypto.Ed25519, 0)
 
