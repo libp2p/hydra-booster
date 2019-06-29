@@ -182,7 +182,8 @@ func main() {
 	relay := flag.Bool("relay", false, "Enable libp2p circuit relaying for this node")
 	portBegin := flag.Int("portBegin", 0, "If set, begin port allocation here")
 	bucketSize := flag.Int("bucketSize", defaultKValue, "Specify the bucket size")
-	bootstrapConcurency := flag.Int("bootstrapConc", 128, "How many concurrent bootstraps to run")
+	bootstrapConcurency := flag.Int("bootstrapConc", 32, "How many concurrent bootstraps to run")
+	stagger := flag.Duration("stagger", 0*time.Second, "Duration to stagger nodes starts by")
 	flag.Parse()
 	id.ClientVersion = "dhtbooster/2"
 
@@ -205,10 +206,10 @@ func main() {
 		return
 	}
 
-	runMany(*dbpath, getPort, *many, *bucketSize, *bootstrapConcurency, *relay)
+	runMany(*dbpath, getPort, *many, *bucketSize, *bootstrapConcurency, *relay, *stagger)
 }
 
-func runMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, relay bool) {
+func runMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, relay bool, stagger time.Duration) {
 	ds, err := levelds.NewDatastore(dbpath, nil)
 	if err != nil {
 		panic(err)
@@ -218,10 +219,13 @@ func runMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, rel
 	var hosts []host.Host
 	var dhts []*dht.IpfsDHT
 	uniqpeers := make(map[peer.ID]struct{})
-	fmt.Fprintf(os.Stderr, "Running %d DHT Instances...\n", many)
+	fmt.Fprintf(os.Stderr, "Running %d DHT Instances:\n", many)
 
 	limiter := make(chan struct{}, bsCon)
 	for i := 0; i < many; i++ {
+		time.Sleep(stagger)
+		fmt.Fprintf(os.Stderr, ".")
+
 		laddr := fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", getPort())
 		h, d, err := makeAndStartNode(ds, laddr, relay, bucketSize, limiter)
 		if err != nil {
@@ -230,6 +234,7 @@ func runMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, rel
 		hosts = append(hosts, h)
 		dhts = append(dhts, d)
 	}
+	fmt.Fprintf(os.Stderr, "\n")
 
 	provs := make(chan *provInfo, 16)
 	//r, w := io.Pipe()
