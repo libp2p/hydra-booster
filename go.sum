@@ -3,6 +3,8 @@ contrib.go.opencensus.io/exporter/prometheus v0.1.0 h1:SByaIoWwNgMdPSgl5sMqM2KDE
 contrib.go.opencensus.io/exporter/prometheus v0.1.0/go.mod h1:cGFniUXGZlKRjzOyuZJ6mgB+PgBcCIa79kEKR8YCW+A=
 github.com/AndreasBriese/bbloom v0.0.0-20180913140656-343706a395b7/go.mod h1:bOvUY6CB00SOBii9/FifXqc0awNKxLFCL/+pkDPuyl8=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
+github.com/Kubuxu/go-more-timers v0.0.2 h1:crCnqFrHgX0V5LlCUGN9Z1EpoiOkgukTUSvnP9PA0CA=
+github.com/Kubuxu/go-more-timers v0.0.2/go.mod h1:dtBio+tdzhJCqphlKGXXwP8ykW87aRXJMIurME30E3c=
 github.com/Kubuxu/go-os-helper v0.0.1/go.mod h1:N8B+I7vPCT80IcP58r50u4+gEEcsZETFUpAzWW2ep1Y=
 github.com/aead/siphash v1.0.1/go.mod h1:Nywa3cDsYNNK3gaciGTWPwHt0wlpNV15vwmswBAUSII=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
@@ -134,8 +136,8 @@ github.com/libp2p/go-eventbus v0.0.2 h1:L9eslON8FjFBJlyUs9fyEZKnxSqZd2AMDUNldPrq
 github.com/libp2p/go-eventbus v0.0.2/go.mod h1:Hr/yGlwxA/stuLnpMiu82lpNKpvRy3EaJxPu40XYOwk=
 github.com/libp2p/go-flow-metrics v0.0.1 h1:0gxuFd2GuK7IIP5pKljLwps6TvcuYgvG7Atqi3INF5s=
 github.com/libp2p/go-flow-metrics v0.0.1/go.mod h1:Iv1GH0sG8DtYN3SVJ2eG221wMiNpZxBdp967ls1g+k8=
-github.com/libp2p/go-libp2p v0.1.3-0.20190626170235-f299d252e778 h1:S6+XMA5RQX9hlr+M1+8m6IcI6qNg744b5xqWieCeFzQ=
-github.com/libp2p/go-libp2p v0.1.3-0.20190626170235-f299d252e778/go.mod h1:+TYaPrxDRORO40RdCcuEEHGJhfo17kQVv9prZHiAnjk=
+github.com/libp2p/go-libp2p v0.2.0-0.20190628095754-ccf9943938b9 h1:x6J3zg1VARAsfiakXav7FuUSPhbz1GcmKtmf3VSyrXc=
+github.com/libp2p/go-libp2p v0.2.0-0.20190628095754-ccf9943938b9/go.mod h1:+TYaPrxDRORO40RdCcuEEHGJhfo17kQVv9prZHiAnjk=
 github.com/libp2p/go-libp2p-autonat v0.1.0 h1:aCWAu43Ri4nU0ZPO7NyLzUvvfqd0nE3dX0R/ZGYVgOU=
 github.com/libp2p/go-libp2p-autonat v0.1.0/go.mod h1:1tLf2yXxiE/oKGtDwPYWTSYG3PtvYlJmg7NeVtPRqH8=
 github.com/libp2p/go-libp2p-blankhost v0.1.1/go.mod h1:pf2fvdLJPsC1FsVrNP3DUUvMzUts2dsLLBEpo1vW1ro=
@@ -159,8 +161,8 @@ github.com/libp2p/go-libp2p-discovery v0.1.0 h1:j+R6cokKcGbnZLf4kcNwpx6mDEUPF3N6
 github.com/libp2p/go-libp2p-discovery v0.1.0/go.mod h1:4F/x+aldVHjHDHuX85x1zWoFTGElt8HnoDzwkFZm29g=
 github.com/libp2p/go-libp2p-host v0.1.0 h1:OZwENiFm6JOK3YR5PZJxkXlJE8a5u8g4YvAUrEV2MjM=
 github.com/libp2p/go-libp2p-host v0.1.0/go.mod h1:5+fWuLbDn8OxoxPN3CV0vsLe1hAKScSMbT84qRfxum8=
-github.com/libp2p/go-libp2p-kad-dht v0.1.2-0.20190627133309-0bc1181d05ba h1:GSXtvVcEI4hqj3OgKyXR8PfJy7WAUiYBkq0ayycZCZ4=
-github.com/libp2p/go-libp2p-kad-dht v0.1.2-0.20190627133309-0bc1181d05ba/go.mod h1:hKAXMIXBysB5+IzEz5jIqelZoobXzollJV97xms+qeE=
+github.com/libp2p/go-libp2p-kad-dht v0.1.2-0.20190629173555-5ff18aae16c9 h1:nVTWntvlv/cq05mrnErOIGn7uOKfAHiUHTL8I01iSDs=
+github.com/libp2p/go-libp2p-kad-dht v0.1.2-0.20190629173555-5ff18aae16c9/go.mod h1:yBDavMclag03KN/yWTB6wf9dVkRRen3DGty+m138jQE=
 github.com/libp2p/go-libp2p-kbucket v0.2.0 h1:FB2a0VkOTNGTP5gu/I444u4WabNM9V1zCkQcWb7zajI=
 github.com/libp2p/go-libp2p-kbucket v0.2.0/go.mod h1:JNymBToym3QXKBMKGy3m29+xprg0EVr/GJFHxFEdgh8=
 github.com/libp2p/go-libp2p-loggables v0.1.0 h1:h3w8QFfCt2UJl/0/NW4K829HX/0S4KD31PQ7m8UXXO8=
@@ -204,8 +206,8 @@ github.com/libp2p/go-libp2p-yamux v0.2.1 h1:Q3XYNiKCC2vIxrvUJL+Jg1kiyeEaIDNKLjgE
 github.com/libp2p/go-libp2p-yamux v0.2.1/go.mod h1:1FBXiHDk1VyRM1C0aez2bCfHQ4vMZKkAQzZbkSQt5fI=
 github.com/libp2p/go-maddr-filter v0.0.4 h1:hx8HIuuwk34KePddrp2mM5ivgPkZ09JH4AvsALRbFUs=
 github.com/libp2p/go-maddr-filter v0.0.4/go.mod h1:6eT12kSQMA9x2pvFQa+xesMKUBlj9VImZbj3B9FBH/Q=
-github.com/libp2p/go-maddr-filter v0.0.5-0.20190627145032-4d5679194bce h1:vXz/JWa/rMRZ31FOmgjlK8YCMeTfTmHBjLW246ovx6c=
-github.com/libp2p/go-maddr-filter v0.0.5-0.20190627145032-4d5679194bce/go.mod h1:Jk+36PMfIqCJhAnaASRH83bdAvfDRp/w6ENFaC9bG+M=
+github.com/libp2p/go-maddr-filter v0.0.5 h1:CW3AgbMO6vUvT4kf87y4N+0P8KUl2aqLYhrGyDUbLSg=
+github.com/libp2p/go-maddr-filter v0.0.5/go.mod h1:Jk+36PMfIqCJhAnaASRH83bdAvfDRp/w6ENFaC9bG+M=
 github.com/libp2p/go-mplex v0.0.3/go.mod h1:pK5yMLmOoBR1pNCqDlA2GQrdAVTMkqFalaTWe7l4Yd0=
 github.com/libp2p/go-mplex v0.1.0 h1:/nBTy5+1yRyY82YaO6HXQRnO5IAGsXTjEJaR3LdTPc0=
 github.com/libp2p/go-mplex v0.1.0/go.mod h1:SXgmdki2kwCUlCCbfGLEgHjC4pFqhTp0ZoV6aiKgxDU=

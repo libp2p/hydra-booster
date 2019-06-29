@@ -8,18 +8,18 @@ require (
 	github.com/ipfs/go-ds-leveldb v0.0.2
 	github.com/ipfs/go-ipns v0.0.1
 	github.com/ipfs/go-log v0.0.1
-	github.com/libp2p/go-libp2p v0.1.3-0.20190626170235-f299d252e778
+	github.com/libp2p/go-libp2p v0.2.0-0.20190628095754-ccf9943938b9
 	github.com/libp2p/go-libp2p-circuit v0.1.0
 	github.com/libp2p/go-libp2p-connmgr v0.1.0
 	github.com/libp2p/go-libp2p-core v0.0.7-0.20190628102912-99d0f11616da
 	github.com/libp2p/go-libp2p-host v0.1.0
-	github.com/libp2p/go-libp2p-kad-dht v0.1.2-0.20190627133309-0bc1181d05ba
+	github.com/libp2p/go-libp2p-kad-dht v0.1.2-0.20190629173555-5ff18aae16c9
 	github.com/libp2p/go-libp2p-net v0.1.0
 	github.com/libp2p/go-libp2p-peer v0.2.0
 	github.com/libp2p/go-libp2p-peerstore v0.1.2-0.20190621130618-cfa9bb890c1a
 	github.com/libp2p/go-libp2p-record v0.1.0
 	github.com/libp2p/go-libp2p-swarm v0.1.1-0.20190606081407-8be680aef8de // indirect
-	github.com/libp2p/go-maddr-filter v0.0.5-0.20190627145032-4d5679194bce // indirect
+	github.com/libp2p/go-maddr-filter v0.0.5 // indirect
 	github.com/mattn/go-colorable v0.1.2 // indirect
 	github.com/multiformats/go-multiaddr v0.0.4
 	github.com/opentracing/opentracing-go v1.1.0 // indirect
