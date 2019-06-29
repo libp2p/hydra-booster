@@ -29,11 +29,11 @@ import (
 	connmgr "github.com/libp2p/go-libp2p-connmgr"
 	crypto "github.com/libp2p/go-libp2p-core/crypto"
 	network "github.com/libp2p/go-libp2p-core/network"
+	peer "github.com/libp2p/go-libp2p-core/peer"
 	host "github.com/libp2p/go-libp2p-host"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	dhtmetrics "github.com/libp2p/go-libp2p-kad-dht/metrics"
 	dhtopts "github.com/libp2p/go-libp2p-kad-dht/opts"
-	peer "github.com/libp2p/go-libp2p-peer"
 	pstore "github.com/libp2p/go-libp2p-peerstore"
 	record "github.com/libp2p/go-libp2p-record"
 	id "github.com/libp2p/go-libp2p/p2p/protocol/identify"
@@ -261,6 +261,22 @@ func runMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, rel
 	//r, w := io.Pipe()
 	//logwriter.WriterGroup.AddWriter(w)
 	//go waitForNotifications(r, provs, nil)
+
+	go func() {
+		http.HandleFunc("/peers", func(w http.ResponseWriter, r *http.Request) {
+			var out []peer.AddrInfo
+			for _, h := range hosts {
+				out = append(out, peer.AddrInfo{
+					ID:    h.ID(),
+					Addrs: h.Addrs(),
+				})
+			}
+
+			json.NewEncoder(w).Encode(out)
+		})
+
+		http.ListenAndServe("127.0.0.1:7779", nil)
+	}()
 
 	totalprovs := 0
 	reportInterval := time.NewTicker(time.Second * 5)
