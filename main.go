@@ -12,6 +12,7 @@ import (
 	"net/http/pprof"
 	"os"
 	"runtime"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -220,13 +221,17 @@ func runMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, rel
 	start := time.Now()
 	var hosts []host.Host
 	var dhts []*dht.IpfsDHT
-	hyperlog := hyperloglog.New()
 
+	var hyperLock sync.Mutex
+	hyperlog := hyperloglog.New()
 	var peersConnected int64
 
 	notifiee := &network.NotifyBundle{
 		ConnectedF: func(_ network.Network, v network.Conn) {
+			hyperLock.Lock()
 			hyperlog.Insert([]byte(v.RemotePeer()))
+			hyperLock.Unlock()
+
 			atomic.AddInt64(&peersConnected, 1)
 		},
 		DisconnectedF: func(_ network.Network, v network.Conn) {
