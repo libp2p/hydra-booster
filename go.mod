@@ -2,6 +2,7 @@ module github.com/ipfs/dht-node
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.1.0
+	github.com/axiomhq/hyperloglog v0.0.0-20190607114936-323ed515b11c
 	github.com/dustin/go-humanize v1.0.0
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/ipfs/go-datastore v0.0.5

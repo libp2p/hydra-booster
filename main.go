@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"contrib.go.opencensus.io/exporter/prometheus"
+	"github.com/axiomhq/hyperloglog"
 	human "github.com/dustin/go-humanize"
 	ds "github.com/ipfs/go-datastore"
 	levelds "github.com/ipfs/go-ds-leveldb"
@@ -26,6 +27,7 @@ import (
 	circuit "github.com/libp2p/go-libp2p-circuit"
 	connmgr "github.com/libp2p/go-libp2p-connmgr"
 	crypto "github.com/libp2p/go-libp2p-core/crypto"
+	network "github.com/libp2p/go-libp2p-core/network"
 	host "github.com/libp2p/go-libp2p-host"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	dhtmetrics "github.com/libp2p/go-libp2p-kad-dht/metrics"
@@ -218,7 +220,20 @@ func runMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, rel
 	start := time.Now()
 	var hosts []host.Host
 	var dhts []*dht.IpfsDHT
-	uniqpeers := make(map[peer.ID]struct{})
+	hyperlog := hyperloglog.New()
+
+	var peersConnected int64
+
+	notifiee := &network.NotifyBundle{
+		ConnectedF: func(_ network.Network, v network.Conn) {
+			hyperlog.Insert([]byte(v.RemotePeer()))
+			atomic.AddInt64(&peersConnected, 1)
+		},
+		DisconnectedF: func(_ network.Network, v network.Conn) {
+			atomic.AddInt64(&peersConnected, -1)
+		},
+	}
+
 	fmt.Fprintf(os.Stderr, "Running %d DHT Instances:\n", many)
 
 	limiter := make(chan struct{}, bsCon)
@@ -231,6 +246,7 @@ func runMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, rel
 		if err != nil {
 			panic(err)
 		}
+		h.Network().Notify(notifiee)
 		hosts = append(hosts, h)
 		dhts = append(dhts, d)
 	}
@@ -253,25 +269,17 @@ func runMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, rel
 				totalprovs++
 			}
 		case <-reportInterval.C:
-			printStatusLine(many, start, hosts, dhts, uniqpeers, totalprovs)
+			printStatusLine(many, start, atomic.LoadInt64(&peersConnected), hyperlog.Estimate(), totalprovs)
 		}
 	}
 }
 
-func printStatusLine(ndht int, start time.Time, hosts []host.Host, dhts []*dht.IpfsDHT, uniqprs map[peer.ID]struct{}, totalprovs int) {
+func printStatusLine(ndht int, start time.Time, totalpeers int64, uniqpeers uint64, totalprovs int) {
 	uptime := time.Second * time.Duration(int(time.Since(start).Seconds()))
 	var mstat runtime.MemStats
 	runtime.ReadMemStats(&mstat)
-	var totalpeers int
-	for _, h := range hosts {
-		peers := h.Network().Peers()
-		totalpeers += len(peers)
-		for _, p := range peers {
-			uniqprs[p] = struct{}{}
-		}
-	}
 
-	fmt.Fprintf(os.Stderr, "[NumDhts: %d, Uptime: %s, Memory Usage: %s, TotalPeers: %d/%d, Total Provs: %d, BootstrapsDone: %d]\n", ndht, uptime, human.Bytes(mstat.Alloc), totalpeers, len(uniqprs), totalprovs, atomic.LoadInt64(&bootstrapDone))
+	fmt.Fprintf(os.Stderr, "[NumDhts: %d, Uptime: %s, Memory Usage: %s, TotalPeers: %d/%d, Total Provs: %d, BootstrapsDone: %d]\n", ndht, uptime, human.Bytes(mstat.Alloc), totalpeers, uniqpeers, totalprovs, atomic.LoadInt64(&bootstrapDone))
 }
 
 func runSingleDHTWithUI(path string, relay bool, bucketSize int) {
