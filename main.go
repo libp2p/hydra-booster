@@ -274,7 +274,10 @@ func runMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, rel
 				totalprovs++
 			}
 		case <-reportInterval.C:
-			printStatusLine(many, start, atomic.LoadInt64(&peersConnected), hyperlog.Estimate(), totalprovs)
+			hyperLock.Lock()
+			uniqpeers := hyperlog.Estimate()
+			hyperLock.Unlock()
+			printStatusLine(many, start, atomic.LoadInt64(&peersConnected), uniqpeers, totalprovs)
 		}
 	}
 }
