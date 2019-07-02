@@ -118,7 +118,10 @@ func makeAndStartNode(dstore ds.Batching, addr string, relay bool, bucketSize in
 
 	priv, _, _ := crypto.GenerateKeyPair(crypto.Ed25519, 0)
 
-	pstore, err := pstoreds.NewPeerstore(context.Background(), nsds.Wrap(dstore, ds.NewKey("/pstore")), pstoreds.DefaultOpts())
+	pstoreOpts := pstoreds.DefaultOpts()
+	pstoreOpts.GCPurgeDeviation = 20 * time.Minute
+
+	pstore, err := pstoreds.NewPeerstore(context.Background(), nsds.Wrap(dstore, ds.NewKey("/pstore")), pstoreOpts)
 	if err != nil {
 		panic(err)
 	}

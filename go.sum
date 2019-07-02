@@ -202,8 +202,8 @@ github.com/libp2p/go-libp2p-peer v0.2.0/go.mod h1:RCffaCvUyW2CJmG2gAWVqwePwW7JMg
 github.com/libp2p/go-libp2p-peerstore v0.0.1/go.mod h1:RabLyPVJLuNQ+GFyoEkfi8H4Ti6k/HtZJ7YKgtSq+20=
 github.com/libp2p/go-libp2p-peerstore v0.1.0/go.mod h1:2CeHkQsr8svp4fZ+Oi9ykN1HBb6u0MOvdJ7YIsmcwtY=
 github.com/libp2p/go-libp2p-peerstore v0.1.2-0.20190621130618-cfa9bb890c1a/go.mod h1:DAchSrPUuksotuxrqPcvk5jvifXlxC3oH/65iHFmBns=
-github.com/libp2p/go-libp2p-peerstore v0.1.2-0.20190628153822-06edc321d394 h1:cWjuRxUv2gXZLX//5zbON9fElm2PTXdo0rMcFo1Al5U=
-github.com/libp2p/go-libp2p-peerstore v0.1.2-0.20190628153822-06edc321d394/go.mod h1:BJ9sHlm59/80oSkpWgr1MyY1ciXAXV397W6h1GH/uKI=
+github.com/libp2p/go-libp2p-peerstore v0.1.2-0.20190702213650-ed93577c96ae h1:tsjUF8JWRBONsZzApFABSZM3gRHIs6jGXhw/5vRzwvk=
+github.com/libp2p/go-libp2p-peerstore v0.1.2-0.20190702213650-ed93577c96ae/go.mod h1:JgiM8DrvdQ3+G+Vori5xZVGjAVTlmsI2c0mWGwELSSY=
 github.com/libp2p/go-libp2p-record v0.0.1/go.mod h1:grzqg263Rug/sRex85QrDOLntdFAymLDLm7lxMgU79Q=
 github.com/libp2p/go-libp2p-record v0.1.0 h1:wHwBGbFzymoIl69BpgwIu0O6ta3TXGcMPvHUAcodzRc=
 github.com/libp2p/go-libp2p-record v0.1.0/go.mod h1:ujNc8iuE5dlKWVy6wuL6dd58t0n7xI4hAIl8pE6wu5Q=
