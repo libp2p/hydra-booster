@@ -20,6 +20,7 @@ import (
 	"github.com/axiomhq/hyperloglog"
 	human "github.com/dustin/go-humanize"
 	ds "github.com/ipfs/go-datastore"
+	nsds "github.com/ipfs/go-datastore/namespace"
 	levelds "github.com/ipfs/go-ds-leveldb"
 	ipns "github.com/ipfs/go-ipns"
 	logging "github.com/ipfs/go-log"
@@ -35,6 +36,7 @@ import (
 	dhtopts "github.com/libp2p/go-libp2p-kad-dht/opts"
 	peer "github.com/libp2p/go-libp2p-peer"
 	pstore "github.com/libp2p/go-libp2p-peerstore"
+	pstoreds "github.com/libp2p/go-libp2p-peerstore/pstoreds"
 	record "github.com/libp2p/go-libp2p-record"
 	id "github.com/libp2p/go-libp2p/p2p/protocol/identify"
 	ma "github.com/multiformats/go-multiaddr"
@@ -111,12 +113,17 @@ func bootstrapper() pstore.PeerInfo {
 
 var bootstrapDone int64
 
-func makeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int, limiter chan struct{}) (host.Host, *dht.IpfsDHT, error) {
+func makeAndStartNode(dstore ds.Batching, addr string, relay bool, bucketSize int, limiter chan struct{}) (host.Host, *dht.IpfsDHT, error) {
 	cmgr := connmgr.NewConnManager(1500, 2000, time.Minute)
 
 	priv, _, _ := crypto.GenerateKeyPair(crypto.Ed25519, 0)
 
-	opts := []libp2p.Option{libp2p.ListenAddrStrings(addr), libp2p.ConnectionManager(cmgr), libp2p.Identity(priv)}
+	pstore, err := pstoreds.NewPeerstore(context.Background(), nsds.Wrap(dstore, ds.NewKey("/pstore")), pstoreds.DefaultOpts())
+	if err != nil {
+		panic(err)
+	}
+
+	opts := []libp2p.Option{libp2p.ListenAddrStrings(addr), libp2p.ConnectionManager(cmgr), libp2p.Identity(priv), libp2p.Peerstore(pstore)}
 	if relay {
 		opts = append(opts, libp2p.EnableRelay(circuit.OptHop))
 	}
@@ -126,7 +133,7 @@ func makeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int, l
 		panic(err)
 	}
 
-	d, err := dht.New(context.Background(), h, dhtopts.BucketSize(bucketSize), dhtopts.Datastore(ds))
+	d, err := dht.New(context.Background(), h, dhtopts.BucketSize(bucketSize), dhtopts.Datastore(dstore))
 	if err != nil {
 		panic(err)
 	}
