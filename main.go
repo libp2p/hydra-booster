@@ -20,7 +20,7 @@ import (
 	"github.com/axiomhq/hyperloglog"
 	human "github.com/dustin/go-humanize"
 	ds "github.com/ipfs/go-datastore"
-	nsds "github.com/ipfs/go-datastore/namespace"
+	badger "github.com/ipfs/go-ds-badger"
 	levelds "github.com/ipfs/go-ds-leveldb"
 	ipns "github.com/ipfs/go-ipns"
 	logging "github.com/ipfs/go-log"
@@ -216,7 +216,15 @@ func main() {
 }
 
 func runMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, relay bool, stagger time.Duration) {
-	dstore, err := levelds.NewDatastore(dbpath, nil)
+	badgerOpts := badger.DefaultOptions
+	badgerOpts.SyncWrites = false
+
+	badgerStore, err := badger.NewDatastore("pstore-data", &badgerOpts)
+	if err != nil {
+		panic(err)
+	}
+
+	leveldbStore, err := levelds.NewDatastore(dbpath, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -224,7 +232,7 @@ func runMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, rel
 	opts := pstoreds.DefaultOpts()
 	opts.CacheSize = 0
 	opts.GCPurgeDeviation = 20 * time.Minute
-	pstore, err := pstoreds.NewPeerstore(context.Background(), nsds.Wrap(dstore, ds.NewKey("/pstore")), opts)
+	pstore, err := pstoreds.NewPeerstore(context.Background(), badgerStore, opts)
 	if err != nil {
 		panic(err)
 	}
@@ -258,7 +266,7 @@ func runMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, rel
 		fmt.Fprintf(os.Stderr, ".")
 
 		laddr := fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", getPort())
-		h, d, err := makeAndStartNode(dstore, laddr, relay, bucketSize, limiter, pstore)
+		h, d, err := makeAndStartNode(leveldbStore, laddr, relay, bucketSize, limiter, pstore)
 		if err != nil {
 			panic(err)
 		}
