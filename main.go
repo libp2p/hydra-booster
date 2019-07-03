@@ -230,7 +230,7 @@ func runMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, rel
 	}
 
 	opts := pstoreds.DefaultOpts()
-	opts.CacheSize = 0
+	opts.CacheSize = 0x8000
 	opts.GCPurgeDeviation = 20 * time.Minute
 	pstore, err := pstoreds.NewPeerstore(context.Background(), badgerStore, opts)
 	if err != nil {
