@@ -42,6 +42,13 @@ import (
 	"go.opencensus.io/zpages"
 )
 
+func init() {
+	// Allow short keys. Otherwise, we'll refuse connections from the
+	// bootsrappers and break the network.
+	// TODO: Remove this when we shut those bootstrappers down.
+	crypto.MinRsaKeyBits = 1024
+}
+
 var _ = dhtmetrics.DefaultViews
 var _ = circuit.P_CIRCUIT
 var _ = logwriter.WriterGroup
