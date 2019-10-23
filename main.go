@@ -126,6 +126,12 @@ func makeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int, l
 		panic(err)
 	}
 
+	// bootstrap in the background
+	// it's safe to start doing this _before_ establishing any connections
+	// as we'll trigger a boostrap round as soon as we get a connection
+	// anyways.
+	d.Bootstrap(context.Background())
+
 	go func() {
 		if limiter != nil {
 			limiter <- struct{}{}
@@ -137,13 +143,6 @@ func makeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int, l
 				i--
 			}
 		}
-
-		time.Sleep(time.Second)
-
-		timeout := time.Minute * 5
-		tctx, cancel := context.WithTimeout(context.Background(), timeout)
-		defer cancel()
-		d.BootstrapOnce(tctx, dht.BootstrapConfig{Queries: 4, Timeout: timeout})
 
 		if limiter != nil {
 			<-limiter
