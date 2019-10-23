@@ -37,11 +37,17 @@ import (
 	pstore "github.com/libp2p/go-libp2p-peerstore"
 	record "github.com/libp2p/go-libp2p-record"
 	id "github.com/libp2p/go-libp2p/p2p/protocol/identify"
-	ma "github.com/multiformats/go-multiaddr"
 	prom "github.com/prometheus/client_golang/prometheus"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/zpages"
 )
+
+func init() {
+	// Allow short keys. Otherwise, we'll refuse connections from the
+	// bootsrappers and break the network.
+	// TODO: Remove this when we shut those bootstrappers down.
+	crypto.MinRsaKeyBits = 1024
+}
 
 var _ = dhtmetrics.DefaultViews
 var _ = circuit.P_CIRCUIT
@@ -85,23 +91,9 @@ func waitForNotifications(r io.Reader, provs chan *provInfo, mesout chan string)
 	}
 }
 
-var bootstrappers = []string{
-	"/ip4/104.131.131.82/tcp/4001/ipfs/QmaCpDMGvV2BGHeYERUEnRQAwe3N8SzbUtfsmvsqQLuvuJ",  // mars.i.ipfs.io
-	"/ip4/104.236.179.241/tcp/4001/ipfs/QmSoLPppuBtQSGwKDZT2M73ULpjvfd3aZ6ha4oFGL1KrGM", // pluto.i.ipfs.io
-	"/ip4/128.199.219.111/tcp/4001/ipfs/QmSoLSafTMBsPKadTEgaXctDQVcqN88CNLHXMkTNwMKPnu", // saturn.i.ipfs.io
-	"/ip4/104.236.76.40/tcp/4001/ipfs/QmSoLV4Bbm51jM9C4gDYZQ9Cy3U6aXMJDAbzgu2fzaDs64",   // venus.i.ipfs.io
-	"/ip4/178.62.158.247/tcp/4001/ipfs/QmSoLer265NRgSp2LA3dPaeykiS1J6DifTC88f5uVQKNAd",  // earth.i.ipfs.io
-}
-
 func bootstrapper() pstore.PeerInfo {
-	bsa := bootstrappers[rand.Intn(len(bootstrappers))]
-
-	a, err := ma.NewMultiaddr(bsa)
-	if err != nil {
-		panic(err)
-	}
-
-	ai, err := pstore.InfoFromP2pAddr(a)
+	addr := dht.DefaultBootstrapPeers[rand.Intn(len(dht.DefaultBootstrapPeers))]
+	ai, err := pstore.InfoFromP2pAddr(addr)
 	if err != nil {
 		panic(err)
 	}
@@ -126,15 +118,19 @@ func makeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int, l
 		panic(err)
 	}
 
-	d, err := dht.New(context.Background(), h, dhtopts.BucketSize(bucketSize), dhtopts.Datastore(ds))
+	d, err := dht.New(context.Background(), h, dhtopts.BucketSize(bucketSize), dhtopts.Datastore(ds), dhtopts.Validator(record.NamespacedValidator{
+		"pk":   record.PublicKeyValidator{},
+		"ipns": ipns.Validator{KeyBook: h.Peerstore()},
+	}))
 	if err != nil {
 		panic(err)
 	}
 
-	d.Validator = record.NamespacedValidator{
-		"pk":   record.PublicKeyValidator{},
-		"ipns": ipns.Validator{KeyBook: h.Peerstore()},
-	}
+	// bootstrap in the background
+	// it's safe to start doing this _before_ establishing any connections
+	// as we'll trigger a boostrap round as soon as we get a connection
+	// anyways.
+	d.Bootstrap(context.Background())
 
 	go func() {
 		if limiter != nil {
@@ -147,13 +143,6 @@ func makeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int, l
 				i--
 			}
 		}
-
-		time.Sleep(time.Second)
-
-		timeout := time.Minute * 5
-		tctx, cancel := context.WithTimeout(context.Background(), timeout)
-		defer cancel()
-		d.BootstrapOnce(tctx, dht.BootstrapConfig{Queries: 4, Timeout: timeout})
 
 		if limiter != nil {
 			<-limiter
