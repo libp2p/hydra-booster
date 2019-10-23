@@ -118,14 +118,12 @@ func makeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int, l
 		panic(err)
 	}
 
-	d, err := dht.New(context.Background(), h, dhtopts.BucketSize(bucketSize), dhtopts.Datastore(ds))
-	if err != nil {
-		panic(err)
-	}
-
-	d.Validator = record.NamespacedValidator{
+	d, err := dht.New(context.Background(), h, dhtopts.BucketSize(bucketSize), dhtopts.Datastore(ds), dhtopts.Validator(record.NamespacedValidator{
 		"pk":   record.PublicKeyValidator{},
 		"ipns": ipns.Validator{KeyBook: h.Peerstore()},
+	}))
+	if err != nil {
+		panic(err)
 	}
 
 	go func() {
