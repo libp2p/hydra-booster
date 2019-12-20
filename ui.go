@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	human "github.com/dustin/go-humanize"
-	net "github.com/libp2p/go-libp2p-net"
+	net "github.com/libp2p/go-libp2p-core/network"
 	ma "github.com/multiformats/go-multiaddr"
 )
 
