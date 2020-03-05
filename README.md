@@ -22,7 +22,8 @@
 
 A new type of DHT node designed to accelerate the Content Resolution & Content Providing on the IPFS Network. A (cute) Hydra with one belly full of records and many heads (PeerIds) to tell other nodes about them, charged with rocket boosters to transport other nodes to their destination faster.
 
-[**Read the RFC**](https://docs.google.com/document/d/1yA2fY5c0WIv3LCtJCPVesHzvCWt14OPv7QlHdV3ghgU)
+[**Read the RFC**](https://docs.google.com/document/d/1yA2fY5c0WIv3LCtJCPVesHzvCWt14OPv7QlHdV3ghgU).
+Disclaimer: We are at Stage 1 of the RFC
 
 ## Installation
 
