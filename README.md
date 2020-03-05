@@ -1,5 +1,11 @@
-# Libp2p DHT Node
-Run a libp2p dht node for the good of the network!
+<p align="center"><img src="https://ipfs.io/ipfs/QmY8zKbqmSEdxxG6rx7Stm5b7dmf5R5Thi7UV2XHtgkBvr" width="360" /></p>
+<h1 align="center">Hydra Booster</h1>
+
+> A DHT Indexer node & Peer Router
+
+A new type of DHT node designed to accelerate the Content Resolution & Content Providing on the IPFS Network. A (cute) Hydra with one belly full of records and many heads (PeerIds) to tell other nodes about them, charged with rocket boosters to transport other nodes to their destination faster.
+
+[**Read the RFC**](https://docs.google.com/document/d/1yA2fY5c0WIv3LCtJCPVesHzvCWt14OPv7QlHdV3ghgU)
 
 ## Installation
 ```
