@@ -3,20 +3,17 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"expvar"
 	"flag"
 	"fmt"
 	"io"
 	"math/rand"
 	"net/http"
-	"net/http/pprof"
 	"os"
 	"runtime"
 	"sync"
 	"sync/atomic"
 	"time"
 
-	"contrib.go.opencensus.io/exporter/prometheus"
 	"github.com/axiomhq/hyperloglog"
 	human "github.com/dustin/go-humanize"
 	ds "github.com/ipfs/go-datastore"
@@ -37,9 +34,6 @@ import (
 	pstore "github.com/libp2p/go-libp2p-peerstore"
 	record "github.com/libp2p/go-libp2p-record"
 	id "github.com/libp2p/go-libp2p/p2p/protocol/identify"
-	prom "github.com/prometheus/client_golang/prometheus"
-	"go.opencensus.io/stats/view"
-	"go.opencensus.io/zpages"
 )
 
 func init() {
@@ -185,7 +179,7 @@ func main() {
 
 	if *pprofport > 0 {
 		fmt.Printf("Running metrics server on port: %d\n", *pprofport)
-		go setupMetrics(*pprofport)
+		go SetupMetrics(*pprofport)
 	}
 
 	getPort := portSelector(*portBegin)
@@ -355,49 +349,4 @@ func runSingleDHTWithUI(path string, relay bool, bucketSize int) {
 			etime.SetVal(fmt.Sprintf("%dh %dm %ds", h, m, s))
 		}
 	}
-}
-
-func setupMetrics(port int) error {
-	// setup Prometheus
-	registry := prom.NewRegistry()
-	goCollector := prom.NewGoCollector()
-	procCollector := prom.NewProcessCollector(prom.ProcessCollectorOpts{})
-	registry.MustRegister(goCollector, procCollector)
-	pe, err := prometheus.NewExporter(prometheus.Options{
-		Namespace: "dht_node",
-		Registry:  registry,
-	})
-	if err != nil {
-		return err
-	}
-
-	_ = view.RegisterExporter
-	/* Disabling opencensus for now, it allocates too much
-	// register prometheus with opencensus
-	view.RegisterExporter(pe)
-	view.SetReportingPeriod(2)
-
-	// register the metrics views of interest
-	if err := view.Register(dhtmetrics.DefaultViews...); err != nil {
-		return err
-	}
-	*/
-
-	go func() {
-		mux := http.NewServeMux()
-		zpages.Handle(mux, "/debug")
-		mux.Handle("/metrics", pe)
-		mux.Handle("/debug/vars", expvar.Handler())
-
-		mux.HandleFunc("/debug/pprof/", pprof.Index)
-		mux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-		mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
-		mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
-		mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
-
-		if err := http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", port), mux); err != nil {
-			log.Fatalf("Failed to run Prometheus /metrics endpoint: %v", err)
-		}
-	}()
-	return nil
 }
