@@ -37,8 +37,7 @@ import (
 )
 
 func init() {
-	// Allow short keys. Otherwise, we'll refuse connections from the
-	// bootsrappers and break the network.
+	// Allow short keys. Otherwise, we'll refuse connections from the bootsrappers and break the network.
 	// TODO: Remove this when we shut those bootstrappers down.
 	crypto.MinRsaKeyBits = 1024
 }
@@ -52,7 +51,7 @@ var (
 	defaultKValue = 20
 )
 
-// Event is an event.
+// Event ...
 type Event struct {
 	Event  string
 	System string
@@ -85,7 +84,7 @@ func waitForNotifications(r io.Reader, provs chan *provInfo, mesout chan string)
 	}
 }
 
-func bootstrapper() pstore.PeerInfo {
+func bootsrappersAddrs() pstore.PeerInfo {
 	addr := dht.DefaultBootstrapPeers[rand.Intn(len(dht.DefaultBootstrapPeers))]
 	ai, err := pstore.InfoFromP2pAddr(addr)
 	if err != nil {
@@ -122,17 +121,18 @@ func makeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int, l
 
 	// bootstrap in the background
 	// it's safe to start doing this _before_ establishing any connections
-	// as we'll trigger a boostrap round as soon as we get a connection
-	// anyways.
+	// as we'll trigger a boostrap round as soon as we get a connection anyways.
 	d.Bootstrap(context.Background())
 
 	go func() {
+		// ❓ what is this limiter for?
 		if limiter != nil {
 			limiter <- struct{}{}
 		}
 
+		// ❓ tries to connect to bootstrappers 2x, Why?
 		for i := 0; i < 2; i++ {
-			if err := h.Connect(context.Background(), bootstrapper()); err != nil {
+			if err := h.Connect(context.Background(), bootstrapperAddrs()); err != nil {
 				fmt.Println("bootstrap connect failed: ", err)
 				i--
 			}
@@ -158,41 +158,6 @@ func portSelector(beg int) func() int {
 		port++
 		return out + 1
 	}
-}
-
-func main() {
-	many := flag.Int("many", -1, "Instead of running one dht, run many!")
-	dbpath := flag.String("db", "dht-data", "Database folder")
-	inmem := flag.Bool("mem", false, "Use an in-memory database. This overrides the -db option")
-	pprofport := flag.Int("pprof-port", -1, "Specify a port to run pprof http server on")
-	relay := flag.Bool("relay", false, "Enable libp2p circuit relaying for this node")
-	portBegin := flag.Int("portBegin", 0, "If set, begin port allocation here")
-	bucketSize := flag.Int("bucketSize", defaultKValue, "Specify the bucket size")
-	bootstrapConcurency := flag.Int("bootstrapConc", 32, "How many concurrent bootstraps to run")
-	stagger := flag.Duration("stagger", 0*time.Second, "Duration to stagger nodes starts by")
-	flag.Parse()
-	id.ClientVersion = "dhtbooster/2"
-
-	if *relay {
-		id.ClientVersion += "+relay"
-	}
-
-	if *pprofport > 0 {
-		fmt.Printf("Running metrics server on port: %d\n", *pprofport)
-		go SetupMetrics(*pprofport)
-	}
-
-	getPort := portSelector(*portBegin)
-
-	if *inmem {
-		*dbpath = ""
-	}
-	if *many == -1 {
-		runSingleDHTWithUI(*dbpath, *relay, *bucketSize)
-		return
-	}
-
-	runMany(*dbpath, getPort, *many, *bucketSize, *bootstrapConcurency, *relay, *stagger)
 }
 
 func runMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, relay bool, stagger time.Duration) {
@@ -349,4 +314,40 @@ func runSingleDHTWithUI(path string, relay bool, bucketSize int) {
 			etime.SetVal(fmt.Sprintf("%dh %dm %ds", h, m, s))
 		}
 	}
+}
+
+func main() {
+	many := flag.Int("many", -1, "Instead of running one dht, run many!")
+	dbpath := flag.String("db", "dht-data", "Database folder")
+	inmem := flag.Bool("mem", false, "Use an in-memory database. This overrides the -db option")
+	pprofport := flag.Int("pprof-port", -1, "Specify a port to run pprof http server on")
+	relay := flag.Bool("relay", false, "Enable libp2p circuit relaying for this node")
+	portBegin := flag.Int("portBegin", 0, "If set, begin port allocation here")
+	bucketSize := flag.Int("bucketSize", defaultKValue, "Specify the bucket size")
+	bootstrapConcurency := flag.Int("bootstrapConc", 32, "How many concurrent bootstraps to run")
+	stagger := flag.Duration("stagger", 0*time.Second, "Duration to stagger nodes starts by")
+	flag.Parse()
+	id.ClientVersion = "hydra-booster/2"
+
+	if *relay {
+		id.ClientVersion += "+relay"
+	}
+
+	if *pprofport > 0 {
+		fmt.Printf("Running metrics server on port: %d\n", *pprofport)
+		go SetupMetrics(*pprofport)
+	}
+
+	if *inmem {
+		*dbpath = ""
+	}
+
+	if *many == -1 {
+		runSingleDHTWithUI(*dbpath, *relay, *bucketSize)
+		return
+	}
+
+	getPort := portSelector(*portBegin)
+
+	runMany(*dbpath, getPort, *many, *bucketSize, *bootstrapConcurency, *relay, *stagger)
 }
