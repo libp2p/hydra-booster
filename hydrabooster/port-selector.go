@@ -1,4 +1,4 @@
-package main
+package hydrabooster
 
 // PortSelector returns a func that yields a new port every time
 func PortSelector(beg int) func() int {

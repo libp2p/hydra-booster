@@ -7,25 +7,21 @@ go:
   - 1.14.x
 
 env:
-  global:
-    - BUILD_DEPTYPE=gomod
   matrix:
     - GOTFLAGS="-race"
     - GOTFLAGS="-race -tags=openssl"
-
-
-# disable travis install
-install:
-  - true
-
-script:
-  - bash <(curl -s https://raw.githubusercontent.com/ipfs/ci-helpers/master/travis-ci/run-standard-tests.sh)
-
 
 cache:
   directories:
     - $GOPATH/pkg/mod
     - $HOME/.cache/go-build
+
+script:
+  - go build ./...
+  - go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
 
 notifications:
   email: false
