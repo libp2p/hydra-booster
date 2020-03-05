@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/libp2p/hydra-booster/hydrabooster"
 	id "github.com/libp2p/go-libp2p/p2p/protocol/identify"
+	"github.com/libp2p/hydra-booster/hydrabooster"
 )
 
 const defaultKValue = 20
