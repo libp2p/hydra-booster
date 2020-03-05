@@ -75,7 +75,6 @@ func waitForNotifications(r io.Reader, provs chan *provInfo, mesout chan string)
 // RunMany ...
 func RunMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, relay bool, stagger time.Duration) error {
 	sharedDatastore, err := levelds.NewDatastore(dbpath, nil)
-
 	if err != nil {
 		return fmt.Errorf("failed to create datastore: %w", err)
 	}
@@ -179,7 +178,6 @@ func printStatusLine(ndht int, start time.Time, totalpeers int64, uniqpeers uint
 // RunSingleDHTWithUI ...
 func RunSingleDHTWithUI(path string, relay bool, bucketSize int) error {
 	datastore, err := levelds.NewDatastore(path, nil)
-
 	if err != nil {
 		return fmt.Errorf("failed to create datastore: %w", err)
 	}

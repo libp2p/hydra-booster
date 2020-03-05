@@ -40,7 +40,6 @@ func main() {
 
 	if *many == -1 {
 		err := hydrabooster.RunSingleDHTWithUI(*dbpath, *relay, *bucketSize)
-
 		if err != nil {
 			panic(err)
 		}
@@ -49,9 +48,7 @@ func main() {
 	}
 
 	getPort := hydrabooster.PortSelector(*portBegin)
-	hydrabooster.RunMany(*dbpath, getPort, *many, *bucketSize, *bootstrapConcurency, *relay, *stagger)
 	err := hydrabooster.RunMany(*dbpath, getPort, *many, *bucketSize, *bootstrapConcurency, *relay, *stagger)
-
 	if err != nil {
 		panic(err)
 	}

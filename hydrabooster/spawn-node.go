@@ -41,7 +41,6 @@ func SpawnNode(opts *SpawnNodeOpts) (host.Host, *dht.IpfsDHT, error) {
 	cmgr := connmgr.NewConnManager(1500, 2000, time.Minute)
 
 	priv, _, err := crypto.GenerateKeyPair(crypto.Ed25519, 0)
-
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to generate private key: %w", err)
 	}
@@ -53,7 +52,6 @@ func SpawnNode(opts *SpawnNodeOpts) (host.Host, *dht.IpfsDHT, error) {
 	}
 
 	node, err := libp2p.New(context.Background(), libp2pOpts...)
-
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to spawn libp2p node: %w", err)
 	}
@@ -62,7 +60,6 @@ func SpawnNode(opts *SpawnNodeOpts) (host.Host, *dht.IpfsDHT, error) {
 		"pk":   record.PublicKeyValidator{},
 		"ipns": ipns.Validator{KeyBook: node.Peerstore()},
 	}))
-
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to instantiate DHT: %w", err)
 	}
@@ -80,17 +77,14 @@ func SpawnNode(opts *SpawnNodeOpts) (host.Host, *dht.IpfsDHT, error) {
 
 		for {
 			addr, err := randBootstrapAddr()
-
 			if err != nil {
 				fmt.Println("failed to get random bootstrap multiaddr", err)
 				continue
 			}
-
 			if err := node.Connect(context.Background(), *addr); err != nil {
 				fmt.Println("bootstrap connect failed: ", err)
 				continue
 			}
-
 			break
 		}
 
