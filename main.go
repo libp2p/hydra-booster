@@ -110,7 +110,13 @@ func runMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, rel
 		fmt.Fprintf(os.Stderr, ".")
 
 		laddr := fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", getPort())
-		node, dhtNode, err := MakeAndStartNode(sharedDatastore, laddr, relay, bucketSize, limiter)
+		node, dhtNode, err := SpawnNode(&SpawnNodeOpts{
+			datastore:  sharedDatastore,
+			addr:       laddr,
+			relay:      relay,
+			bucketSize: bucketSize,
+			limiter:    limiter,
+		})
 		if err != nil {
 			panic(err)
 		}
@@ -176,7 +182,13 @@ func runSingleDHTWithUI(path string, relay bool, bucketSize int) {
 	if err != nil {
 		panic(err)
 	}
-	node, _, err := MakeAndStartNode(datastore, "/ip4/0.0.0.0/tcp/19264", relay, bucketSize, nil)
+	node, _, err := SpawnNode(&SpawnNodeOpts{
+		datastore:  datastore,
+		addr:       "/ip4/0.0.0.0/tcp/19264",
+		relay:      relay,
+		bucketSize: bucketSize,
+		limiter:    nil,
+	})
 	if err != nil {
 		panic(err)
 	}

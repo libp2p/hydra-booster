@@ -32,23 +32,33 @@ func bootstrapperAddrs() pstore.PeerInfo {
 
 var bootstrapDone int64
 
-// MakeAndStartNode ...
-func MakeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int, limiter chan struct{}) (host.Host, *dht.IpfsDHT, error) {
+// SpawnNodeOpts func options
+type SpawnNodeOpts struct {
+	datastore  ds.Batching
+	relay      bool
+	addr       string
+	bucketSize int
+	limiter    chan struct{}
+}
+
+// SpawnNode ...
+func SpawnNode(opts *SpawnNodeOpts) (host.Host, *dht.IpfsDHT, error) {
 	cmgr := connmgr.NewConnManager(1500, 2000, time.Minute)
 
 	priv, _, _ := crypto.GenerateKeyPair(crypto.Ed25519, 0)
 
-	opts := []libp2p.Option{libp2p.ListenAddrStrings(addr), libp2p.ConnectionManager(cmgr), libp2p.Identity(priv)}
-	if relay {
-		opts = append(opts, libp2p.EnableRelay(circuit.OptHop))
+	libp2pOpts := []libp2p.Option{libp2p.ListenAddrStrings(opts.addr), libp2p.ConnectionManager(cmgr), libp2p.Identity(priv)}
+
+	if opts.relay {
+		libp2pOpts = append(libp2pOpts, libp2p.EnableRelay(circuit.OptHop))
 	}
 
-	node, err := libp2p.New(context.Background(), opts...)
+	node, err := libp2p.New(context.Background(), libp2pOpts...)
 	if err != nil {
 		panic(err)
 	}
 
-	dhtNode, err := dht.New(context.Background(), node, dhtopts.BucketSize(bucketSize), dhtopts.Datastore(ds), dhtopts.Validator(record.NamespacedValidator{
+	dhtNode, err := dht.New(context.Background(), node, dhtopts.BucketSize(opts.bucketSize), dhtopts.Datastore(opts.datastore), dhtopts.Validator(record.NamespacedValidator{
 		"pk":   record.PublicKeyValidator{},
 		"ipns": ipns.Validator{KeyBook: node.Peerstore()},
 	}))
@@ -63,8 +73,8 @@ func MakeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int, l
 
 	go func() {
 		// ❓ what is this limiter for?
-		if limiter != nil {
-			limiter <- struct{}{}
+		if opts.limiter != nil {
+			opts.limiter <- struct{}{}
 		}
 
 		// ❓ tries to connect to bootstrappers 2x, why?
@@ -75,8 +85,8 @@ func MakeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int, l
 			}
 		}
 
-		if limiter != nil {
-			<-limiter
+		if opts.limiter != nil {
+			<-opts.limiter
 		}
 		atomic.AddInt64(&bootstrapDone, 1)
 
