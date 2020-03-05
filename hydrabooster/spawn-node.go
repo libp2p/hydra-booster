@@ -82,7 +82,7 @@ func SpawnNode(opts *SpawnNodeOpts) (host.Host, *dht.IpfsDHT, error) {
 				continue
 			}
 			if err := node.Connect(context.Background(), *addr); err != nil {
-				fmt.Printf("bootstrap connect failed with err %w. Trying again\n", err)
+				fmt.Printf("bootstrap connect failed with error %v. Trying again\n", err)
 				continue
 			}
 			break
