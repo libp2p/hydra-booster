@@ -84,7 +84,7 @@ func waitForNotifications(r io.Reader, provs chan *provInfo, mesout chan string)
 	}
 }
 
-func bootsrappersAddrs() pstore.PeerInfo {
+func bootstrapperAddrs() pstore.PeerInfo {
 	addr := dht.DefaultBootstrapPeers[rand.Intn(len(dht.DefaultBootstrapPeers))]
 	ai, err := pstore.InfoFromP2pAddr(addr)
 	if err != nil {
@@ -106,14 +106,14 @@ func makeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int, l
 		opts = append(opts, libp2p.EnableRelay(circuit.OptHop))
 	}
 
-	h, err := libp2p.New(context.Background(), opts...)
+	node, err := libp2p.New(context.Background(), opts...)
 	if err != nil {
 		panic(err)
 	}
 
-	d, err := dht.New(context.Background(), h, dhtopts.BucketSize(bucketSize), dhtopts.Datastore(ds), dhtopts.Validator(record.NamespacedValidator{
+	dhtNode, err := dht.New(context.Background(), node, dhtopts.BucketSize(bucketSize), dhtopts.Datastore(ds), dhtopts.Validator(record.NamespacedValidator{
 		"pk":   record.PublicKeyValidator{},
-		"ipns": ipns.Validator{KeyBook: h.Peerstore()},
+		"ipns": ipns.Validator{KeyBook: node.Peerstore()},
 	}))
 	if err != nil {
 		panic(err)
@@ -122,7 +122,7 @@ func makeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int, l
 	// bootstrap in the background
 	// it's safe to start doing this _before_ establishing any connections
 	// as we'll trigger a boostrap round as soon as we get a connection anyways.
-	d.Bootstrap(context.Background())
+	dhtNode.Bootstrap(context.Background())
 
 	go func() {
 		// ❓ what is this limiter for?
@@ -130,9 +130,9 @@ func makeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int, l
 			limiter <- struct{}{}
 		}
 
-		// ❓ tries to connect to bootstrappers 2x, Why?
+		// ❓ tries to connect to bootstrappers 2x, why?
 		for i := 0; i < 2; i++ {
-			if err := h.Connect(context.Background(), bootstrapperAddrs()); err != nil {
+			if err := node.Connect(context.Background(), bootstrapperAddrs()); err != nil {
 				fmt.Println("bootstrap connect failed: ", err)
 				i--
 			}
@@ -144,31 +144,18 @@ func makeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int, l
 		atomic.AddInt64(&bootstrapDone, 1)
 
 	}()
-	return h, d, nil
-}
-
-func portSelector(beg int) func() int {
-	port := beg
-	return func() int {
-		if port == 0 {
-			return 0
-		}
-
-		out := port
-		port++
-		return out + 1
-	}
+	return node, dhtNode, nil
 }
 
 func runMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, relay bool, stagger time.Duration) {
-	ds, err := levelds.NewDatastore(dbpath, nil)
+	sharedDatastore, err := levelds.NewDatastore(dbpath, nil)
 	if err != nil {
 		panic(err)
 	}
 
 	start := time.Now()
-	var hosts []host.Host
-	var dhts []*dht.IpfsDHT
+	var nodes []host.Host
+	var dhtNodes []*dht.IpfsDHT
 
 	var hyperLock sync.Mutex
 	hyperlog := hyperloglog.New()
@@ -195,13 +182,13 @@ func runMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, rel
 		fmt.Fprintf(os.Stderr, ".")
 
 		laddr := fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", getPort())
-		h, d, err := makeAndStartNode(ds, laddr, relay, bucketSize, limiter)
+		node, dhtNode, err := makeAndStartNode(sharedDatastore, laddr, relay, bucketSize, limiter)
 		if err != nil {
 			panic(err)
 		}
-		h.Network().Notify(notifiee)
-		hosts = append(hosts, h)
-		dhts = append(dhts, d)
+		node.Network().Notify(notifiee)
+		nodes = append(nodes, node)
+		dhtNodes = append(dhtNodes, dhtNode)
 	}
 	fmt.Fprintf(os.Stderr, "\n")
 
@@ -213,7 +200,7 @@ func runMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, rel
 	go func() {
 		http.HandleFunc("/peers", func(w http.ResponseWriter, r *http.Request) {
 			var out []peer.AddrInfo
-			for _, h := range hosts {
+			for _, h := range nodes {
 				out = append(out, peer.AddrInfo{
 					ID:    h.ID(),
 					Addrs: h.Addrs(),
@@ -255,11 +242,11 @@ func printStatusLine(ndht int, start time.Time, totalpeers int64, uniqpeers uint
 }
 
 func runSingleDHTWithUI(path string, relay bool, bucketSize int) {
-	ds, err := levelds.NewDatastore(path, nil)
+	datastore, err := levelds.NewDatastore(path, nil)
 	if err != nil {
 		panic(err)
 	}
-	h, _, err := makeAndStartNode(ds, "/ip4/0.0.0.0/tcp/19264", relay, bucketSize, nil)
+	node, _, err := makeAndStartNode(datastore, "/ip4/0.0.0.0/tcp/19264", relay, bucketSize, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -272,7 +259,7 @@ func runSingleDHTWithUI(path string, relay bool, bucketSize int) {
 	//go waitForNotifications(r, provs, messages)
 
 	ga := &GooeyApp{Title: "Libp2p DHT Node", Log: NewLog(15, 15)}
-	ga.NewDataLine(3, "Peer ID", h.ID().Pretty())
+	ga.NewDataLine(3, "Peer ID", node.ID().Pretty())
 	econs := ga.NewDataLine(4, "Connections", "0")
 	uniqprs := ga.NewDataLine(5, "Unique Peers Seen", "0")
 	emem := ga.NewDataLine(6, "Memory Allocated", "0MB")
@@ -295,7 +282,7 @@ func runSingleDHTWithUI(path string, relay bool, bucketSize int) {
 			var mstat runtime.MemStats
 			runtime.ReadMemStats(&mstat)
 			emem.SetVal(human.Bytes(mstat.Alloc))
-			peers := h.Network().Peers()
+			peers := node.Network().Peers()
 			econs.SetVal(fmt.Sprintf("%d peers", len(peers)))
 			for _, p := range peers {
 				uniqpeers[p] = struct{}{}
@@ -347,7 +334,7 @@ func main() {
 		return
 	}
 
-	getPort := portSelector(*portBegin)
+	getPort := PortSelector(*portBegin)
 
 	runMany(*dbpath, getPort, *many, *bucketSize, *bootstrapConcurency, *relay, *stagger)
 }

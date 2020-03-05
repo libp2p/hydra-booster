@@ -28,16 +28,15 @@ func SetupMetrics(port int) error {
 	}
 
 	_ = view.RegisterExporter
-	/* Disabling opencensus for now, it allocates too much
+	// NOTE: Disabling opencensus for now, it allocates too much
 	// register prometheus with opencensus
-	view.RegisterExporter(pe)
-	view.SetReportingPeriod(2)
+	// view.RegisterExporter(pe)
+	// view.SetReportingPeriod(2)
 
-	// register the metrics views of interest
-	if err := view.Register(dhtmetrics.DefaultViews...); err != nil {
-		return err
-	}
-	*/
+	// // register the metrics views of interest
+	// if err := view.Register(dhtmetrics.DefaultViews...); err != nil {
+	// 	return err
+	// }
 
 	go func() {
 		mux := http.NewServeMux()
