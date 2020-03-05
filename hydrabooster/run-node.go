@@ -117,7 +117,7 @@ func RunMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, rel
 			limiter:    limiter,
 		})
 		if err != nil {
-			return fmt.Errorf("failed to spawn node with swarm address %v: %w", laddr, err)
+			return fmt.Errorf("failed to spawn node with swarm address %v: %w", addr, err)
 		}
 		node.Network().Notify(notifiee)
 		nodes = append(nodes, node)
@@ -177,7 +177,7 @@ func printStatusLine(ndht int, start time.Time, totalpeers int64, uniqpeers uint
 }
 
 // RunSingleDHTWithUI ...
-func RunSingleDHTWithUI(path string, relay bool, bucketSize int) {
+func RunSingleDHTWithUI(path string, relay bool, bucketSize int) error {
 	datastore, err := levelds.NewDatastore(path, nil)
 
 	if err != nil {
