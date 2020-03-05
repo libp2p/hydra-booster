@@ -1,4 +1,6 @@
-<p align="center"><img src="https://ipfs.io/ipfs/QmY8zKbqmSEdxxG6rx7Stm5b7dmf5R5Thi7UV2XHtgkBvr" width="360" /></p>
+<p align="center">
+  <img src="https://ipfs.io/ipfs/QmY8zKbqmSEdxxG6rx7Stm5b7dmf5R5Thi7UV2XHtgkBvr" width="360" />
+</p>
 <h1 align="center">Hydra Booster</h1>
 
 > A DHT Indexer node & Peer Router
@@ -8,27 +10,27 @@ A new type of DHT node designed to accelerate the Content Resolution & Content P
 [**Read the RFC**](https://docs.google.com/document/d/1yA2fY5c0WIv3LCtJCPVesHzvCWt14OPv7QlHdV3ghgU)
 
 ## Installation
+
 ```
 [openssl support (lower CPU usage)]
-go get -u -tags=openssl github.com/ipfs/dht-node
+go get -u -tags=openssl github.com/libp2p/hydra-booster
 
 [standard (sub-optimal)]
-go get -u github.com/ipfs/dht-node
+go get -u github.com/libp2p/hydra-booster
 ```
 
 ## Usage
-`dht-node` has two modes. A 'single dht' mode that has a nicer UI, this is intended to be run in a tmux window or something so you can see statistics about your contribution to the network.
+
+`hydra-booster` has two modes. A 'single dht' mode that has a nicer UI, this is intended to be run in a tmux window or something so you can see statistics about your contribution to the network.
 
 The second mode is called 'many mode'. Passing the `-many=N` allows you to run N dhts at a time in the same process. It periodically prints out a status line with information about total peers, uptime, and memory usage.
 
 ## Best Practices
-Try to only run a dht-node on machines with public IP addresses. Having more
-dht nodes behind NATs makes dht queries in general slower, as connecting in
-generally takes longer and sometimes doesnt even work (resulting in a timeout).
 
-When running with `-many`, please make sure to bump the ulimit to something
-fairly high. Expect ~500 connections per node youre running (so with
-`-many=10`, try setting `ulimit -n 5000`)
+Only run a hydra-booster on machines with public IP addresses. Having more dht nodes behind NATs makes dht queries in general slower, as connecting in generally takes longer and sometimes doesnt even work (resulting in a timeout).
+
+When running with `-many`, please make sure to bump the ulimit to something fairly high. Expect ~500 connections per node youre running (so with `-many=10`, try setting `ulimit -n 5000`)
 
 ## License
+
 MIT - @whyrusleeping
