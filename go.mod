@@ -6,8 +6,8 @@ require (
 	github.com/dustin/go-humanize v1.0.0
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/ipfs/dht-node v0.0.1 // indirect
-	github.com/ipfs/go-datastore v0.3.1
-	github.com/ipfs/go-ds-leveldb v0.4.0
+	github.com/ipfs/go-datastore v0.4.1
+	github.com/ipfs/go-ds-leveldb v0.4.1
 	github.com/ipfs/go-ipns v0.0.2
 	github.com/ipfs/go-log v0.0.1
 	github.com/libp2p/go-libp2p v0.5.1-0.20191230184347-6dbc0b2b46ba
