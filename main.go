@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/libp2p/hydra-booster/hydrabooster"
 	id "github.com/libp2p/go-libp2p/p2p/protocol/identify"
 )
+
+const defaultKValue = 20
 
 func main() {
 	many := flag.Int("many", -1, "Instead of running one dht, run many!")
@@ -28,7 +31,7 @@ func main() {
 
 	if *pprofport > 0 {
 		fmt.Printf("Running metrics server on port: %d\n", *pprofport)
-		go SetupMetrics(*pprofport)
+		go hydrabooster.SetupMetrics(*pprofport)
 	}
 
 	if *inmem {
@@ -36,10 +39,10 @@ func main() {
 	}
 
 	if *many == -1 {
-		RunSingleDHTWithUI(*dbpath, *relay, *bucketSize)
+		hydrabooster.RunSingleDHTWithUI(*dbpath, *relay, *bucketSize)
 		return
 	}
 
-	getPort := PortSelector(*portBegin)
-	RunMany(*dbpath, getPort, *many, *bucketSize, *bootstrapConcurency, *relay, *stagger)
+	getPort := hydrabooster.PortSelector(*portBegin)
+	hydrabooster.RunMany(*dbpath, getPort, *many, *bucketSize, *bootstrapConcurency, *relay, *stagger)
 }

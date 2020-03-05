@@ -1,4 +1,4 @@
-package main
+package hydrabooster
 
 import (
 	"encoding/json"
@@ -35,10 +35,7 @@ var _ = dhtmetrics.DefaultViews
 var _ = circuit.P_CIRCUIT
 var _ = logwriter.WriterGroup
 
-var (
-	log           = logging.Logger("hydrabooster")
-	defaultKValue = 20
-)
+var log = logging.Logger("hydrabooster")
 
 // Event ...
 type Event struct {
