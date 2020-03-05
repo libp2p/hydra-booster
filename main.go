@@ -1,12 +1,10 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
-	"math/rand"
 	"net/http"
 	"os"
 	"runtime"
@@ -16,23 +14,16 @@ import (
 
 	"github.com/axiomhq/hyperloglog"
 	human "github.com/dustin/go-humanize"
-	ds "github.com/ipfs/go-datastore"
 	levelds "github.com/ipfs/go-ds-leveldb"
-	ipns "github.com/ipfs/go-ipns"
 	logging "github.com/ipfs/go-log"
 	logwriter "github.com/ipfs/go-log/writer"
-	libp2p "github.com/libp2p/go-libp2p"
 	circuit "github.com/libp2p/go-libp2p-circuit"
-	connmgr "github.com/libp2p/go-libp2p-connmgr"
 	crypto "github.com/libp2p/go-libp2p-core/crypto"
 	host "github.com/libp2p/go-libp2p-core/host"
 	network "github.com/libp2p/go-libp2p-core/network"
 	peer "github.com/libp2p/go-libp2p-core/peer"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	dhtmetrics "github.com/libp2p/go-libp2p-kad-dht/metrics"
-	dhtopts "github.com/libp2p/go-libp2p-kad-dht/opts"
-	pstore "github.com/libp2p/go-libp2p-peerstore"
-	record "github.com/libp2p/go-libp2p-record"
 	id "github.com/libp2p/go-libp2p/p2p/protocol/identify"
 )
 
@@ -47,7 +38,7 @@ var _ = circuit.P_CIRCUIT
 var _ = logwriter.WriterGroup
 
 var (
-	log           = logging.Logger("dhtbooster")
+	log           = logging.Logger("hydrabooster")
 	defaultKValue = 20
 )
 
@@ -82,69 +73,6 @@ func waitForNotifications(r io.Reader, provs chan *provInfo, mesout chan string)
 			}
 		}
 	}
-}
-
-func bootstrapperAddrs() pstore.PeerInfo {
-	addr := dht.DefaultBootstrapPeers[rand.Intn(len(dht.DefaultBootstrapPeers))]
-	ai, err := pstore.InfoFromP2pAddr(addr)
-	if err != nil {
-		panic(err)
-	}
-
-	return *ai
-}
-
-var bootstrapDone int64
-
-func makeAndStartNode(ds ds.Batching, addr string, relay bool, bucketSize int, limiter chan struct{}) (host.Host, *dht.IpfsDHT, error) {
-	cmgr := connmgr.NewConnManager(1500, 2000, time.Minute)
-
-	priv, _, _ := crypto.GenerateKeyPair(crypto.Ed25519, 0)
-
-	opts := []libp2p.Option{libp2p.ListenAddrStrings(addr), libp2p.ConnectionManager(cmgr), libp2p.Identity(priv)}
-	if relay {
-		opts = append(opts, libp2p.EnableRelay(circuit.OptHop))
-	}
-
-	node, err := libp2p.New(context.Background(), opts...)
-	if err != nil {
-		panic(err)
-	}
-
-	dhtNode, err := dht.New(context.Background(), node, dhtopts.BucketSize(bucketSize), dhtopts.Datastore(ds), dhtopts.Validator(record.NamespacedValidator{
-		"pk":   record.PublicKeyValidator{},
-		"ipns": ipns.Validator{KeyBook: node.Peerstore()},
-	}))
-	if err != nil {
-		panic(err)
-	}
-
-	// bootstrap in the background
-	// it's safe to start doing this _before_ establishing any connections
-	// as we'll trigger a boostrap round as soon as we get a connection anyways.
-	dhtNode.Bootstrap(context.Background())
-
-	go func() {
-		// ❓ what is this limiter for?
-		if limiter != nil {
-			limiter <- struct{}{}
-		}
-
-		// ❓ tries to connect to bootstrappers 2x, why?
-		for i := 0; i < 2; i++ {
-			if err := node.Connect(context.Background(), bootstrapperAddrs()); err != nil {
-				fmt.Println("bootstrap connect failed: ", err)
-				i--
-			}
-		}
-
-		if limiter != nil {
-			<-limiter
-		}
-		atomic.AddInt64(&bootstrapDone, 1)
-
-	}()
-	return node, dhtNode, nil
 }
 
 func runMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, relay bool, stagger time.Duration) {
@@ -182,7 +110,7 @@ func runMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, rel
 		fmt.Fprintf(os.Stderr, ".")
 
 		laddr := fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", getPort())
-		node, dhtNode, err := makeAndStartNode(sharedDatastore, laddr, relay, bucketSize, limiter)
+		node, dhtNode, err := MakeAndStartNode(sharedDatastore, laddr, relay, bucketSize, limiter)
 		if err != nil {
 			panic(err)
 		}
@@ -197,13 +125,14 @@ func runMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, rel
 	//logwriter.WriterGroup.AddWriter(w)
 	//go waitForNotifications(r, provs, nil)
 
+	// Simple endpoint to report the addrs of the sybils that were launched
 	go func() {
 		http.HandleFunc("/peers", func(w http.ResponseWriter, r *http.Request) {
 			var out []peer.AddrInfo
-			for _, h := range nodes {
+			for _, n := range nodes {
 				out = append(out, peer.AddrInfo{
-					ID:    h.ID(),
-					Addrs: h.Addrs(),
+					ID:    n.ID(),
+					Addrs: n.Addrs(),
 				})
 			}
 
@@ -213,6 +142,7 @@ func runMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, rel
 		http.ListenAndServe("127.0.0.1:7779", nil)
 	}()
 
+	// Reporting interval for provs
 	totalprovs := 0
 	reportInterval := time.NewTicker(time.Second * 5)
 	for {
@@ -246,7 +176,7 @@ func runSingleDHTWithUI(path string, relay bool, bucketSize int) {
 	if err != nil {
 		panic(err)
 	}
-	node, _, err := makeAndStartNode(datastore, "/ip4/0.0.0.0/tcp/19264", relay, bucketSize, nil)
+	node, _, err := MakeAndStartNode(datastore, "/ip4/0.0.0.0/tcp/19264", relay, bucketSize, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -314,7 +244,8 @@ func main() {
 	bootstrapConcurency := flag.Int("bootstrapConc", 32, "How many concurrent bootstraps to run")
 	stagger := flag.Duration("stagger", 0*time.Second, "Duration to stagger nodes starts by")
 	flag.Parse()
-	id.ClientVersion = "hydra-booster/2"
+	// Set the protocol for Identify to report on handshake
+	id.ClientVersion = "hydra-booster/1"
 
 	if *relay {
 		id.ClientVersion += "+relay"
@@ -335,6 +266,5 @@ func main() {
 	}
 
 	getPort := PortSelector(*portBegin)
-
 	runMany(*dbpath, getPort, *many, *bucketSize, *bootstrapConcurency, *relay, *stagger)
 }
