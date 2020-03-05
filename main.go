@@ -54,6 +54,8 @@ type provInfo struct {
 	Duration time.Duration
 }
 
+const singleDHTSwarmAddr = "/ip4/0.0.0.0/tcp/19264"
+
 func waitForNotifications(r io.Reader, provs chan *provInfo, mesout chan string) {
 	var e map[string]interface{}
 	dec := json.NewDecoder(r)
@@ -75,10 +77,11 @@ func waitForNotifications(r io.Reader, provs chan *provInfo, mesout chan string)
 	}
 }
 
-func runMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, relay bool, stagger time.Duration) {
+func runMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, relay bool, stagger time.Duration) error {
 	sharedDatastore, err := levelds.NewDatastore(dbpath, nil)
+
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("failed to create datastore: %w", err)
 	}
 
 	start := time.Now()
@@ -118,7 +121,7 @@ func runMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, rel
 			limiter:    limiter,
 		})
 		if err != nil {
-			panic(err)
+			return fmt.Errorf("failed to spawn node with swarm address %v: %w", laddr, err)
 		}
 		node.Network().Notify(notifiee)
 		nodes = append(nodes, node)
@@ -177,20 +180,23 @@ func printStatusLine(ndht int, start time.Time, totalpeers int64, uniqpeers uint
 	fmt.Fprintf(os.Stderr, "[NumDhts: %d, Uptime: %s, Memory Usage: %s, TotalPeers: %d/%d, Total Provs: %d, BootstrapsDone: %d]\n", ndht, uptime, human.Bytes(mstat.Alloc), totalpeers, uniqpeers, totalprovs, atomic.LoadInt64(&bootstrapDone))
 }
 
-func runSingleDHTWithUI(path string, relay bool, bucketSize int) {
+func runSingleDHTWithUI(path string, relay bool, bucketSize int) error {
 	datastore, err := levelds.NewDatastore(path, nil)
+
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("failed to create datastore: %w", err)
 	}
+
 	node, _, err := SpawnNode(&SpawnNodeOpts{
 		datastore:  datastore,
-		addr:       "/ip4/0.0.0.0/tcp/19264",
+		addr:       singleDHTSwarmAddr,
 		relay:      relay,
 		bucketSize: bucketSize,
 		limiter:    nil,
 	})
+
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("failed to spawn node with swarm address %v: %w", singleDHTSwarmAddr, err)
 	}
 
 	uniqpeers := make(map[peer.ID]struct{})
@@ -273,10 +279,20 @@ func main() {
 	}
 
 	if *many == -1 {
-		runSingleDHTWithUI(*dbpath, *relay, *bucketSize)
+		err := runSingleDHTWithUI(*dbpath, *relay, *bucketSize)
+
+		if err != nil {
+			panic(err)
+		}
+
 		return
 	}
 
 	getPort := PortSelector(*portBegin)
-	runMany(*dbpath, getPort, *many, *bucketSize, *bootstrapConcurency, *relay, *stagger)
+
+	err := runMany(*dbpath, getPort, *many, *bucketSize, *bootstrapConcurency, *relay, *stagger)
+
+	if err != nil {
+		panic(err)
+	}
 }
