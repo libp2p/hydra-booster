@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"time"
 
 	id "github.com/libp2p/go-libp2p/p2p/protocol/identify"
@@ -39,10 +40,17 @@ func main() {
 	}
 
 	if *many == -1 {
-		hydrabooster.RunSingleDHTWithUI(*dbpath, *relay, *bucketSize)
+		err := hydrabooster.RunSingleDHTWithUI(*dbpath, *relay, *bucketSize)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
 		return
 	}
 
 	getPort := hydrabooster.PortSelector(*portBegin)
-	hydrabooster.RunMany(*dbpath, getPort, *many, *bucketSize, *bootstrapConcurency, *relay, *stagger)
+	err := hydrabooster.RunMany(*dbpath, getPort, *many, *bucketSize, *bootstrapConcurency, *relay, *stagger)
+	if err != nil {
+		log.Fatalln(err)
+	}
 }
