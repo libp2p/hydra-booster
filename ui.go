@@ -26,10 +26,13 @@ Move the cursor up N lines:
   \033[<N>D
 */
 
+// ...
 const (
-	Clear = 0
+	Clear     = 0
+	LightBlue = 94
 )
 
+// ...
 const (
 	Black = 30 + iota
 	Red
@@ -39,10 +42,6 @@ const (
 	Magenta
 	Cyan
 	LightGray
-)
-
-const (
-	LightBlue = 94
 )
 
 func color(color int, s string) string {
@@ -68,12 +67,14 @@ func printDataSharedLine(line int, bup int, totup int64, rateup float64) {
 	padPrint(line, "", a+b+c)
 }
 
+// GooeyApp ..
 type GooeyApp struct {
 	Title      string
 	DataFields []*DataLine
 	Log        *Log
 }
 
+// Print ...
 func (a *GooeyApp) Print() {
 	fmt.Println(QReset)
 	putMessage(1, a.Title)
@@ -83,6 +84,7 @@ func (a *GooeyApp) Print() {
 	a.Log.Print()
 }
 
+// NewDataLine ...
 func (a *GooeyApp) NewDataLine(line int, label, defval string) *DataLine {
 	dl := &DataLine{
 		Default: defval,
@@ -94,6 +96,7 @@ func (a *GooeyApp) NewDataLine(line int, label, defval string) *DataLine {
 	return dl
 }
 
+// DataLine ...
 type DataLine struct {
 	Label   string
 	Line    int
@@ -101,10 +104,13 @@ type DataLine struct {
 	LastVal string
 }
 
+// SetVal ...
 func (dl *DataLine) SetVal(s string) {
 	dl.LastVal = s
 	dl.Print()
 }
+
+// Print ...
 func (dl *DataLine) Print() {
 	s := dl.Default
 	if dl.LastVal != "" {
@@ -114,6 +120,7 @@ func (dl *DataLine) Print() {
 	padPrint(dl.Line, dl.Label, s)
 }
 
+// Log ...
 type Log struct {
 	Size      int
 	StartLine int
@@ -122,6 +129,7 @@ type Log struct {
 	end       int
 }
 
+// NewLog ...
 func NewLog(line, size int) *Log {
 	return &Log{
 		Size:      size,
@@ -131,6 +139,7 @@ func NewLog(line, size int) *Log {
 	}
 }
 
+// Add ...
 func (l *Log) Add(m string) {
 	l.end = (l.end + 1) % l.Size
 	if l.Messages[l.end] != "" {
@@ -139,25 +148,36 @@ func (l *Log) Add(m string) {
 	l.Messages[l.end] = m
 }
 
+// Print ...
 func (l *Log) Print() {
 	for i := 0; i < l.Size; i++ {
 		putMessage(l.StartLine+i, l.Messages[(l.beg+i)%l.Size])
 	}
 }
 
+// LogNotifee ...
 type LogNotifee struct {
 	addMes chan<- string
 }
 
-func (ln *LogNotifee) Listen(net.Network, ma.Multiaddr)      {}
+// Listen ...
+func (ln *LogNotifee) Listen(net.Network, ma.Multiaddr) {}
+
+// ListenClose ...
 func (ln *LogNotifee) ListenClose(net.Network, ma.Multiaddr) {}
+
+// Connected ...
 func (ln *LogNotifee) Connected(_ net.Network, c net.Conn) {
 	ln.addMes <- fmt.Sprintf("New connection from %s", c.RemotePeer().Pretty())
 }
 
+// Disconnected ...
 func (ln *LogNotifee) Disconnected(_ net.Network, c net.Conn) {
 	ln.addMes <- fmt.Sprintf("Lost connection to %s", c.RemotePeer().Pretty())
 }
 
+// OpenedStream ...
 func (ln *LogNotifee) OpenedStream(net.Network, net.Stream) {}
+
+// ClosedStream ...
 func (ln *LogNotifee) ClosedStream(net.Network, net.Stream) {}
