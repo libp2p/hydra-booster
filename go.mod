@@ -1,10 +1,11 @@
-module github.com/ipfs/dht-node
+module github.com/libp2p/hydra-booster
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.1.0
 	github.com/axiomhq/hyperloglog v0.0.0-20190607114936-323ed515b11c
 	github.com/dustin/go-humanize v1.0.0
 	github.com/golang/snappy v0.0.1 // indirect
+	github.com/ipfs/dht-node v0.0.1 // indirect
 	github.com/ipfs/go-datastore v0.3.1
 	github.com/ipfs/go-ds-leveldb v0.4.0
 	github.com/ipfs/go-ipns v0.0.2
@@ -23,4 +24,4 @@ require (
 	go.opencensus.io v0.22.2
 )
 
-go 1.12
+go 1.14
