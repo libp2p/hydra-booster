@@ -1,5 +1,9 @@
 module github.com/libp2p/hydra-booster
 
+replace (
+	github.com/libp2p/hydra-booster/hydrabooster => ./hydrabooster
+)
+
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.1.0
 	github.com/axiomhq/hyperloglog v0.0.0-20191112132149-a4c4c47bc57f
