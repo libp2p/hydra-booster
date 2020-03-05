@@ -49,6 +49,8 @@ type provInfo struct {
 	Duration time.Duration
 }
 
+const singleDHTSwarmAddr = "/ip4/0.0.0.0/tcp/19264"
+
 func waitForNotifications(r io.Reader, provs chan *provInfo, mesout chan string) {
 	var e map[string]interface{}
 	dec := json.NewDecoder(r)
@@ -71,10 +73,11 @@ func waitForNotifications(r io.Reader, provs chan *provInfo, mesout chan string)
 }
 
 // RunMany ...
-func RunMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, relay bool, stagger time.Duration) {
+func RunMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, relay bool, stagger time.Duration) error {
 	sharedDatastore, err := levelds.NewDatastore(dbpath, nil)
+
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("failed to create datastore: %w", err)
 	}
 
 	start := time.Now()
@@ -114,7 +117,7 @@ func RunMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, rel
 			limiter:    limiter,
 		})
 		if err != nil {
-			panic(err)
+			return fmt.Errorf("failed to spawn node with swarm address %v: %w", laddr, err)
 		}
 		node.Network().Notify(notifiee)
 		nodes = append(nodes, node)
@@ -176,18 +179,21 @@ func printStatusLine(ndht int, start time.Time, totalpeers int64, uniqpeers uint
 // RunSingleDHTWithUI ...
 func RunSingleDHTWithUI(path string, relay bool, bucketSize int) {
 	datastore, err := levelds.NewDatastore(path, nil)
+
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("failed to create datastore: %w", err)
 	}
+
 	node, _, err := SpawnNode(&SpawnNodeOpts{
 		datastore:  datastore,
-		addr:       "/ip4/0.0.0.0/tcp/19264",
+		addr:       singleDHTSwarmAddr,
 		relay:      relay,
 		bucketSize: bucketSize,
 		limiter:    nil,
 	})
+
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("failed to spawn node with swarm address %v: %w", singleDHTSwarmAddr, err)
 	}
 
 	uniqpeers := make(map[peer.ID]struct{})

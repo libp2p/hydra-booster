@@ -39,10 +39,20 @@ func main() {
 	}
 
 	if *many == -1 {
-		hydrabooster.RunSingleDHTWithUI(*dbpath, *relay, *bucketSize)
+		err := hydrabooster.RunSingleDHTWithUI(*dbpath, *relay, *bucketSize)
+
+		if err != nil {
+			panic(err)
+		}
+
 		return
 	}
 
 	getPort := hydrabooster.PortSelector(*portBegin)
 	hydrabooster.RunMany(*dbpath, getPort, *many, *bucketSize, *bootstrapConcurency, *relay, *stagger)
+	err := hydrabooster.RunMany(*dbpath, getPort, *many, *bucketSize, *bootstrapConcurency, *relay, *stagger)
+
+	if err != nil {
+		panic(err)
+	}
 }
