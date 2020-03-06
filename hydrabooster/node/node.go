@@ -21,7 +21,7 @@ import (
 )
 
 func randBootstrapAddr(bootstrapPeers []multiaddr.Multiaddr) (*peer.AddrInfo, error) {
-	addr := dht.DefaultBootstrapPeers[rand.Intn(len(dht.DefaultBootstrapPeers))]
+	addr := bootstrapPeers[rand.Intn(len(bootstrapPeers))]
 	return peer.AddrInfoFromP2pAddr(addr)
 }
 
