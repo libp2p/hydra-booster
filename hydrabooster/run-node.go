@@ -51,6 +51,21 @@ type provInfo struct {
 
 const singleDHTSwarmAddr = "/ip4/0.0.0.0/tcp/19264"
 
+var bootstrapDone int64
+
+func handleBootstrapStatus(ch chan BootstrapStatus) {
+	status, ok := <-ch
+	if !ok {
+		return
+	}
+	if status.err != nil {
+		fmt.Println(status.err)
+	}
+	if status.done {
+		atomic.AddInt64(&bootstrapDone, 1)
+	}
+}
+
 func waitForNotifications(r io.Reader, provs chan *provInfo, mesout chan string) {
 	var e map[string]interface{}
 	dec := json.NewDecoder(r)
@@ -108,7 +123,7 @@ func RunMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, rel
 		fmt.Fprintf(os.Stderr, ".")
 
 		addr := fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", getPort())
-		node, dhtNode, err := SpawnNode(&SpawnNodeOpts{
+		node, dhtNode, bsCh, err := SpawnNode(SpawnNodeOptions{
 			datastore:  sharedDatastore,
 			addr:       addr,
 			relay:      relay,
@@ -118,6 +133,7 @@ func RunMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, rel
 		if err != nil {
 			return fmt.Errorf("failed to spawn node with swarm address %v: %w", addr, err)
 		}
+		go handleBootstrapStatus(bsCh)
 		node.Network().Notify(notifiee)
 		nodes = append(nodes, node)
 		dhtNodes = append(dhtNodes, dhtNode)
@@ -182,17 +198,18 @@ func RunSingleDHTWithUI(path string, relay bool, bucketSize int) error {
 		return fmt.Errorf("failed to create datastore: %w", err)
 	}
 
-	node, _, err := SpawnNode(&SpawnNodeOpts{
+	node, _, bsCh, err := SpawnNode(SpawnNodeOptions{
 		datastore:  datastore,
 		addr:       singleDHTSwarmAddr,
 		relay:      relay,
 		bucketSize: bucketSize,
 		limiter:    nil,
 	})
-
 	if err != nil {
 		return fmt.Errorf("failed to spawn node with swarm address %v: %w", singleDHTSwarmAddr, err)
 	}
+
+	go handleBootstrapStatus(bsCh)
 
 	uniqpeers := make(map[peer.ID]struct{})
 	messages := make(chan string, 16)
