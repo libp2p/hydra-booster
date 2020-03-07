@@ -18,8 +18,8 @@ require (
 	github.com/libp2p/go-libp2p-record v0.1.2
 	github.com/mattn/go-colorable v0.1.2 // indirect
 	github.com/multiformats/go-multiaddr v0.2.0
-	github.com/opentracing/opentracing-go v1.1.0 // indirect
 	github.com/prometheus/client_golang v1.2.1
+	github.com/whyrusleeping/go-logging v0.0.1
 	go.opencensus.io v0.22.2
 )
 
