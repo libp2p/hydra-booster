@@ -7,7 +7,9 @@ import (
 	"time"
 
 	id "github.com/libp2p/go-libp2p/p2p/protocol/identify"
-	"github.com/libp2p/hydra-booster/hydrabooster"
+	"github.com/libp2p/hydra-booster/metrics"
+	"github.com/libp2p/hydra-booster/runner"
+	"github.com/libp2p/hydra-booster/utils"
 )
 
 const defaultKValue = 20
@@ -32,7 +34,7 @@ func main() {
 
 	if *pprofport > 0 {
 		fmt.Printf("Running metrics server on port: %d\n", *pprofport)
-		go hydrabooster.SetupMetrics(*pprofport)
+		go metrics.SetupMetrics(*pprofport)
 	}
 
 	if *inmem {
@@ -40,7 +42,7 @@ func main() {
 	}
 
 	if *many == -1 {
-		err := hydrabooster.RunSingleDHTWithUI(*dbpath, *relay, *bucketSize)
+		err := runner.RunSingleDHTWithUI(*dbpath, *relay, *bucketSize)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -48,8 +50,8 @@ func main() {
 		return
 	}
 
-	getPort := hydrabooster.PortSelector(*portBegin)
-	err := hydrabooster.RunMany(*dbpath, getPort, *many, *bucketSize, *bootstrapConcurency, *relay, *stagger)
+	getPort := utils.PortSelector(*portBegin)
+	err := runner.RunMany(*dbpath, getPort, *many, *bucketSize, *bootstrapConcurency, *relay, *stagger)
 	if err != nil {
 		log.Fatalln(err)
 	}

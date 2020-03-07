@@ -1,15 +1,16 @@
-package hydrabooster
+package runner
 
 import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"runtime"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/multiformats/go-multiaddr"
 
 	"github.com/axiomhq/hyperloglog"
 	human "github.com/dustin/go-humanize"
@@ -18,11 +19,13 @@ import (
 	logwriter "github.com/ipfs/go-log/writer"
 	circuit "github.com/libp2p/go-libp2p-circuit"
 	crypto "github.com/libp2p/go-libp2p-core/crypto"
-	host "github.com/libp2p/go-libp2p-core/host"
 	network "github.com/libp2p/go-libp2p-core/network"
 	peer "github.com/libp2p/go-libp2p-core/peer"
-	dht "github.com/libp2p/go-libp2p-kad-dht"
 	dhtmetrics "github.com/libp2p/go-libp2p-kad-dht/metrics"
+	"github.com/libp2p/hydra-booster/httpapi"
+	"github.com/libp2p/hydra-booster/node"
+	"github.com/libp2p/hydra-booster/opts"
+	"github.com/libp2p/hydra-booster/ui"
 )
 
 func init() {
@@ -50,18 +53,19 @@ type provInfo struct {
 }
 
 const singleDHTSwarmAddr = "/ip4/0.0.0.0/tcp/19264"
+const httpAPIAddr = "127.0.0.1:7779"
 
 var bootstrapDone int64
 
-func handleBootstrapStatus(ch chan BootstrapStatus) {
+func handleBootstrapStatus(ch chan node.BootstrapStatus) {
 	status, ok := <-ch
 	if !ok {
 		return
 	}
-	if status.err != nil {
-		fmt.Println(status.err)
+	if status.Err != nil {
+		fmt.Println(status.Err)
 	}
-	if status.done {
+	if status.Done {
 		atomic.AddInt64(&bootstrapDone, 1)
 	}
 }
@@ -95,8 +99,7 @@ func RunMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, rel
 	}
 
 	start := time.Now()
-	var nodes []host.Host
-	var dhtNodes []*dht.IpfsDHT
+	var nodes []*node.HydraNode
 
 	var hyperLock sync.Mutex
 	hyperlog := hyperloglog.New()
@@ -122,21 +125,20 @@ func RunMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, rel
 		time.Sleep(stagger)
 		fmt.Fprintf(os.Stderr, ".")
 
-		addr := fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", getPort())
-		node, dhtNode, bsCh, err := SpawnNode(SpawnNodeOptions{
-			datastore:  sharedDatastore,
-			addr:       addr,
-			relay:      relay,
-			bucketSize: bucketSize,
-			limiter:    limiter,
-		})
+		addr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", getPort()))
+		nd, bsCh, err := node.NewHydraNode(
+			opts.Datastore(sharedDatastore),
+			opts.Addr(addr),
+			opts.Relay(relay),
+			opts.BucketSize(bucketSize),
+			opts.Limiter(limiter),
+		)
 		if err != nil {
 			return fmt.Errorf("failed to spawn node with swarm address %v: %w", addr, err)
 		}
 		go handleBootstrapStatus(bsCh)
-		node.Network().Notify(notifiee)
-		nodes = append(nodes, node)
-		dhtNodes = append(dhtNodes, dhtNode)
+		nd.Host.Network().Notify(notifiee)
+		nodes = append(nodes, nd)
 	}
 	fmt.Fprintf(os.Stderr, "\n")
 
@@ -146,21 +148,7 @@ func RunMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, rel
 	//go waitForNotifications(r, provs, nil)
 
 	// Simple endpoint to report the addrs of the sybils that were launched
-	go func() {
-		http.HandleFunc("/peers", func(w http.ResponseWriter, r *http.Request) {
-			var out []peer.AddrInfo
-			for _, n := range nodes {
-				out = append(out, peer.AddrInfo{
-					ID:    n.ID(),
-					Addrs: n.Addrs(),
-				})
-			}
-
-			json.NewEncoder(w).Encode(out)
-		})
-
-		http.ListenAndServe("127.0.0.1:7779", nil)
-	}()
+	go httpapi.ListenAndServe(nodes, httpAPIAddr)
 
 	// Reporting interval for provs
 	totalprovs := 0
@@ -198,18 +186,21 @@ func RunSingleDHTWithUI(path string, relay bool, bucketSize int) error {
 		return fmt.Errorf("failed to create datastore: %w", err)
 	}
 
-	node, _, bsCh, err := SpawnNode(SpawnNodeOptions{
-		datastore:  datastore,
-		addr:       singleDHTSwarmAddr,
-		relay:      relay,
-		bucketSize: bucketSize,
-		limiter:    nil,
-	})
+	addr, _ := multiaddr.NewMultiaddr(singleDHTSwarmAddr)
+	nd, bsCh, err := node.NewHydraNode(
+		opts.Datastore(datastore),
+		opts.Addr(addr),
+		opts.Relay(relay),
+		opts.BucketSize(bucketSize),
+	)
 	if err != nil {
 		return fmt.Errorf("failed to spawn node with swarm address %v: %w", singleDHTSwarmAddr, err)
 	}
 
 	go handleBootstrapStatus(bsCh)
+
+	// Simple endpoint to report the addrs of the sybils that were launched
+	go httpapi.ListenAndServe([]*node.HydraNode{nd}, httpAPIAddr)
 
 	uniqpeers := make(map[peer.ID]struct{})
 	messages := make(chan string, 16)
@@ -218,8 +209,8 @@ func RunSingleDHTWithUI(path string, relay bool, bucketSize int) error {
 	//logwriter.WriterGroup.AddWriter(w)
 	//go waitForNotifications(r, provs, messages)
 
-	ga := &GooeyApp{Title: "Libp2p DHT Node", Log: NewLog(15, 15)}
-	ga.NewDataLine(3, "Peer ID", node.ID().Pretty())
+	ga := &ui.GooeyApp{Title: "Libp2p DHT Node", Log: ui.NewLog(15, 15)}
+	ga.NewDataLine(3, "Peer ID", nd.Host.ID().Pretty())
 	econs := ga.NewDataLine(4, "Connections", "0")
 	uniqprs := ga.NewDataLine(5, "Unique Peers Seen", "0")
 	emem := ga.NewDataLine(6, "Memory Allocated", "0MB")
@@ -242,7 +233,7 @@ func RunSingleDHTWithUI(path string, relay bool, bucketSize int) error {
 			var mstat runtime.MemStats
 			runtime.ReadMemStats(&mstat)
 			emem.SetVal(human.Bytes(mstat.Alloc))
-			peers := node.Network().Peers()
+			peers := nd.Host.Network().Peers()
 			econs.SetVal(fmt.Sprintf("%d peers", len(peers)))
 			for _, p := range peers {
 				uniqpeers[p] = struct{}{}
