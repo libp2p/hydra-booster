@@ -42,7 +42,7 @@ func main() {
 	}
 
 	if *many == -1 {
-		err := runner.RunSingleDHTWithUI(*dbpath, *relay, *bucketSize)
+		err := runner.RunSingle(*dbpath, *relay, *bucketSize)
 		if err != nil {
 			log.Fatalln(err)
 		}

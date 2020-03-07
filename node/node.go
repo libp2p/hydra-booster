@@ -37,8 +37,9 @@ type BootstrapStatus struct {
 
 // HydraNode is a container for libp2p components used by a Hydra Booster node
 type HydraNode struct {
-	Host host.Host
-	DHT  *dht.IpfsDHT
+	Host         host.Host
+	DHT          *dht.IpfsDHT
+	Bootstrapped bool
 }
 
 // NewHydraNode constructs a new Hydra Booster node
@@ -79,6 +80,8 @@ func NewHydraNode(options ...opts.Option) (*HydraNode, chan BootstrapStatus, err
 
 	bsCh := make(chan BootstrapStatus, 1)
 
+	hyNode := HydraNode{Host: node, DHT: dhtNode}
+
 	go func() {
 		// ❓ what is this limiter for?
 		if cfg.Limiter != nil {
@@ -98,6 +101,7 @@ func NewHydraNode(options ...opts.Option) (*HydraNode, chan BootstrapStatus, err
 				}
 				break
 			}
+			hyNode.Bootstrapped = true
 		}
 
 		if cfg.Limiter != nil {
@@ -108,5 +112,5 @@ func NewHydraNode(options ...opts.Option) (*HydraNode, chan BootstrapStatus, err
 		close(bsCh)
 	}()
 
-	return &HydraNode{Host: node, DHT: dhtNode}, bsCh, nil
+	return &hyNode, bsCh, nil
 }
