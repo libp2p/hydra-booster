@@ -25,7 +25,7 @@ A new type of DHT node designed to accelerate the Content Resolution & Content P
 [**Read the RFC**](https://docs.google.com/document/d/1yA2fY5c0WIv3LCtJCPVesHzvCWt14OPv7QlHdV3ghgU).
 Disclaimer: We are at Stage 1 of the RFC
 
-## Installation
+## Install
 
 ```
 [openssl support (lower CPU usage)]
@@ -39,13 +39,40 @@ go get -u github.com/libp2p/hydra-booster
 
 `hydra-booster` has two modes. A 'single dht' mode that has a nicer UI, this is intended to be run in a tmux window or something so you can see statistics about your contribution to the network.
 
+```sh
+go run ./main.go
+```
+
 The second mode is called 'many mode'. Passing the `-many=N` allows you to run N dhts at a time in the same process. It periodically prints out a status line with information about total peers, uptime, and memory usage.
 
-## Best Practices
+
+```sh
+go run ./main.go -many=5
+```
+
+### Best Practices
 
 Only run a hydra-booster on machines with public IP addresses. Having more dht nodes behind NATs makes dht queries in general slower, as connecting in generally takes longer and sometimes doesnt even work (resulting in a timeout).
 
 When running with `-many`, please make sure to bump the ulimit to something fairly high. Expect ~500 connections per node youre running (so with `-many=10`, try setting `ulimit -n 5000`)
+
+## API
+
+### HTTP API
+
+By default the HTTP API is available at http://127.0.0.1:7779.
+
+#### `GET /peers`
+
+Returns an ndjson list of peers created by the : their IDs and mulitaddrs. Example output:
+
+```json
+{"Addrs":["/ip4/127.0.0.1/tcp/50277","/ip4/192.168.0.3/tcp/50277"],"ID":"12D3KooWHacdCMnm4YKDJHn72HPTxc6LRGNzbrbyVEnuLFA3FXCZ"}
+{"Addrs":["/ip4/127.0.0.1/tcp/50278","/ip4/192.168.0.3/tcp/50278","/ip4/90.198.150.147/tcp/50278"],"ID":"12D3KooWDGFCMQYpRHJ5BkVf842Fqnt3sCUAbvUw26ABuTo9Q1Gt"}
+{"Addrs":["/ip4/127.0.0.1/tcp/50279","/ip4/192.168.0.3/tcp/50279","/ip4/90.198.150.147/tcp/50279"],"ID":"12D3KooWNYBmyyFmktyna9WPBT1UAgGLKqTJqbkZYmJF8fBKmMqd"}
+{"Addrs":["/ip4/127.0.0.1/tcp/50280","/ip4/192.168.0.3/tcp/50280","/ip4/90.198.150.147/tcp/50280"],"ID":"12D3KooWQnUpnw6xS2VrJw3WuCP8e92fsEDnh4tbqyrXW5AVJ7oe"}
+{"Addrs":["/ip4/127.0.0.1/tcp/50281","/ip4/192.168.0.3/tcp/50281"],"ID":"12D3KooWBmgW3i8vZaD49DDWJ3dRRb6KCG42UubpJDPHpzwKDXB9"}
+```
 
 ## License
 
