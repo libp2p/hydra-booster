@@ -20,6 +20,10 @@ import (
 	"github.com/multiformats/go-multiaddr"
 )
 
+const lowWater = 1500
+const highWater = 2000
+const gracePeriod = time.Minute
+
 func randBootstrapAddr(bootstrapPeers []multiaddr.Multiaddr) (*peer.AddrInfo, error) {
 	addr := bootstrapPeers[rand.Intn(len(bootstrapPeers))]
 	return peer.AddrInfoFromP2pAddr(addr)
@@ -42,7 +46,7 @@ func NewHydraNode(options ...opts.Option) (*HydraNode, chan BootstrapStatus, err
 	cfg := opts.Options{}
 	cfg.Apply(append([]opts.Option{opts.Defaults}, options...)...)
 
-	cmgr := connmgr.NewConnManager(1500, 2000, time.Minute)
+	cmgr := connmgr.NewConnManager(lowWater, highWater, gracePeriod)
 
 	priv, _, err := crypto.GenerateKeyPair(crypto.Ed25519, 0)
 	if err != nil {
