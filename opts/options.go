@@ -1,4 +1,4 @@
-package hydraboosteropts
+package opts
 
 import (
 	"fmt"

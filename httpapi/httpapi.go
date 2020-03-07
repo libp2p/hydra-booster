@@ -5,8 +5,8 @@ import (
 	"net"
 	"net/http"
 
-	peer "github.com/libp2p/go-libp2p-core/peer"
-	node "github.com/libp2p/hydra-booster/hydrabooster/node"
+	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/hydra-booster/node"
 )
 
 // NewServeMux creates a new Hydra Booster HTTP API ServeMux

@@ -5,11 +5,11 @@ import (
 	"testing"
 
 	"github.com/ipfs/go-datastore"
-	hyopts "github.com/libp2p/hydra-booster/hydrabooster/opts"
+	"github.com/libp2p/hydra-booster/opts"
 )
 
 func TestSpawnNode(t *testing.T) { // TODO spawn a node to bootstrap from so we don't hit the public bootstrappers
-	node, bsCh, err := NewHydraNode(hyopts.Datastore(datastore.NewMapDatastore()))
+	nd, bsCh, err := NewHydraNode(opts.Datastore(datastore.NewMapDatastore()))
 
 	if err != nil {
 		t.Fatal(err)
@@ -28,7 +28,7 @@ func TestSpawnNode(t *testing.T) { // TODO spawn a node to bootstrap from so we 
 		}
 	}
 
-	err = node.Host.Close()
+	err = nd.Host.Close()
 
 	if err != nil {
 		t.Fatal(err)

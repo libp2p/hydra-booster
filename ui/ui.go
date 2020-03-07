@@ -1,4 +1,4 @@
-package hydrabooster
+package ui
 
 import (
 	"fmt"

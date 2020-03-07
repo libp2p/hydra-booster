@@ -8,25 +8,25 @@ import (
 	"testing"
 
 	"github.com/ipfs/go-datastore"
-	peer "github.com/libp2p/go-libp2p-core/peer"
-	hynode "github.com/libp2p/hydra-booster/hydrabooster/node"
-	hyopts "github.com/libp2p/hydra-booster/hydrabooster/opts"
+	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/hydra-booster/node"
+	"github.com/libp2p/hydra-booster/opts"
 	"github.com/multiformats/go-multiaddr"
 )
 
 var noBootstrappers = []multiaddr.Multiaddr{}
 
-func spawnNodes(n int) ([]*hynode.HydraNode, error) {
-	var nodes []*hynode.HydraNode
+func spawnNodes(n int) ([]*node.HydraNode, error) {
+	var nodes []*node.HydraNode
 	for i := 0; i < n; i++ {
-		node, _, err := hynode.NewHydraNode(hyopts.Datastore(datastore.NewMapDatastore()), hyopts.BootstrapPeers(noBootstrappers))
+		nd, _, err := node.NewHydraNode(opts.Datastore(datastore.NewMapDatastore()), opts.BootstrapPeers(noBootstrappers))
 		if err != nil {
-			for _, node := range nodes {
-				node.Host.Close()
+			for _, nd := range nodes {
+				nd.Host.Close()
 			}
 			return nil, err
 		}
-		nodes = append(nodes, node)
+		nodes = append(nodes, nd)
 	}
 
 	return nodes, nil

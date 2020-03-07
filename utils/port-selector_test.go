@@ -1,4 +1,4 @@
-package hydrabooster
+package utils
 
 import (
 	"testing"

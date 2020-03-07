@@ -16,7 +16,7 @@ import (
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	dhtopts "github.com/libp2p/go-libp2p-kad-dht/opts"
 	record "github.com/libp2p/go-libp2p-record"
-	hyopts "github.com/libp2p/hydra-booster/hydrabooster/opts"
+	"github.com/libp2p/hydra-booster/opts"
 	"github.com/multiformats/go-multiaddr"
 )
 
@@ -38,9 +38,9 @@ type HydraNode struct {
 }
 
 // NewHydraNode constructs a new Hydra Booster node
-func NewHydraNode(options ...hyopts.Option) (*HydraNode, chan BootstrapStatus, error) {
-	cfg := hyopts.Options{}
-	cfg.Apply(append([]hyopts.Option{hyopts.Defaults}, options...)...)
+func NewHydraNode(options ...opts.Option) (*HydraNode, chan BootstrapStatus, error) {
+	cfg := opts.Options{}
+	cfg.Apply(append([]opts.Option{opts.Defaults}, options...)...)
 
 	cmgr := connmgr.NewConnManager(1500, 2000, time.Minute)
 

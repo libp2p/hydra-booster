@@ -1,8 +1,9 @@
-package hydrabooster
+package metrics
 
 import (
 	"expvar"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/pprof"
 
