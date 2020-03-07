@@ -64,7 +64,7 @@ By default the HTTP API is available at http://127.0.0.1:7779.
 
 #### `GET /peers`
 
-Returns an ndjson list of peers created by the : their IDs and mulitaddrs. Example output:
+Returns an ndjson list of peers created by the Hydra: their IDs and mulitaddrs. Example output:
 
 ```json
 {"Addrs":["/ip4/127.0.0.1/tcp/50277","/ip4/192.168.0.3/tcp/50277"],"ID":"12D3KooWHacdCMnm4YKDJHn72HPTxc6LRGNzbrbyVEnuLFA3FXCZ"}
