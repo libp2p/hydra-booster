@@ -33,7 +33,7 @@ func TestGooeyUI(t *testing.T) {
 
 	go func() {
 		srs <- reports.StatusReport{}
-		time.Sleep(time.Second) // Wait for uptime to update
+		time.Sleep(time.Second * 2) // Wait for uptime to update
 		close(srs)
 	}()
 
