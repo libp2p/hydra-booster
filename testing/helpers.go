@@ -4,8 +4,10 @@ import (
 	"fmt"
 
 	"github.com/ipfs/go-datastore"
+	"github.com/libp2p/go-libp2p-core/crypto"
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/hydra-booster/node"
-	"github.com/libp2p/hydra-booster/opts"
+	"github.com/libp2p/hydra-booster/node/opts"
 )
 
 var defaults = []opts.Option{opts.Datastore(datastore.NewMapDatastore()), opts.BootstrapPeers(nil)}
@@ -46,4 +48,18 @@ func SpawnNodes(n int, options ...opts.Option) ([]*node.HydraNode, error) {
 	}
 
 	return nodes, nil
+}
+
+func GeneratePeerID() (peer.ID, crypto.PrivKey, crypto.PubKey, error) {
+	priv, pub, err := crypto.GenerateKeyPair(crypto.Ed25519, 0)
+	if err != nil {
+		return "", nil, nil, err
+	}
+
+	peerId, err := peer.IDFromPrivateKey(priv)
+	if err != nil {
+		return "", nil, nil, err
+	}
+
+	return peerId, priv, pub, nil
 }

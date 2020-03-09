@@ -17,7 +17,7 @@ import (
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	dhtopts "github.com/libp2p/go-libp2p-kad-dht/opts"
 	record "github.com/libp2p/go-libp2p-record"
-	"github.com/libp2p/hydra-booster/opts"
+	"github.com/libp2p/hydra-booster/node/opts"
 	"github.com/multiformats/go-multiaddr"
 )
 

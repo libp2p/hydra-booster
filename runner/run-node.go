@@ -8,12 +8,14 @@ import (
 	levelds "github.com/ipfs/go-ds-leveldb"
 	circuit "github.com/libp2p/go-libp2p-circuit"
 	"github.com/libp2p/go-libp2p-core/crypto"
+	"github.com/libp2p/go-libp2p-core/peer"
 	dhtmetrics "github.com/libp2p/go-libp2p-kad-dht/metrics"
 	"github.com/libp2p/hydra-booster/httpapi"
 	"github.com/libp2p/hydra-booster/node"
-	"github.com/libp2p/hydra-booster/opts"
+	"github.com/libp2p/hydra-booster/node/opts"
 	"github.com/libp2p/hydra-booster/reports"
 	"github.com/libp2p/hydra-booster/ui"
+	uiopts "github.com/libp2p/hydra-booster/ui/opts"
 	"github.com/multiformats/go-multiaddr"
 )
 
@@ -80,7 +82,12 @@ func RunMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, rel
 		return err
 	}
 
-	return ui.NewUI(nodes, reporter.StatusReports, start)
+	var peers []peer.ID
+	for _, nd := range nodes {
+		peers = append(peers, nd.Host.ID())
+	}
+
+	return ui.NewUI(peers, reporter.StatusReports, uiopts.Start(start))
 }
 
 // RunSingle ...
@@ -114,5 +121,5 @@ func RunSingle(path string, relay bool, bucketSize int) error {
 		return err
 	}
 
-	return ui.NewUI(nodes, reporter.StatusReports, start)
+	return ui.NewUI([]peer.ID{nd.Host.ID()}, reporter.StatusReports, uiopts.Start(start))
 }
