@@ -2,12 +2,13 @@ package ui
 
 import (
 	"fmt"
-	"os"
+	"io"
 	"time"
 
 	"github.com/dustin/go-humanize"
-	"github.com/libp2p/hydra-booster/node"
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/hydra-booster/reports"
+	uiopts "github.com/libp2p/hydra-booster/ui/opts"
 )
 
 const (
@@ -16,17 +17,20 @@ const (
 )
 
 // ErrMissingNodes is returned when no nodes are passed to the UI
-var ErrMissingNodes = fmt.Errorf("ui needs at least one node")
+var ErrMissingPeers = fmt.Errorf("ui needs at least one peer")
 
 // NewUI creates a "UI" for status reports - CLI output based on the number of Hydra nodes
-func NewUI(nodes []*node.HydraNode, statusReports chan reports.StatusReport, start time.Time) error {
+func NewUI(peers []peer.ID, statusReports chan reports.StatusReport, opts ...uiopts.Option) error {
+	options := uiopts.Options{}
+	options.Apply(append([]uiopts.Option{uiopts.Defaults}, opts...)...)
+
 	uiType := logey
 
-	if len(nodes) == 0 {
-		return ErrMissingNodes
+	if len(peers) == 0 {
+		return ErrMissingPeers
 	}
 
-	if len(nodes) == 1 {
+	if len(peers) == 1 {
 		uiType = gooey
 	}
 
@@ -37,11 +41,11 @@ func NewUI(nodes []*node.HydraNode, statusReports chan reports.StatusReport, sta
 			if !ok {
 				break
 			}
-			printStatusLine(r, start)
+			printStatusLine(options.Writer, r, options.Start)
 		}
 	case gooey: // 1 node
-		ga := &GooeyApp{Title: "Hydra Booster Node", Log: NewLog(15, 15)}
-		ga.NewDataLine(3, "Peer ID", nodes[0].Host.ID().Pretty())
+		ga := &GooeyApp{Title: "Hydra Booster Node", Log: NewLog(options.Writer, 15, 15), writer: options.Writer}
+		ga.NewDataLine(3, "Peer ID", peers[0].Pretty())
 		econs := ga.NewDataLine(4, "Connections", "0")
 		uniqprs := ga.NewDataLine(5, "Unique Peers Seen", "0")
 		emem := ga.NewDataLine(6, "Memory Allocated", "0MB")
@@ -50,6 +54,7 @@ func NewUI(nodes []*node.HydraNode, statusReports chan reports.StatusReport, sta
 		etime := ga.NewDataLine(9, "Uptime", "0h 0m 0s")
 		ga.Print()
 
+		var closed bool
 		second := time.NewTicker(time.Second)
 
 		for {
@@ -60,7 +65,7 @@ func NewUI(nodes []*node.HydraNode, statusReports chan reports.StatusReport, sta
 			case r, ok := <-statusReports:
 				if !ok {
 					second.Stop()
-					statusReports = nil
+					closed = true
 					break
 				}
 				emem.SetVal(humanize.Bytes(r.MemStats.Alloc))
@@ -74,24 +79,26 @@ func NewUI(nodes []*node.HydraNode, statusReports chan reports.StatusReport, sta
 
 				ga.Print()
 			case <-second.C:
-				t := time.Since(start)
+				t := time.Since(options.Start)
 				h := int(t.Hours())
 				m := int(t.Minutes()) % 60
 				s := int(t.Seconds()) % 60
 				etime.SetVal(fmt.Sprintf("%dh %dm %ds", h, m, s))
 				ga.Print()
 			}
+
+			if closed {
+				break
+			}
 		}
-	default:
-		return fmt.Errorf("unknown UI type %v", uiType)
 	}
 
 	return nil
 }
 
-func printStatusLine(report reports.StatusReport, start time.Time) {
+func printStatusLine(writer io.Writer, report reports.StatusReport, start time.Time) {
 	fmt.Fprintf(
-		os.Stderr,
+		writer,
 		"[NumDhts: %d, Uptime: %s, Memory Usage: %s, TotalPeers: %d/%d, Total Provs: %d, BootstrapsDone: %d]\n",
 		report.TotalHydraNodes,
 		time.Second*time.Duration(int(time.Since(start).Seconds())),

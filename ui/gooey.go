@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"io"
 	"strings"
 
 	human "github.com/dustin/go-humanize"
@@ -50,21 +51,21 @@ func color(color int, s string) string {
 
 const width = 25
 
-func padPrint(line int, label, value string) {
-	putMessage(line, fmt.Sprintf("%s%s%s", label, strings.Repeat(" ", width-len(label)), value))
+func padPrint(writer io.Writer, line int, label, value string) {
+	putMessage(writer, line, fmt.Sprintf("%s%s%s", label, strings.Repeat(" ", width-len(label)), value))
 }
 
-func putMessage(line int, mes string) {
-	fmt.Printf("\033[%d;0H%s%s", line, QClrLine, mes)
+func putMessage(writer io.Writer, line int, mes string) {
+	fmt.Fprintf(writer, "\033[%d;0H%s%s", line, QClrLine, mes)
 }
 
-func printDataSharedLine(line int, bup int, totup int64, rateup float64) {
+func printDataSharedLine(writer io.Writer, line int, bup int, totup int64, rateup float64) {
 	pad := "            "
 	a := fmt.Sprintf("%d            ", bup)[:12]
 	b := (human.Bytes(uint64(totup)) + pad)[:12]
 	c := (human.Bytes(uint64(rateup)) + "/s" + pad)[:12]
 
-	padPrint(line, "", a+b+c)
+	padPrint(writer, line, "", a+b+c)
 }
 
 // GooeyApp ..
@@ -72,12 +73,13 @@ type GooeyApp struct {
 	Title      string
 	DataFields []*DataLine
 	Log        *Log
+	writer     io.Writer
 }
 
 // Print ...
 func (a *GooeyApp) Print() {
-	fmt.Println(QReset)
-	putMessage(1, a.Title)
+	fmt.Fprintln(a.writer, QReset)
+	putMessage(a.writer, 1, a.Title)
 	for _, dl := range a.DataFields {
 		dl.Print()
 	}
@@ -90,6 +92,7 @@ func (a *GooeyApp) NewDataLine(line int, label, defval string) *DataLine {
 		Default: defval,
 		Label:   label,
 		Line:    line,
+		writer:  a.writer,
 	}
 	a.DataFields = append(a.DataFields, dl)
 
@@ -102,6 +105,7 @@ type DataLine struct {
 	Line    int
 	Default string
 	LastVal string
+	writer  io.Writer
 }
 
 // SetVal ...
@@ -117,7 +121,7 @@ func (dl *DataLine) Print() {
 		s = dl.LastVal
 	}
 
-	padPrint(dl.Line, dl.Label, s)
+	padPrint(dl.writer, dl.Line, dl.Label, s)
 }
 
 // Log ...
@@ -127,15 +131,17 @@ type Log struct {
 	Messages  []string
 	beg       int
 	end       int
+	writer    io.Writer
 }
 
 // NewLog ...
-func NewLog(line, size int) *Log {
+func NewLog(writer io.Writer, line, size int) *Log {
 	return &Log{
 		Size:      size,
 		StartLine: line,
 		Messages:  make([]string, size),
 		end:       -1,
+		writer:    writer,
 	}
 }
 
@@ -151,7 +157,7 @@ func (l *Log) Add(m string) {
 // Print ...
 func (l *Log) Print() {
 	for i := 0; i < l.Size; i++ {
-		putMessage(l.StartLine+i, l.Messages[(l.beg+i)%l.Size])
+		putMessage(l.writer, l.StartLine+i, l.Messages[(l.beg+i)%l.Size])
 	}
 }
 

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/libp2p/hydra-booster/node"
-	"github.com/libp2p/hydra-booster/opts"
+	"github.com/libp2p/hydra-booster/node/opts"
 	hytesting "github.com/libp2p/hydra-booster/testing"
 	"github.com/multiformats/go-multiaddr"
 )
