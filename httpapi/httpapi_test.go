@@ -7,33 +7,12 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/ipfs/go-datastore"
 	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/libp2p/hydra-booster/node"
-	"github.com/libp2p/hydra-booster/opts"
-	"github.com/multiformats/go-multiaddr"
+	hytesting "github.com/libp2p/hydra-booster/testing"
 )
 
-var noBootstrappers = []multiaddr.Multiaddr{}
-
-func spawnNodes(n int) ([]*node.HydraNode, error) {
-	var nodes []*node.HydraNode
-	for i := 0; i < n; i++ {
-		nd, _, err := node.NewHydraNode(opts.Datastore(datastore.NewMapDatastore()), opts.BootstrapPeers(noBootstrappers))
-		if err != nil {
-			for _, nd := range nodes {
-				nd.Host.Close()
-			}
-			return nil, err
-		}
-		nodes = append(nodes, nd)
-	}
-
-	return nodes, nil
-}
-
 func TestHTTPAPIPeers(t *testing.T) {
-	nodes, err := spawnNodes(2)
+	nodes, err := hytesting.SpawnNodes(2)
 	if err != nil {
 		t.Fatal(err)
 	}

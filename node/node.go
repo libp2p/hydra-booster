@@ -6,13 +6,14 @@ import (
 	"math/rand"
 	"time"
 
-	ipns "github.com/ipfs/go-ipns"
-	libp2p "github.com/libp2p/go-libp2p"
+	"github.com/ipfs/go-ipns"
+	"github.com/libp2p/go-libp2p"
 	circuit "github.com/libp2p/go-libp2p-circuit"
 	connmgr "github.com/libp2p/go-libp2p-connmgr"
-	crypto "github.com/libp2p/go-libp2p-core/crypto"
-	host "github.com/libp2p/go-libp2p-core/host"
-	peer "github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p-core/crypto"
+	"github.com/libp2p/go-libp2p-core/host"
+	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p-core/routing"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	dhtopts "github.com/libp2p/go-libp2p-kad-dht/opts"
 	record "github.com/libp2p/go-libp2p-record"
@@ -26,7 +27,11 @@ const gracePeriod = time.Minute
 
 func randBootstrapAddr(bootstrapPeers []multiaddr.Multiaddr) (*peer.AddrInfo, error) {
 	addr := bootstrapPeers[rand.Intn(len(bootstrapPeers))]
-	return peer.AddrInfoFromP2pAddr(addr)
+	ai, err := peer.AddrInfoFromP2pAddr(addr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert %s to AddrInfo: %w", addr, err)
+	}
+	return ai, nil
 }
 
 // BootstrapStatus describes the status of connecting to a bootstrap node
@@ -38,7 +43,7 @@ type BootstrapStatus struct {
 // HydraNode is a container for libp2p components used by a Hydra Booster node
 type HydraNode struct {
 	Host         host.Host
-	DHT          *dht.IpfsDHT
+	Routing      routing.Routing
 	Bootstrapped bool
 }
 
@@ -79,8 +84,7 @@ func NewHydraNode(options ...opts.Option) (*HydraNode, chan BootstrapStatus, err
 	dhtNode.Bootstrap(context.Background())
 
 	bsCh := make(chan BootstrapStatus, 1)
-
-	hyNode := HydraNode{Host: node, DHT: dhtNode}
+	hyNode := HydraNode{Host: node, Routing: dhtNode}
 
 	go func() {
 		// ❓ what is this limiter for?

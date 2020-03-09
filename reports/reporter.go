@@ -1,6 +1,7 @@
 package reports
 
 import (
+	"fmt"
 	"runtime"
 	"sync"
 	"time"
@@ -15,6 +16,7 @@ import (
 // var _ = logwriter.WriterGroup
 // var log = logging.Logger("hydrabooster")
 
+// StatusReport represents a captured snapshot of Hydra Node status data
 type StatusReport struct {
 	MemStats                    runtime.MemStats
 	TotalHydraNodes             int
@@ -25,24 +27,37 @@ type StatusReport struct {
 	TotalProvTime               time.Duration
 }
 
+// ProvInfo contains information about provider records
 type ProvInfo struct {
 	Key      string
 	Duration time.Duration
 }
 
+// Reporter collects status reports on Hydra Nodes and publishes them to a channel
 type Reporter struct {
 	StatusReports chan StatusReport
 	ticker        *time.Ticker
 	provs         chan *ProvInfo
+	waitGroup     *sync.WaitGroup
 }
 
+// Stop halts all status report collection and reporting, will wait for pending report to be published and consumed
 func (r *Reporter) Stop() {
 	close(r.provs)
 	r.ticker.Stop()
+	r.waitGroup.Wait() // wait for pending report publishes to complete
 	close(r.StatusReports)
 }
 
+// ErrMissingNodes is returned when no nodes are passed to a reporter
+var ErrMissingNodes = fmt.Errorf("reporter needs at least one node")
+
+// NewReporter creates a new reporter that immediately starts collecting status reports for the passed Hydra nodes and publishes them to a channel
 func NewReporter(nodes []*node.HydraNode, reportInterval time.Duration) (*Reporter, error) {
+	if len(nodes) == 0 {
+		return nil, ErrMissingNodes
+	}
+
 	var hyperLock sync.Mutex
 	hyperlog := hyperloglog.New()
 
@@ -63,9 +78,10 @@ func NewReporter(nodes []*node.HydraNode, reportInterval time.Duration) (*Report
 	//logwriter.WriterGroup.AddWriter(w)
 	//go waitForNotifications(r, provs, nil)
 
+	var wg sync.WaitGroup
 	reports := make(chan StatusReport)
 	ticker := time.NewTicker(reportInterval)
-	reporter := Reporter{StatusReports: reports, ticker: ticker}
+	reporter := Reporter{StatusReports: reports, ticker: ticker, provs: provs, waitGroup: &wg}
 
 	totalProvs := 0
 	var totalProvTime time.Duration
@@ -82,6 +98,8 @@ func NewReporter(nodes []*node.HydraNode, reportInterval time.Duration) (*Report
 					totalProvTime += p.Duration
 				}
 			case <-ticker.C:
+				wg.Add(1)
+
 				hyperLock.Lock()
 				totalUniqPeers := hyperlog.Estimate()
 				hyperLock.Unlock()
@@ -107,6 +125,8 @@ func NewReporter(nodes []*node.HydraNode, reportInterval time.Duration) (*Report
 					TotalProvs:                  totalProvs,
 					TotalProvTime:               totalProvTime,
 				}
+
+				wg.Done()
 			}
 		}
 	}()

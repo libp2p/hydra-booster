@@ -5,18 +5,16 @@ import (
 	"os"
 	"time"
 
-	"github.com/libp2p/hydra-booster/reports"
-
-	"github.com/multiformats/go-multiaddr"
-
 	levelds "github.com/ipfs/go-ds-leveldb"
 	circuit "github.com/libp2p/go-libp2p-circuit"
-	crypto "github.com/libp2p/go-libp2p-core/crypto"
+	"github.com/libp2p/go-libp2p-core/crypto"
 	dhtmetrics "github.com/libp2p/go-libp2p-kad-dht/metrics"
 	"github.com/libp2p/hydra-booster/httpapi"
 	"github.com/libp2p/hydra-booster/node"
 	"github.com/libp2p/hydra-booster/opts"
+	"github.com/libp2p/hydra-booster/reports"
 	"github.com/libp2p/hydra-booster/ui"
+	"github.com/multiformats/go-multiaddr"
 )
 
 func init() {
@@ -32,12 +30,14 @@ const singleDHTSwarmAddr = "/ip4/0.0.0.0/tcp/19264"
 const httpAPIAddr = "127.0.0.1:7779"
 
 func handleBootstrapStatus(ch chan node.BootstrapStatus) {
-	status, ok := <-ch
-	if !ok {
-		return
-	}
-	if status.Err != nil {
-		fmt.Println(status.Err)
+	for {
+		status, ok := <-ch
+		if !ok {
+			return
+		}
+		if status.Err != nil {
+			fmt.Println(status.Err)
+		}
 	}
 }
 

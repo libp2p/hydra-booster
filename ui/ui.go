@@ -15,11 +15,15 @@ const (
 	gooey
 )
 
+// ErrMissingNodes is returned when no nodes are passed to the UI
+var ErrMissingNodes = fmt.Errorf("ui needs at least one node")
+
+// NewUI creates a "UI" for status reports - CLI output based on the number of Hydra nodes
 func NewUI(nodes []*node.HydraNode, statusReports chan reports.StatusReport, start time.Time) error {
 	uiType := logey
 
 	if len(nodes) == 0 {
-		return fmt.Errorf("ui needs at least one node")
+		return ErrMissingNodes
 	}
 
 	if len(nodes) == 1 {
