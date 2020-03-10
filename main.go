@@ -16,7 +16,7 @@ const defaultKValue = 20
 
 func main() {
 	many := flag.Int("many", -1, "Instead of running one dht, run many!")
-	dbpath := flag.String("db", "dht-data", "Database folder")
+	dbpath := flag.String("db", "hydra-belly", "Datastore folder path")
 	inmem := flag.Bool("mem", false, "Use an in-memory database. This overrides the -db option")
 	pprofport := flag.Int("pprof-port", -1, "Specify a port to run pprof http server on")
 	relay := flag.Bool("relay", false, "Enable libp2p circuit relaying for this node")
