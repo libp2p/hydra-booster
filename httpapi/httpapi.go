@@ -14,7 +14,7 @@ func NewServeMux(nodes []*node.HydraNode) *http.ServeMux {
 	mux := http.NewServeMux()
 
 	// Get the peers created by hydra booster (ndjson)
-	mux.HandleFunc("/peers", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/sybils", func(w http.ResponseWriter, r *http.Request) {
 		enc := json.NewEncoder(w)
 
 		for _, n := range nodes {

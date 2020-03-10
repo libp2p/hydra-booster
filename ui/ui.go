@@ -99,7 +99,7 @@ func NewUI(peers []peer.ID, statusReports chan reports.StatusReport, opts ...uio
 func printStatusLine(writer io.Writer, report reports.StatusReport, start time.Time) {
 	fmt.Fprintf(
 		writer,
-		"[NumDhts: %d, Uptime: %s, Memory Usage: %s, TotalPeers: %d/%d, Total Provs: %d, BootstrapsDone: %d]\n",
+		"[NumSybils: %d, Uptime: %s, Memory Usage: %s, PeersConnected: %d, TotalUniquePeersSeen: %d, Total Provs: %d, BootstrapsDone: %d]\n",
 		report.TotalHydraNodes,
 		time.Second*time.Duration(int(time.Since(start).Seconds())),
 		humanize.Bytes(report.MemStats.Alloc),

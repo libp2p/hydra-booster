@@ -80,9 +80,10 @@ func TestLogeyUI(t *testing.T) {
 	NewUI([]peer.ID{peerId0, peerId1}, srs, opts.Writer(&b))
 
 	expects := []string{
-		fmt.Sprintf("NumDhts: %v", r.TotalHydraNodes),
+		fmt.Sprintf("NumSybils: %v", r.TotalHydraNodes),
 		fmt.Sprintf("BootstrapsDone: %v", r.TotalBootstrappedHydraNodes),
-		fmt.Sprintf("TotalPeers: %v/%v", r.TotalConnectedPeers, r.TotalUniquePeers),
+		fmt.Sprintf("PeersConnected: %v", r.TotalConnectedPeers),
+		fmt.Sprintf("TotalUniquePeersSeen: %v", r.TotalUniquePeers),
 	}
 
 	for _, str := range expects {

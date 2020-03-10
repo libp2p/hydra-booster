@@ -11,7 +11,7 @@ import (
 	hytesting "github.com/libp2p/hydra-booster/testing"
 )
 
-func TestHTTPAPIPeers(t *testing.T) {
+func TestHTTPAPISybils(t *testing.T) {
 	nodes, err := hytesting.SpawnNodes(2)
 	if err != nil {
 		t.Fatal(err)
@@ -25,7 +25,7 @@ func TestHTTPAPIPeers(t *testing.T) {
 	go http.Serve(listener, NewServeMux(nodes))
 	defer listener.Close()
 
-	url := fmt.Sprintf("http://%s/peers", listener.Addr().String())
+	url := fmt.Sprintf("http://%s/sybils", listener.Addr().String())
 	res, err := http.Get(url)
 	if err != nil {
 		t.Fatal(err)
