@@ -57,6 +57,24 @@ Only run a hydra-booster on machines with public IP addresses. Having more dht n
 
 When running with `-many`, please make sure to bump the ulimit to something fairly high. Expect ~500 connections per node youre running (so with `-many=10`, try setting `ulimit -n 5000`)
 
+## Developers
+
+### Publish a new image
+
+```console
+# Build your container
+docker build -t hydra-booster .
+
+# Get it to run
+docker run hydra-booster
+
+# Commit new version
+docker commit -m="some commit message" <CONTAINER_ID> libp2p/hydra-booster
+
+# Push to docker hub (must be logged in, do docker login)
+docker push libp2p/hydra-booster
+```
+
 ## API
 
 ### HTTP API
