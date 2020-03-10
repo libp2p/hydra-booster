@@ -63,7 +63,7 @@ When running with `-many`, please make sure to bump the ulimit to something fair
 
 By default the HTTP API is available at http://127.0.0.1:7779.
 
-#### `GET /peers`
+#### `GET /sybils`
 
 Returns an ndjson list of peers created by the Hydra: their IDs and mulitaddrs. Example output:
 
