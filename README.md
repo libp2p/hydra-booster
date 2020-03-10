@@ -75,6 +75,22 @@ Returns an ndjson list of peers created by the Hydra: their IDs and mulitaddrs. 
 {"Addrs":["/ip4/127.0.0.1/tcp/50281","/ip4/192.168.0.3/tcp/50281"],"ID":"12D3KooWBmgW3i8vZaD49DDWJ3dRRb6KCG42UubpJDPHpzwKDXB9"}
 ```
 
+## For devs
+
+### Publish a new image
+
+```
+# Build your container
+docker build -t hydra-booster .
+# Get it to run
+docker run hydra-booster
+# Commit new version
+docker commit -m="some commit message" hydra-booster libp2p/hydra-booster
+# Push to docker hub (must be logged in, do docker login)
+docker push libp2p/hydra-booster
+```
+
+
 ## License
 
 The hydra-booster project is dual-licensed under Apache 2.0 and MIT terms:
