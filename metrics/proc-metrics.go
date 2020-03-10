@@ -21,23 +21,17 @@ func SetupMetrics(port int) error {
 	procCollector := prom.NewProcessCollector(prom.ProcessCollectorOpts{})
 	registry.MustRegister(goCollector, procCollector)
 	pe, err := prometheus.NewExporter(prometheus.Options{
-		Namespace: "hydra-booster",
+		Namespace: "hydrabooster",
 		Registry:  registry,
 	})
 	if err != nil {
-		return err
+		log.Fatalf("Failed to create exporter: %v", err)
 	}
 
-	_ = view.RegisterExporter
-	// NOTE: Disabling opencensus for now, it allocates too much
-	// register prometheus with opencensus
-	// view.RegisterExporter(pe)
-	// view.SetReportingPeriod(2)
-
-	// // register the metrics views of interest
-	// if err := view.Register(dhtmetrics.DefaultViews...); err != nil {
-	// 	return err
-	// }
+	view.RegisterExporter(pe)
+	if err := view.Register(DefaultViews...); err != nil {
+		log.Fatalf("Failed to register hydra views: %v", err)
+	}
 
 	go func() {
 		mux := http.NewServeMux()

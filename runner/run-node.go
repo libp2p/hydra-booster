@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"time"
@@ -11,12 +12,15 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	dhtmetrics "github.com/libp2p/go-libp2p-kad-dht/metrics"
 	"github.com/libp2p/hydra-booster/httpapi"
+	"github.com/libp2p/hydra-booster/metrics"
 	"github.com/libp2p/hydra-booster/node"
 	hydraNodeOpts "github.com/libp2p/hydra-booster/node/opts"
 	"github.com/libp2p/hydra-booster/reports"
 	"github.com/libp2p/hydra-booster/ui"
 	uiopts "github.com/libp2p/hydra-booster/ui/opts"
 	"github.com/multiformats/go-multiaddr"
+	"go.opencensus.io/stats"
+	"go.opencensus.io/tag"
 )
 
 func init() {
@@ -31,14 +35,17 @@ var _ = circuit.P_CIRCUIT
 const singleDHTSwarmAddr = "/ip4/0.0.0.0/tcp/19264"
 const httpAPIAddr = "127.0.0.1:7779"
 
-func handleBootstrapStatus(ch chan node.BootstrapStatus) {
+func handleBootstrapStatus(ctx context.Context, ch chan node.BootstrapStatus) {
 	for {
 		status, ok := <-ch
 		if !ok {
-			return
+			break
 		}
 		if status.Err != nil {
 			fmt.Println(status.Err)
+		}
+		if status.Done {
+			stats.Record(ctx, metrics.MBootstrappedSybil.M(1))
 		}
 	}
 }
@@ -85,7 +92,15 @@ func RunMany(opts Options) error {
 		if err != nil {
 			return fmt.Errorf("failed to spawn node with swarm address %v: %w", addr, err)
 		}
-		go handleBootstrapStatus(bsCh)
+
+		ctx, err := tag.New(context.Background(), tag.Insert(metrics.KeyPeerID, nd.Host.ID().String()))
+		if err != nil {
+			return fmt.Errorf("failed to spawn node with swarm address %v: %w", addr, err)
+		}
+		stats.Record(ctx, metrics.MSybil.M(1))
+
+		go handleBootstrapStatus(ctx, bsCh)
+
 		nodes = append(nodes, nd)
 	}
 	fmt.Fprintf(os.Stderr, "\n")
@@ -123,7 +138,13 @@ func RunSingle(opts Options) error {
 		return fmt.Errorf("failed to spawn node with swarm address %v: %w", singleDHTSwarmAddr, err)
 	}
 
-	go handleBootstrapStatus(bsCh)
+	ctx, err := tag.New(context.Background(), tag.Insert(metrics.KeyPeerID, nd.Host.ID().String()))
+	if err != nil {
+		return fmt.Errorf("failed to spawn node with swarm address %v: %w", addr, err)
+	}
+	stats.Record(ctx, metrics.MSybil.M(1))
+
+	go handleBootstrapStatus(ctx, bsCh)
 
 	// Simple endpoint to report the addrs of the sybils that were launched
 	go httpapi.ListenAndServe([]*node.HydraNode{nd}, httpAPIAddr)

@@ -115,13 +115,13 @@ func NewHydraNode(options ...opts.Option) (*HydraNode, chan BootstrapStatus, err
 				break
 			}
 			hyNode.Bootstrapped = true
+			bsCh <- BootstrapStatus{Done: true}
 		}
 
 		if cfg.Limiter != nil {
 			<-cfg.Limiter
 		}
 
-		bsCh <- BootstrapStatus{Done: true}
 		close(bsCh)
 	}()
 
