@@ -1,9 +1,8 @@
-FROM golang:1.12-stretch
+FROM golang:1.14-stretch
 
 EXPOSE 10000-12000
 
-COPY . /dht-node
+COPY . /hydra-booster
 
-RUN cd /dht-node && go build
-
-CMD ["/dht-node/dht-node"]
+RUN cd /hydra-booster && go build
+CMD ["./hydra-booster -many=50 -portBegin=10000"]
