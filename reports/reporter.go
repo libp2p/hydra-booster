@@ -1,15 +1,21 @@
 package reports
 
 import (
+	"context"
 	"fmt"
 	"runtime"
 	"sync"
 	"time"
 
 	"github.com/axiomhq/hyperloglog"
+	"github.com/ipfs/go-datastore/query"
+	"go.opencensus.io/stats"
+	"go.opencensus.io/tag"
+
 	// logging "github.com/ipfs/go-log"
 	// logwriter "github.com/ipfs/go-log/writer"
 	"github.com/libp2p/go-libp2p-core/network"
+	"github.com/libp2p/hydra-booster/metrics"
 	"github.com/libp2p/hydra-booster/node"
 )
 
@@ -114,7 +120,41 @@ func NewReporter(nodes []*node.HydraNode, reportInterval time.Duration) (*Report
 						totalBootstrappedHydraNodes++
 					}
 					totalConnectedPeers += len(nodes[i].Host.Network().Peers())
+
+					rts := nodes[i].RoutingTable.Size()
+
+					prs, err := nodes[i].Datastore.Query(query.Query{Prefix: "/providers", KeysOnly: true})
+					if err != nil {
+						fmt.Println(err)
+						continue
+					}
+
+					// TODO: make fast https://github.com/libp2p/go-libp2p-kad-dht/issues/487
+					var totalProvRecords int
+					for _ = range prs.Next() {
+						totalProvRecords++
+					}
+
+					ctx, err := tag.New(context.Background(), tag.Insert(metrics.KeyPeerID, nodes[i].Host.ID().String()))
+					if err != nil {
+						fmt.Println(err)
+						continue
+					}
+
+					stats.Record(
+						ctx,
+						metrics.RoutingTableSize.M(int64(rts)),
+						metrics.ProviderRecords.M(int64(totalProvRecords)),
+					)
 				}
+
+				stats.Record(
+					tag.NewContext(context.Background(), nil),
+					metrics.Sybils.M(int64(len(nodes))),
+					metrics.BootstrappedSybils.M(int64(totalBootstrappedHydraNodes)),
+					metrics.ConnectedPeers.M(int64(totalConnectedPeers)),
+					metrics.UniquePeers.M(int64(totalUniqPeers)),
+				)
 
 				reports <- StatusReport{
 					MemStats:                    mstat,

@@ -12,72 +12,79 @@ var (
 
 // Keys
 var (
-	KeyHydraID, _ = tag.NewKey("hydra_id")
-	KeySybilID, _ = tag.NewKey("sybil_id")
+	KeyPeerID, _ = tag.NewKey("peer_id")
 )
 
 // Measures
 var (
-	MSybil             = stats.Int64("libp2p.io/hydra/sybil", "Sybil node(s) arrived on the network", stats.UnitDimensionless)
-	MBootstrappedSybil = stats.Int64("libp2p.io/hydra/bootstrapped_sybils", "A sybil node(s) became bootstrapped", stats.UnitDimensionless)
-	MConnectedPeer     = stats.Int64("libp2p.io/hydra/connected_peer", "Peer(s) became connected (1) or disconnected (-1)", stats.UnitDimensionless)
-	MUniquePeer        = stats.Int64("libp2p.io/hydra/total_unique_peers", "Total unique peers seen across all sybils", stats.UnitDimensionless)
-	MProvide           = stats.Int64("libp2p.io/hydra/provide", "A provide and it's duration", stats.UnitMilliseconds)
+	Sybils             = stats.Int64("libp2p.io/hydra/sybils", "Total sybil nodes launched by Hydra", stats.UnitDimensionless)
+	BootstrappedSybils = stats.Int64("libp2p.io/hydra/bootstrapped_sybils", "Total bootstrapped sybil nodes", stats.UnitDimensionless)
+	ConnectedPeers     = stats.Int64("libp2p.io/hydra/connected_peers", "Total peers connected to all sybils", stats.UnitDimensionless)
+	UniquePeers        = stats.Int64("libp2p.io/hydra/unique_peers", "Total unique peers seen across all sybils", stats.UnitDimensionless)
+	RoutingTableSize   = stats.Int64("libp2p.io/hydra/routing_table_size", "Total number of peers in the routing table", stats.UnitDimensionless)
+	ProviderRecords    = stats.Int64("libp2p.io/hydra/provider_records", "Total number of provider records stored in the datastore", stats.UnitDimensionless)
+	Provides           = stats.Int64("libp2p.io/hydra/provides", "Provides and their durations", stats.UnitMilliseconds)
 )
 
 // Views
 var (
-	TotalSybilsView = &view.View{
-		Name:        "libp2p.io/hydra/total_sybils",
-		Measure:     MSybil,
-		TagKeys:     []tag.Key{KeyHydraID, KeySybilID},
-		Aggregation: view.Sum(),
+	SybilsView = &view.View{
+		Measure:     Sybils,
+		Aggregation: view.LastValue(),
 	}
-	TotalBootstrappedSybilsView = &view.View{
-		Name:        "libp2p.io/hydra/total_bootstrapped_sybils",
-		Measure:     MBootstrappedSybil,
-		TagKeys:     []tag.Key{KeyHydraID, KeySybilID},
-		Aggregation: view.Sum(),
+	BootstrappedSybilsView = &view.View{
+		Measure:     BootstrappedSybils,
+		Aggregation: view.LastValue(),
 	}
-	TotalConnectedPeersView = &view.View{
-		Name:        "libp2p.io/hydra/total_connected_peers",
-		Measure:     MConnectedPeer,
-		TagKeys:     []tag.Key{KeyHydraID, KeySybilID},
-		Aggregation: view.Sum(),
+	ConnectedPeersView = &view.View{
+		Measure:     ConnectedPeers,
+		Aggregation: view.LastValue(),
 	}
-	// TotalUniquePeersView = &view.View{
-	// 	Measure:     MUniquePeer,
-	// 	Aggregation: view.LastValue(),
-	// }
-	TotalProvidesView = &view.View{
+	UniquePeersView = &view.View{
+		Measure:     UniquePeers,
+		Aggregation: view.LastValue(),
+	}
+	RoutingTableSizeView = &view.View{
+		Measure:     RoutingTableSize,
+		TagKeys:     []tag.Key{KeyPeerID},
+		Aggregation: view.LastValue(),
+	}
+	ProviderRecordsView = &view.View{
+		Measure:     ProviderRecords,
+		TagKeys:     []tag.Key{KeyPeerID},
+		Aggregation: view.LastValue(),
+	}
+	ProvidesView = &view.View{
 		Name:        "libp2p.io/hydra/total_provides",
 		Description: "Total number of provides made",
-		Measure:     MProvide,
-		TagKeys:     []tag.Key{KeyHydraID, KeySybilID},
+		Measure:     Provides,
+		TagKeys:     []tag.Key{KeyPeerID},
 		Aggregation: view.Count(),
 	}
-	TotalProvidesDurationView = &view.View{
+	ProvidesDurationView = &view.View{
 		Name:        "libp2p.io/hydra/total_provides_duration",
 		Description: "Total duration (latency) of all provides made",
-		Measure:     MProvide,
-		TagKeys:     []tag.Key{KeyHydraID, KeySybilID},
+		Measure:     Provides,
+		TagKeys:     []tag.Key{KeyPeerID},
 		Aggregation: view.Sum(),
 	}
 	ProvidesLatencyView = &view.View{
 		Name:        "libp2p.io/hydra/provides_latency",
 		Description: "Histogram distribution of provide latency",
-		Measure:     MProvide,
+		Measure:     Provides,
 		Aggregation: defaultMillisecondsDistribution,
 	}
 )
 
 // DefaultViews with all views in it.
 var DefaultViews = []*view.View{
-	TotalSybilsView,
-	TotalBootstrappedSybilsView,
-	TotalConnectedPeersView,
-	// TotalUniquePeersView,
-	TotalProvidesView,
-	TotalProvidesDurationView,
+	SybilsView,
+	BootstrappedSybilsView,
+	ConnectedPeersView,
+	UniquePeersView,
+	RoutingTableSizeView,
+	ProviderRecordsView,
+	ProvidesView,
+	ProvidesDurationView,
 	ProvidesLatencyView,
 }
