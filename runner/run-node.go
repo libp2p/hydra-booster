@@ -12,7 +12,7 @@ import (
 	dhtmetrics "github.com/libp2p/go-libp2p-kad-dht/metrics"
 	"github.com/libp2p/hydra-booster/httpapi"
 	"github.com/libp2p/hydra-booster/node"
-	"github.com/libp2p/hydra-booster/node/opts"
+	hydraNodeOpts "github.com/libp2p/hydra-booster/node/opts"
 	"github.com/libp2p/hydra-booster/reports"
 	"github.com/libp2p/hydra-booster/ui"
 	uiopts "github.com/libp2p/hydra-booster/ui/opts"
@@ -43,31 +43,44 @@ func handleBootstrapStatus(ch chan node.BootstrapStatus) {
 	}
 }
 
+// Options for RunMany and RunSingle
+type Options struct {
+	DatastorePath string
+	GetPort       func() int
+	NSybils       int
+	BucketSize    int
+	BsCon         int
+	Relay         bool
+	Stagger       time.Duration
+}
+
 // RunMany ...
-func RunMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, relay bool, stagger time.Duration) error {
+func RunMany(opts Options) error {
 	start := time.Now()
 
-	sharedDatastore, err := levelds.NewDatastore(dbpath, nil)
+	sharedDatastore, err := levelds.NewDatastore(opts.DatastorePath, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create datastore: %w", err)
 	}
 
 	var nodes []*node.HydraNode
 
-	fmt.Fprintf(os.Stderr, "Running %d DHT Instances:\n", many)
+	fmt.Fprintf(os.Stderr, "Running %d DHT Instances:\n", opts.NSybils)
 
-	limiter := make(chan struct{}, bsCon)
-	for i := 0; i < many; i++ {
-		time.Sleep(stagger)
+	// What is a limiter?
+	limiter := make(chan struct{}, opts.BsCon)
+
+	for i := 0; i < opts.NSybils; i++ {
+		time.Sleep(opts.Stagger)
 		fmt.Fprintf(os.Stderr, ".")
 
-		addr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", getPort()))
+		addr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", opts.GetPort()))
 		nd, bsCh, err := node.NewHydraNode(
-			opts.Datastore(sharedDatastore),
-			opts.Addr(addr),
-			opts.Relay(relay),
-			opts.BucketSize(bucketSize),
-			opts.Limiter(limiter),
+			hydraNodeOpts.Datastore(sharedDatastore),
+			hydraNodeOpts.Addr(addr),
+			hydraNodeOpts.Relay(opts.Relay),
+			hydraNodeOpts.BucketSize(opts.BucketSize),
+			hydraNodeOpts.Limiter(limiter),
 		)
 		if err != nil {
 			return fmt.Errorf("failed to spawn node with swarm address %v: %w", addr, err)
@@ -91,20 +104,20 @@ func RunMany(dbpath string, getPort func() int, many, bucketSize, bsCon int, rel
 }
 
 // RunSingle ...
-func RunSingle(path string, relay bool, bucketSize int) error {
+func RunSingle(opts Options) error {
 	start := time.Now()
 
-	datastore, err := levelds.NewDatastore(path, nil)
+	datastore, err := levelds.NewDatastore(opts.DatastorePath, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create datastore: %w", err)
 	}
 
 	addr, _ := multiaddr.NewMultiaddr(singleDHTSwarmAddr)
 	nd, bsCh, err := node.NewHydraNode(
-		opts.Datastore(datastore),
-		opts.Addr(addr),
-		opts.Relay(relay),
-		opts.BucketSize(bucketSize),
+		hydraNodeOpts.Datastore(datastore),
+		hydraNodeOpts.Addr(addr),
+		hydraNodeOpts.Relay(opts.Relay),
+		hydraNodeOpts.BucketSize(opts.BucketSize),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to spawn node with swarm address %v: %w", singleDHTSwarmAddr, err)

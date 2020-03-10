@@ -41,8 +41,14 @@ func main() {
 		*dbpath = ""
 	}
 
+	runOpts := runner.Options{
+		DatastorePath: *dbpath,
+		Relay:         *relay,
+		BucketSize:    *bucketSize,
+	}
+
 	if *many == -1 {
-		err := runner.RunSingle(*dbpath, *relay, *bucketSize)
+		err := runner.RunSingle(runOpts)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -50,8 +56,11 @@ func main() {
 		return
 	}
 
-	getPort := utils.PortSelector(*portBegin)
-	err := runner.RunMany(*dbpath, getPort, *many, *bucketSize, *bootstrapConcurency, *relay, *stagger)
+	runOpts.GetPort = utils.PortSelector(*portBegin)
+	runOpts.NSybils = *many
+	runOpts.BsCon = *bootstrapConcurency
+	runOpts.Stagger = *stagger
+	err := runner.RunMany(runOpts)
 	if err != nil {
 		log.Fatalln(err)
 	}
