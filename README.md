@@ -85,7 +85,7 @@ docker build -t hydra-booster .
 # Get it to run
 docker run hydra-booster
 # Commit new version
-docker commit -m="some commit message" hydra-booster libp2p/hydra-booster
+docker commit -m="some commit message" <CONTAINER_ID> libp2p/hydra-booster
 # Push to docker hub (must be logged in, do docker login)
 docker push libp2p/hydra-booster
 ```

@@ -13,4 +13,5 @@ RUN go build -o hydra-booster .
 
 EXPOSE 10000-12000
 RUN ls
-CMD ["./hydra-booster -many=50 -portBegin=10000"]
+CMD ["./hydra-booster"]
+# -many=50 -portBegin=10000"]
