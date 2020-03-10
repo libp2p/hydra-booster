@@ -13,8 +13,15 @@ import (
 func NewServeMux(nodes []*node.HydraNode) *http.ServeMux {
 	mux := http.NewServeMux()
 
-	// Get the peers created by hydra booster (ndjson)
-	mux.HandleFunc("/sybils", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/sybils", sybilsHandler(nodes))
+	mux.HandleFunc("/records/fetch", recordFetchHandler(nodes))
+	mux.HandleFunc("/records/list", recordListHandler(nodes))
+	return mux
+}
+
+// "/sybils" Get the peers created by hydra booster (ndjson)
+func sybilsHandler(nodes []*node.HydraNode) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		enc := json.NewEncoder(w)
 
 		for _, n := range nodes {
@@ -23,9 +30,21 @@ func NewServeMux(nodes []*node.HydraNode) *http.ServeMux {
 				Addrs: n.Host.Addrs(),
 			})
 		}
-	})
+	}
+}
 
-	return mux
+// "/records/fetch" Receive a record and fetch it from the network, if available
+func recordFetchHandler(nodes []*node.HydraNode) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// TODO
+	}
+}
+
+// "/records/list" Receive a record and fetch it from the network, if available
+func recordListHandler(nodes []*node.HydraNode) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// TODO
+	}
 }
 
 // ListenAndServe instructs a Hydra HTTP API server to listen and serve on the passed address
