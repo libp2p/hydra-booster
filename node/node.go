@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-ipns"
 	"github.com/libp2p/go-libp2p"
 	circuit "github.com/libp2p/go-libp2p-circuit"
@@ -16,6 +17,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/routing"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	dhtopts "github.com/libp2p/go-libp2p-kad-dht/opts"
+	kbucket "github.com/libp2p/go-libp2p-kbucket"
 	record "github.com/libp2p/go-libp2p-record"
 	"github.com/libp2p/hydra-booster/node/opts"
 	"github.com/multiformats/go-multiaddr"
@@ -43,7 +45,9 @@ type BootstrapStatus struct {
 // HydraNode is a container for libp2p components used by a Hydra Booster node
 type HydraNode struct {
 	Host         host.Host
+	Datastore    datastore.Datastore
 	Routing      routing.Routing
+	RoutingTable *kbucket.RoutingTable
 	Bootstrapped bool
 }
 
@@ -84,7 +88,12 @@ func NewHydraNode(options ...opts.Option) (*HydraNode, chan BootstrapStatus, err
 	dhtNode.Bootstrap(context.Background())
 
 	bsCh := make(chan BootstrapStatus, 1)
-	hyNode := HydraNode{Host: node, Routing: dhtNode}
+	hyNode := HydraNode{
+		Host:         node,
+		Datastore:    cfg.Datastore,
+		Routing:      dhtNode,
+		RoutingTable: dhtNode.RoutingTable(),
+	}
 
 	go func() {
 		// ❓ what is this limiter for?
