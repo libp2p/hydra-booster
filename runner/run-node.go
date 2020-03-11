@@ -126,7 +126,7 @@ func RunSingle(opts Options) error {
 	go handleBootstrapStatus(bsCh)
 
 	// Launch HTTP API
-	go httpapi.ListenAndServe([]*node.HydraNode{nd}, datastore, httpAPIAddr)
+	go httpapi.ListenAndServe([]*node.HydraNode{nd}, httpAPIAddr)
 
 	nodes := []*node.HydraNode{nd}
 	reporter, err := reports.NewReporter(nodes, time.Second*3)
