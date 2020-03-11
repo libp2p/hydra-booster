@@ -125,8 +125,8 @@ func RunSingle(opts Options) error {
 
 	go handleBootstrapStatus(bsCh)
 
-	// Simple endpoint to report the addrs of the sybils that were launched
-	go httpapi.ListenAndServe([]*node.HydraNode{nd}, httpAPIAddr)
+	// Launch HTTP API
+	go httpapi.ListenAndServe([]*node.HydraNode{nd}, datastore, httpAPIAddr)
 
 	nodes := []*node.HydraNode{nd}
 	reporter, err := reports.NewReporter(nodes, time.Second*3)
