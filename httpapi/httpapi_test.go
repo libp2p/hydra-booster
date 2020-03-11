@@ -7,7 +7,10 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/ipfs/go-datastore"
+	dsq "github.com/ipfs/go-datastore/query"
 	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/hydra-booster/node/opts"
 	hytesting "github.com/libp2p/hydra-booster/testing"
 )
 
@@ -56,5 +59,47 @@ func TestHTTPAPISybils(t *testing.T) {
 		if !found {
 			t.Fatal(fmt.Errorf("%s not found in spawned node peer IDs", ai.ID))
 		}
+	}
+}
+
+func TestHTTPAPIRecordsListWithoutRecords(t *testing.T) {
+	ds := datastore.NewMapDatastore()
+	nodes, err := hytesting.SpawnNodes(1, []opts.Option{
+		opts.Datastore(ds),
+	}...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	listener, err := net.Listen("tcp", ":0")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	go http.Serve(listener, NewServeMux(nodes, ds))
+	defer listener.Close()
+
+	url := fmt.Sprintf("http://%s/records/list", listener.Addr().String())
+	res, err := http.Get(url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.StatusCode < 200 || res.StatusCode > 299 {
+		t.Fatal(fmt.Errorf("got non-2XX status code %d: %s", res.StatusCode, url))
+	}
+
+	dec := json.NewDecoder(res.Body)
+	entries := []dsq.Entry{}
+
+	for {
+		var e dsq.Entry
+		if err := dec.Decode(&e); err != nil {
+			break
+		}
+		entries = append(entries, e)
+	}
+
+	if len(entries) > 0 {
+		t.Fatal(fmt.Errorf("Expected to have 0 records stored, found %d", len(entries)))
 	}
 }

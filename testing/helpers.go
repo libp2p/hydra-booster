@@ -10,7 +10,11 @@ import (
 	"github.com/libp2p/hydra-booster/node/opts"
 )
 
-var defaults = []opts.Option{opts.Datastore(datastore.NewMapDatastore()), opts.BootstrapPeers(nil)}
+// Defaults are the SpawnNode defaults
+var defaults = []opts.Option{
+	opts.Datastore(datastore.NewMapDatastore()),
+	opts.BootstrapPeers(nil),
+}
 
 // SpawnNode a new Hydra nodes with an in memory datastore and 0 bootstrap peers by default.
 // It also waits for bootstrapping to complete.
@@ -50,6 +54,7 @@ func SpawnNodes(n int, options ...opts.Option) ([]*node.HydraNode, error) {
 	return nodes, nil
 }
 
+// GeneratePeerID ...
 func GeneratePeerID() (peer.ID, crypto.PrivKey, crypto.PubKey, error) {
 	priv, pub, err := crypto.GenerateKeyPair(crypto.Ed25519, 0)
 	if err != nil {
