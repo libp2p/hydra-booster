@@ -9,6 +9,7 @@ import (
 
 	"github.com/axiomhq/hyperloglog"
 	"github.com/ipfs/go-datastore"
+	"github.com/ipfs/go-datastore/query"
 	levelds "github.com/ipfs/go-ds-leveldb"
 	"github.com/libp2p/go-libp2p-core/network"
 	kbucket "github.com/libp2p/go-libp2p-kbucket"
@@ -21,9 +22,13 @@ import (
 )
 
 type Hydra struct {
-	Heads        []*node.HydraNode
+	Sybils       []*node.HydraNode
 	Datastore    datastore.Datastore
 	RoutingTable *kbucket.RoutingTable
+
+	hyperLock   *sync.Mutex
+	hyperlog    *hyperloglog.Sketch
+	statsTicker *time.Ticker
 }
 
 type Options struct {
@@ -80,10 +85,10 @@ func NewHydra(options Options) (*Hydra, error) {
 				hyperLock.Lock()
 				hyperlog.Insert([]byte(v.RemotePeer()))
 				hyperLock.Unlock()
-				stats.Record(ctx, metrics.ConnectedPeers.M(int64(len(n.Peers()))))
+				stats.Record(ctx, metrics.ConnectedPeers.M(1))
 			},
 			DisconnectedF: func(n network.Network, v network.Conn) {
-				stats.Record(ctx, metrics.ConnectedPeers.M(int64(len(n.Peers()))))
+				stats.Record(ctx, metrics.ConnectedPeers.M(-1))
 			},
 		})
 
@@ -93,18 +98,20 @@ func NewHydra(options Options) (*Hydra, error) {
 	}
 	fmt.Fprintf(os.Stderr, "\n")
 
-	return &Hydra{
-		Heads:     nodes,
+	hydra := Hydra{
+		Sybils:    nodes,
 		Datastore: datastore,
-	}, nil
+		hyperLock: &hyperLock,
+		hyperlog:  hyperlog,
+	}
+
+	hydra.statsTicker = recordPeriodicMetrics(&hydra, time.Second*5)
+
+	return &hydra, nil
 }
 
 func handleBootstrapStatus(ctx context.Context, ch chan node.BootstrapStatus) {
-	for {
-		status, ok := <-ch
-		if !ok {
-			break
-		}
+	for status := range ch {
 		if status.Err != nil {
 			fmt.Println(status.Err)
 		}
@@ -112,4 +119,35 @@ func handleBootstrapStatus(ctx context.Context, ch chan node.BootstrapStatus) {
 			stats.Record(ctx, metrics.BootstrappedSybils.M(1))
 		}
 	}
+}
+
+func recordPeriodicMetrics(hydra *Hydra, period time.Duration) *time.Ticker {
+	ticker := time.NewTicker(period)
+
+	go func() {
+		for range ticker.C {
+			var rts int
+			for i := range hydra.Sybils {
+				rts += hydra.Sybils[i].RoutingTable.Size()
+			}
+			stats.Record(context.Background(), metrics.RoutingTableSize.M(int64(rts)))
+
+			prs, err := hydra.Datastore.Query(query.Query{Prefix: "/providers", KeysOnly: true})
+			if err == nil {
+				// TODO: make fast https://github.com/libp2p/go-libp2p-kad-dht/issues/487
+				var provRecords int
+				for range prs.Next() {
+					provRecords++
+				}
+				stats.Record(context.Background(), metrics.ProviderRecords.M(int64(provRecords)))
+			}
+
+			hydra.hyperLock.Lock()
+			uniqPeers := hydra.hyperlog.Estimate()
+			hydra.hyperLock.Unlock()
+			stats.Record(context.Background(), metrics.UniquePeers.M(int64(uniqPeers)))
+		}
+	}()
+
+	return ticker
 }

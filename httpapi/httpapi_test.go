@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/hydra-booster/hydra"
 	hytesting "github.com/libp2p/hydra-booster/testing"
 )
 
@@ -22,7 +23,7 @@ func TestHTTPAPISybils(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	go http.Serve(listener, NewServeMux(nodes))
+	go http.Serve(listener, NewServeMux(&hydra.Hydra{Sybils: nodes}))
 	defer listener.Close()
 
 	url := fmt.Sprintf("http://%s/sybils", listener.Addr().String())
