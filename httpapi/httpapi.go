@@ -5,14 +5,14 @@ import (
 	"net"
 	"net/http"
 
+	ds "github.com/ipfs/go-datastore"
 	dsq "github.com/ipfs/go-datastore/query"
-	levelds "github.com/ipfs/go-ds-leveldb"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/hydra-booster/node"
 )
 
 // ListenAndServe instructs a Hydra HTTP API server to listen and serve on the passed address
-func ListenAndServe(nodes []*node.HydraNode, datastore *levelds.Datastore, addr string) error {
+func ListenAndServe(nodes []*node.HydraNode, datastore ds.Batching, addr string) error {
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
@@ -21,7 +21,7 @@ func ListenAndServe(nodes []*node.HydraNode, datastore *levelds.Datastore, addr 
 }
 
 // NewServeMux creates a new Hydra Booster HTTP API ServeMux
-func NewServeMux(nodes []*node.HydraNode, datastore *levelds.Datastore) *http.ServeMux {
+func NewServeMux(nodes []*node.HydraNode, datastore ds.Batching) *http.ServeMux {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/sybils", sybilsHandler(nodes))
@@ -55,7 +55,7 @@ func recordFetchHandler(nodes []*node.HydraNode) func(w http.ResponseWriter, r *
 }
 
 // "/records/list" Receive a record and fetch it from the network, if available
-func recordListHandler(nodes []*node.HydraNode, datastore *levelds.Datastore) func(w http.ResponseWriter, r *http.Request) {
+func recordListHandler(nodes []*node.HydraNode, datastore ds.Batching) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// TODO Improve this handler once ProvideManager gets exposed
 		// https://discuss.libp2p.io/t/list-provider-records/450
