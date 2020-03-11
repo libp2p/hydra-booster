@@ -1,15 +1,15 @@
-package node
+package sybil
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/ipfs/go-datastore"
-	"github.com/libp2p/hydra-booster/node/opts"
+	"github.com/libp2p/hydra-booster/sybil/opts"
 )
 
 func TestSpawnNode(t *testing.T) { // TODO spawn a node to bootstrap from so we don't hit the public bootstrappers
-	nd, bsCh, err := NewHydraNode(opts.Datastore(datastore.NewMapDatastore()))
+	nd, bsCh, err := NewSybil(opts.Datastore(datastore.NewMapDatastore()))
 
 	if err != nil {
 		t.Fatal(err)

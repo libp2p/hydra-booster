@@ -1,4 +1,4 @@
-package node
+package sybil
 
 import (
 	"context"
@@ -19,7 +19,7 @@ import (
 	dhtopts "github.com/libp2p/go-libp2p-kad-dht/opts"
 	kbucket "github.com/libp2p/go-libp2p-kbucket"
 	record "github.com/libp2p/go-libp2p-record"
-	"github.com/libp2p/hydra-booster/node/opts"
+	"github.com/libp2p/hydra-booster/sybil/opts"
 	"github.com/multiformats/go-multiaddr"
 )
 
@@ -42,8 +42,8 @@ type BootstrapStatus struct {
 	Err  error
 }
 
-// HydraNode is a container for libp2p components used by a Hydra Booster node
-type HydraNode struct {
+// Sybil is a container for libp2p components used by a Hydra Booster sybil
+type Sybil struct {
 	Host         host.Host
 	Datastore    datastore.Datastore
 	Routing      routing.Routing
@@ -51,8 +51,8 @@ type HydraNode struct {
 	Bootstrapped bool
 }
 
-// NewHydraNode constructs a new Hydra Booster node
-func NewHydraNode(options ...opts.Option) (*HydraNode, chan BootstrapStatus, error) {
+// NewSybil constructs a new Hydra Booster sybil node
+func NewSybil(options ...opts.Option) (*Sybil, chan BootstrapStatus, error) {
 	cfg := opts.Options{}
 	cfg.Apply(append([]opts.Option{opts.Defaults}, options...)...)
 
@@ -88,7 +88,7 @@ func NewHydraNode(options ...opts.Option) (*HydraNode, chan BootstrapStatus, err
 	dhtNode.Bootstrap(context.Background())
 
 	bsCh := make(chan BootstrapStatus, 1)
-	hyNode := HydraNode{
+	sybil := Sybil{
 		Host:         node,
 		Datastore:    cfg.Datastore,
 		Routing:      dhtNode,
@@ -114,7 +114,7 @@ func NewHydraNode(options ...opts.Option) (*HydraNode, chan BootstrapStatus, err
 				}
 				break
 			}
-			hyNode.Bootstrapped = true
+			sybil.Bootstrapped = true
 			bsCh <- BootstrapStatus{Done: true}
 		}
 
@@ -125,5 +125,5 @@ func NewHydraNode(options ...opts.Option) (*HydraNode, chan BootstrapStatus, err
 		close(bsCh)
 	}()
 
-	return &hyNode, bsCh, nil
+	return &sybil, bsCh, nil
 }

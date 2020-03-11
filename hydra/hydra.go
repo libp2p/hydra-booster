@@ -14,15 +14,15 @@ import (
 	"github.com/libp2p/go-libp2p-core/network"
 	kbucket "github.com/libp2p/go-libp2p-kbucket"
 	"github.com/libp2p/hydra-booster/metrics"
-	"github.com/libp2p/hydra-booster/node"
-	hynodeopts "github.com/libp2p/hydra-booster/node/opts"
+	"github.com/libp2p/hydra-booster/sybil"
+	hysybilopts "github.com/libp2p/hydra-booster/sybil/opts"
 	"github.com/multiformats/go-multiaddr"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 )
 
 type Hydra struct {
-	Sybils       []*node.HydraNode
+	Sybils       []*sybil.Sybil
 	Datastore    datastore.Datastore
 	RoutingTable *kbucket.RoutingTable
 
@@ -47,7 +47,7 @@ func NewHydra(options Options) (*Hydra, error) {
 		return nil, fmt.Errorf("failed to create datastore: %w", err)
 	}
 
-	var nodes []*node.HydraNode
+	var nodes []*sybil.Sybil
 
 	fmt.Fprintf(os.Stderr, "Running %d DHT Instances:\n", options.NSybils)
 
@@ -62,12 +62,12 @@ func NewHydra(options Options) (*Hydra, error) {
 		fmt.Fprintf(os.Stderr, ".")
 
 		addr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", options.GetPort()))
-		nd, bsCh, err := node.NewHydraNode(
-			hynodeopts.Datastore(datastore),
-			hynodeopts.Addr(addr),
-			hynodeopts.Relay(options.Relay),
-			hynodeopts.BucketSize(options.BucketSize),
-			hynodeopts.Limiter(limiter),
+		nd, bsCh, err := sybil.NewSybil(
+			hysybilopts.Datastore(datastore),
+			hysybilopts.Addr(addr),
+			hysybilopts.Relay(options.Relay),
+			hysybilopts.BucketSize(options.BucketSize),
+			hysybilopts.Limiter(limiter),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to spawn node with swarm address %v: %w", addr, err)
@@ -110,7 +110,7 @@ func NewHydra(options Options) (*Hydra, error) {
 	return &hydra, nil
 }
 
-func handleBootstrapStatus(ctx context.Context, ch chan node.BootstrapStatus) {
+func handleBootstrapStatus(ctx context.Context, ch chan sybil.BootstrapStatus) {
 	for status := range ch {
 		if status.Err != nil {
 			fmt.Println(status.Err)
