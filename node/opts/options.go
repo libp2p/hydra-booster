@@ -6,12 +6,14 @@ import (
 	ds "github.com/ipfs/go-datastore"
 	dssync "github.com/ipfs/go-datastore/sync"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
+	kbucket "github.com/libp2p/go-libp2p-kbucket"
 	"github.com/multiformats/go-multiaddr"
 )
 
 // Options are Hydra Node options
 type Options struct {
 	Datastore      ds.Batching
+	RoutingTable   *kbucket.RoutingTable
 	Relay          bool
 	Addr           multiaddr.Multiaddr
 	BucketSize     int
@@ -48,6 +50,15 @@ var Defaults = func(o *Options) error {
 func Datastore(ds ds.Batching) Option {
 	return func(o *Options) error {
 		o.Datastore = ds
+		return nil
+	}
+}
+
+// RoutingTable configures the Hydra Node to use the specified routing table.
+// Defaults to the routing table provided by IpfsDHT.
+func RoutingTable(rt *kbucket.RoutingTable) Option {
+	return func(o *Options) error {
+		o.RoutingTable = rt
 		return nil
 	}
 }
