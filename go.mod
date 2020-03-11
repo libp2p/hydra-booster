@@ -2,6 +2,7 @@ module github.com/libp2p/hydra-booster
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.1.0
+	github.com/alanshaw/prom-metrics-client v0.0.0-20200311172122-28c187a1d3a5
 	github.com/axiomhq/hyperloglog v0.0.0-20191112132149-a4c4c47bc57f
 	github.com/dustin/go-humanize v1.0.0
 	github.com/golang/snappy v0.0.1 // indirect
@@ -13,7 +14,6 @@ require (
 	github.com/libp2p/go-libp2p-circuit v0.1.4
 	github.com/libp2p/go-libp2p-connmgr v0.2.1
 	github.com/libp2p/go-libp2p-core v0.3.1-0.20191230184106-204a57d1afe1
-	github.com/libp2p/go-libp2p-kbucket v0.2.3
 	github.com/libp2p/go-libp2p-kad-dht v0.4.2-0.20191230184437-fd2e9b7e3db2
 	github.com/libp2p/go-libp2p-kbucket v0.2.3
 	github.com/libp2p/go-libp2p-record v0.1.2

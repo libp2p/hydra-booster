@@ -123,29 +123,25 @@ func NewReporter(nodes []*node.HydraNode, reportInterval time.Duration) (*Report
 
 					rts := nodes[i].RoutingTable.Size()
 
-					prs, err := nodes[i].Datastore.Query(query.Query{Prefix: "/providers", KeysOnly: true})
-					if err != nil {
-						fmt.Println(err)
-						continue
-					}
-
-					// TODO: make fast https://github.com/libp2p/go-libp2p-kad-dht/issues/487
-					var totalProvRecords int
-					for _ = range prs.Next() {
-						totalProvRecords++
-					}
-
 					ctx, err := tag.New(context.Background(), tag.Insert(metrics.KeyPeerID, nodes[i].Host.ID().String()))
 					if err != nil {
 						fmt.Println(err)
 						continue
 					}
 
-					stats.Record(
-						ctx,
-						metrics.RoutingTableSize.M(int64(rts)),
-						metrics.ProviderRecords.M(int64(totalProvRecords)),
-					)
+					stats.Record(ctx, metrics.RoutingTableSize.M(int64(rts)))
+				}
+
+				prs, err := nodes[0].Datastore.Query(query.Query{Prefix: "/providers", KeysOnly: true})
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
+
+				// TODO: make fast https://github.com/libp2p/go-libp2p-kad-dht/issues/487
+				var totalProvRecords int
+				for range prs.Next() {
+					totalProvRecords++
 				}
 
 				stats.Record(
@@ -154,6 +150,7 @@ func NewReporter(nodes []*node.HydraNode, reportInterval time.Duration) (*Report
 					metrics.BootstrappedSybils.M(int64(totalBootstrappedHydraNodes)),
 					metrics.ConnectedPeers.M(int64(totalConnectedPeers)),
 					metrics.UniquePeers.M(int64(totalUniqPeers)),
+					metrics.ProviderRecords.M(int64(totalProvRecords)),
 				)
 
 				reports <- StatusReport{

@@ -13,6 +13,9 @@ import (
 	"go.opencensus.io/zpages"
 )
 
+// PrometheusNamespace is the unique prefix for metrics exported from the app
+var PrometheusNamespace = "hydrabooster"
+
 // SetupMetrics sets up an endpoint to collect process metrics (e.g. pprof).
 func SetupMetrics(port int) error {
 	// setup Prometheus
@@ -21,7 +24,7 @@ func SetupMetrics(port int) error {
 	procCollector := prom.NewProcessCollector(prom.ProcessCollectorOpts{})
 	registry.MustRegister(goCollector, procCollector)
 	pe, err := prometheus.NewExporter(prometheus.Options{
-		Namespace: "hydrabooster",
+		Namespace: PrometheusNamespace,
 		Registry:  registry,
 	})
 	if err != nil {
