@@ -5,28 +5,27 @@ import (
 	"net"
 	"net/http"
 
-	ds "github.com/ipfs/go-datastore"
 	dsq "github.com/ipfs/go-datastore/query"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/hydra-booster/node"
 )
 
 // ListenAndServe instructs a Hydra HTTP API server to listen and serve on the passed address
-func ListenAndServe(nodes []*node.HydraNode, datastore ds.Batching, addr string) error {
+func ListenAndServe(nodes []*node.HydraNode, addr string) error {
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
 	}
-	return http.Serve(listener, NewServeMux(nodes, datastore))
+	return http.Serve(listener, NewServeMux(nodes))
 }
 
 // NewServeMux creates a new Hydra Booster HTTP API ServeMux
-func NewServeMux(nodes []*node.HydraNode, datastore ds.Batching) *http.ServeMux {
+func NewServeMux(nodes []*node.HydraNode) *http.ServeMux {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/sybils", sybilsHandler(nodes))
 	mux.HandleFunc("/records/fetch", recordFetchHandler(nodes))
-	mux.HandleFunc("/records/list", recordListHandler(nodes, datastore))
+	mux.HandleFunc("/records/list", recordListHandler(nodes))
 	return mux
 }
 
@@ -55,14 +54,15 @@ func recordFetchHandler(nodes []*node.HydraNode) func(w http.ResponseWriter, r *
 }
 
 // "/records/list" Receive a record and fetch it from the network, if available
-func recordListHandler(nodes []*node.HydraNode, datastore ds.Batching) func(w http.ResponseWriter, r *http.Request) {
+func recordListHandler(nodes []*node.HydraNode) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// TODO Improve this handler once ProvideManager gets exposed
 		// https://discuss.libp2p.io/t/list-provider-records/450
 		// for now, enumerate the Provider Records in the datastore
 
 		providersKeyPrefix := "/providers/" // https://github.com/libp2p/go-libp2p-kad-dht/blob/master/providers/providers.go#L76
-		results, err := datastore.Query(dsq.Query{
+		ds := nodes[0].Datastore
+		results, err := ds.Query(dsq.Query{
 			Prefix: providersKeyPrefix,
 		})
 		if err != nil {
