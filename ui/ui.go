@@ -44,7 +44,7 @@ func NewUI(peers []peer.ID, statusReports chan reports.StatusReport, opts ...uio
 			printStatusLine(options.Writer, r, options.Start)
 		}
 	case gooey: // 1 node
-		ga := &GooeyApp{Title: "Hydra Booster Node", Log: NewLog(options.Writer, 15, 15), writer: options.Writer}
+		ga := &GooeyApp{Title: "Hydra Booster Sybil", Log: NewLog(options.Writer, 15, 15), writer: options.Writer}
 		ga.NewDataLine(3, "Peer ID", peers[0].Pretty())
 		econs := ga.NewDataLine(4, "Connections", "0")
 		uniqprs := ga.NewDataLine(5, "Unique Peers Seen", "0")

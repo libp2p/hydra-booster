@@ -9,6 +9,7 @@ import (
 
 	dsq "github.com/ipfs/go-datastore/query"
 	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/hydra-booster/hydra"
 	hytesting "github.com/libp2p/hydra-booster/testing"
 )
 
@@ -23,7 +24,7 @@ func TestHTTPAPISybils(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	go http.Serve(listener, NewServeMux(sybils))
+	go http.Serve(listener, NewServeMux(&hydra.Hydra{Sybils: sybils}))
 	defer listener.Close()
 
 	url := fmt.Sprintf("http://%s/sybils", listener.Addr().String())
@@ -71,7 +72,7 @@ func TestHTTPAPIRecordsListWithoutRecords(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	go http.Serve(listener, NewServeMux(sybils))
+	go http.Serve(listener, NewServeMux(&hydra.Hydra{Sybils: sybils, SharedDatastore: sybils[0].Datastore}))
 	defer listener.Close()
 
 	url := fmt.Sprintf("http://%s/records/list", listener.Addr().String())
