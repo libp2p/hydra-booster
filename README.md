@@ -86,7 +86,7 @@ prometheus --config.file=promconfig.yaml
 Next start the Hydra Booster, specifying the port to run metrics on:
 
 ```console
-go run ./main.go -many=5 -pprof-port=8888
+go run ./main.go -many=5 -metrics-port=8888
 ```
 
 You should now be able to access metrics at http://127.0.0.1:9090.
