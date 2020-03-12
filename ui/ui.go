@@ -16,7 +16,7 @@ const (
 	gooey
 )
 
-// ErrMissingNodes is returned when no nodes are passed to the UI
+// ErrMissingPeers is returned when no nodes are passed to the UI
 var ErrMissingPeers = fmt.Errorf("ui needs at least one peer")
 
 // NewUI creates a "UI" for status reports - CLI output based on the number of Hydra nodes

@@ -13,7 +13,7 @@ import (
 )
 
 func TestHTTPAPISybils(t *testing.T) {
-	nodes, err := hytesting.SpawnNodes(2)
+	sybils, err := hytesting.SpawnNodes(2)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -23,7 +23,7 @@ func TestHTTPAPISybils(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	go http.Serve(listener, NewServeMux(nodes))
+	go http.Serve(listener, NewServeMux(sybils))
 	defer listener.Close()
 
 	url := fmt.Sprintf("http://%s/sybils", listener.Addr().String())
@@ -48,8 +48,8 @@ func TestHTTPAPISybils(t *testing.T) {
 
 	for _, ai := range ais {
 		found := false
-		for _, node := range nodes {
-			if ai.ID == node.Host.ID() {
+		for _, syb := range sybils {
+			if ai.ID == syb.Host.ID() {
 				found = true
 				break
 			}
@@ -61,7 +61,7 @@ func TestHTTPAPISybils(t *testing.T) {
 }
 
 func TestHTTPAPIRecordsListWithoutRecords(t *testing.T) {
-	nodes, err := hytesting.SpawnNodes(1)
+	sybils, err := hytesting.SpawnNodes(1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -71,7 +71,7 @@ func TestHTTPAPIRecordsListWithoutRecords(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	go http.Serve(listener, NewServeMux(nodes))
+	go http.Serve(listener, NewServeMux(sybils))
 	defer listener.Close()
 
 	url := fmt.Sprintf("http://%s/records/list", listener.Addr().String())

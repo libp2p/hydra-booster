@@ -10,7 +10,7 @@ import (
 	// logging "github.com/ipfs/go-log"
 	// logwriter "github.com/ipfs/go-log/writer"
 	"github.com/libp2p/go-libp2p-core/network"
-	"github.com/libp2p/hydra-booster/node"
+	"github.com/libp2p/hydra-booster/sybil"
 )
 
 // var _ = logwriter.WriterGroup
@@ -53,8 +53,8 @@ func (r *Reporter) Stop() {
 var ErrMissingNodes = fmt.Errorf("reporter needs at least one node")
 
 // NewReporter creates a new reporter that immediately starts collecting status reports for the passed Hydra nodes and publishes them to a channel
-func NewReporter(nodes []*node.HydraNode, reportInterval time.Duration) (*Reporter, error) {
-	if len(nodes) == 0 {
+func NewReporter(sybils []*sybil.Sybil, reportInterval time.Duration) (*Reporter, error) {
+	if len(sybils) == 0 {
 		return nil, ErrMissingNodes
 	}
 
@@ -69,8 +69,8 @@ func NewReporter(nodes []*node.HydraNode, reportInterval time.Duration) (*Report
 		},
 	}
 
-	for i := range nodes {
-		nodes[i].Host.Network().Notify(notifiee)
+	for i := range sybils {
+		sybils[i].Host.Network().Notify(notifiee)
 	}
 
 	provs := make(chan *ProvInfo, 16)
@@ -109,16 +109,16 @@ func NewReporter(nodes []*node.HydraNode, reportInterval time.Duration) (*Report
 
 				var totalBootstrappedHydraNodes int
 				var totalConnectedPeers int
-				for i := range nodes {
-					if nodes[i].Bootstrapped {
+				for i := range sybils {
+					if sybils[i].Bootstrapped {
 						totalBootstrappedHydraNodes++
 					}
-					totalConnectedPeers += len(nodes[i].Host.Network().Peers())
+					totalConnectedPeers += len(sybils[i].Host.Network().Peers())
 				}
 
 				reports <- StatusReport{
 					MemStats:                    mstat,
-					TotalHydraNodes:             len(nodes),
+					TotalHydraNodes:             len(sybils),
 					TotalBootstrappedHydraNodes: totalBootstrappedHydraNodes,
 					TotalConnectedPeers:         totalConnectedPeers,
 					TotalUniquePeers:            totalUniqPeers,
