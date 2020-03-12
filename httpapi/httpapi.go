@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"encoding/json"
+	"fmt"
 	"net"
 	"net/http"
 
@@ -66,6 +67,7 @@ func recordListHandler(nodes []*node.HydraNode) func(w http.ResponseWriter, r *h
 			Prefix: providersKeyPrefix,
 		})
 		if err != nil {
+			fmt.Printf("Error on retrieving provider records: %s\n", err)
 			w.WriteHeader(500)
 			return
 		}
