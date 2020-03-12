@@ -87,11 +87,17 @@ Returns an ndjson list of peers created by the Hydra: their IDs and mulitaddrs. 
 
 ```json
 {"Addrs":["/ip4/127.0.0.1/tcp/50277","/ip4/192.168.0.3/tcp/50277"],"ID":"12D3KooWHacdCMnm4YKDJHn72HPTxc6LRGNzbrbyVEnuLFA3FXCZ"}
-{"Addrs":["/ip4/127.0.0.1/tcp/50278","/ip4/192.168.0.3/tcp/50278","/ip4/90.198.150.147/tcp/50278"],"ID":"12D3KooWDGFCMQYpRHJ5BkVf842Fqnt3sCUAbvUw26ABuTo9Q1Gt"}
-{"Addrs":["/ip4/127.0.0.1/tcp/50279","/ip4/192.168.0.3/tcp/50279","/ip4/90.198.150.147/tcp/50279"],"ID":"12D3KooWNYBmyyFmktyna9WPBT1UAgGLKqTJqbkZYmJF8fBKmMqd"}
 {"Addrs":["/ip4/127.0.0.1/tcp/50280","/ip4/192.168.0.3/tcp/50280","/ip4/90.198.150.147/tcp/50280"],"ID":"12D3KooWQnUpnw6xS2VrJw3WuCP8e92fsEDnh4tbqyrXW5AVJ7oe"}
-{"Addrs":["/ip4/127.0.0.1/tcp/50281","/ip4/192.168.0.3/tcp/50281"],"ID":"12D3KooWBmgW3i8vZaD49DDWJ3dRRb6KCG42UubpJDPHpzwKDXB9"}
+...
 ```
+
+#### `GET /records/list`
+
+Returns an ndjson list of records stored by the Hydra Booster node.
+
+#### `GET /records/fetch`
+
+Fetches a record available on the network by CID. `NOT IMPLEMENTED YET`
 
 ## License
 
