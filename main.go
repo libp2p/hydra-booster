@@ -4,6 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/libp2p/go-libp2p-core/crypto"
@@ -12,7 +15,6 @@ import (
 	"github.com/libp2p/hydra-booster/httpapi"
 	"github.com/libp2p/hydra-booster/hydra"
 	"github.com/libp2p/hydra-booster/metrics"
-	"github.com/libp2p/hydra-booster/reports"
 	"github.com/libp2p/hydra-booster/ui"
 	uiopts "github.com/libp2p/hydra-booster/ui/opts"
 	"github.com/libp2p/hydra-booster/utils"
@@ -28,7 +30,7 @@ func main() {
 	many := flag.Int("many", 1, "Instead of running one dht, run many!")
 	dbpath := flag.String("db", "hydra-belly", "Datastore folder path")
 	inmem := flag.Bool("mem", false, "Use an in-memory database. This overrides the -db option")
-	pprofport := flag.Int("pprof-port", -1, "Specify a port to run pprof http server on")
+	metricsPort := flag.Int("metrics-port", 8888, "Specify a port to run prometheus metrics and pprof http server on")
 	relay := flag.Bool("relay", false, "Enable libp2p circuit relaying for this node")
 	portBegin := flag.Int("portBegin", 0, "If set, begin port allocation here")
 	bucketSize := flag.Int("bucketSize", defaultKValue, "Specify the bucket size")
@@ -41,11 +43,6 @@ func main() {
 
 	if *relay {
 		id.ClientVersion += "+relay"
-	}
-
-	if *pprofport > 0 {
-		fmt.Printf("Running metrics server on port: %d\n", *pprofport)
-		go metrics.SetupMetrics(*pprofport)
 	}
 
 	if *inmem {
@@ -66,25 +63,46 @@ func main() {
 		Stagger:       *stagger,
 	}
 
+	if *metricsPort > 0 {
+		go func() {
+			err := metrics.ListenAndServe(*metricsPort)
+			if err != nil {
+				log.Fatalln(err)
+			}
+		}()
+		fmt.Printf("Metrics server listening on http://0.0.0.0:%d\n", *metricsPort)
+	}
+
 	hy, err := hydra.NewHydra(opts)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	if !*noUI {
-		reporter, err := reports.NewReporter(hy.Sybils, time.Second*3)
-		if err != nil {
-			log.Fatalln(err)
-		}
-
 		var peers []peer.ID
 		for _, syb := range hy.Sybils {
 			peers = append(peers, syb.Host.ID())
 		}
 
-		go ui.NewUI(peers, reporter.StatusReports, uiopts.Start(start))
+		go func() {
+			err = ui.Render(peers, uiopts.Start(start), uiopts.MetricsPort(*metricsPort))
+			if err != nil {
+				log.Fatalln(err)
+			}
+		}()
 	}
 
+	go func() {
+		err := httpapi.ListenAndServe(hy, httpAPIAddr)
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}()
 	fmt.Println(fmt.Sprintf("HTTP API listening on http://%s", httpAPIAddr))
-	httpapi.ListenAndServe(hy, httpAPIAddr)
+
+	termChan := make(chan os.Signal)
+	signal.Notify(termChan, os.Interrupt, syscall.SIGTERM)
+	<-termChan // Blocks here until either SIGINT or SIGTERM is received.
+	fmt.Println("Received interrupt signal, shutting down...")
+	// TODO: clean up properly
 }

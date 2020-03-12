@@ -2,13 +2,14 @@ package ui
 
 import (
 	"fmt"
-	"io"
 	"time"
 
+	pmc "github.com/alanshaw/prom-metrics-client"
 	"github.com/dustin/go-humanize"
 	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/libp2p/hydra-booster/reports"
+	"github.com/libp2p/hydra-booster/metrics"
 	uiopts "github.com/libp2p/hydra-booster/ui/opts"
+	"go.opencensus.io/stats"
 )
 
 const (
@@ -19,29 +20,51 @@ const (
 // ErrMissingPeers is returned when no nodes are passed to the UI
 var ErrMissingPeers = fmt.Errorf("ui needs at least one peer")
 
-// NewUI creates a "UI" for status reports - CLI output based on the number of Hydra nodes
-func NewUI(peers []peer.ID, statusReports chan reports.StatusReport, opts ...uiopts.Option) error {
+// Render displays and updates a "UI" for the Prometheus /metrics endpoint - CLI output based on the number of Hydra nodes
+func Render(peers []peer.ID, opts ...uiopts.Option) error {
+	if len(peers) == 0 {
+		return ErrMissingPeers
+	}
+
 	options := uiopts.Options{}
 	options.Apply(append([]uiopts.Option{uiopts.Defaults}, opts...)...)
 
 	uiType := logey
 
-	if len(peers) == 0 {
-		return ErrMissingPeers
-	}
-
 	if len(peers) == 1 {
 		uiType = gooey
 	}
 
+	client := pmc.PromMetricsClient{URL: fmt.Sprintf("http://127.0.0.1:%d/metrics", options.MetricsPort)}
+	ch := make(chan *pmc.Metrics)
+
+	go func() {
+		for {
+			time.Sleep(options.RefreshPeriod)
+			m, err := client.GetMetrics()
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+			ch <- m
+		}
+	}()
+
 	switch uiType {
 	case logey: // many node
-		for {
-			r, ok := <-statusReports
-			if !ok {
-				break
-			}
-			printStatusLine(options.Writer, r, options.Start)
+		for m := range ch {
+			fmt.Fprintf(
+				options.Writer,
+				"[NumSybils: %v, Uptime: %s, MemoryUsage: %s, PeersConnected: %v, TotalUniquePeersSeen: %v, BootstrapsDone: %v, ProviderRecords: %v, RoutingTableSize: %v]\n",
+				getCounterValue(m, nsName(metrics.Sybils)),
+				time.Second*time.Duration(int(time.Since(options.Start).Seconds())),
+				humanize.Bytes(uint64(getGaugeValue(m, "go_memstats_alloc_bytes"))),
+				getCounterValue(m, nsName(metrics.ConnectedPeers)),
+				getGaugeValue(m, nsName(metrics.UniquePeers)),
+				getCounterValue(m, nsName(metrics.BootstrappedSybils)),
+				getGaugeValue(m, nsName(metrics.ProviderRecords)),
+				getGaugeValue(m, nsName(metrics.RoutingTableSize)),
+			)
 		}
 	case gooey: // 1 node
 		ga := &GooeyApp{Title: "Hydra Booster Sybil", Log: NewLog(options.Writer, 15, 15), writer: options.Writer}
@@ -50,11 +73,10 @@ func NewUI(peers []peer.ID, statusReports chan reports.StatusReport, opts ...uio
 		uniqprs := ga.NewDataLine(5, "Unique Peers Seen", "0")
 		emem := ga.NewDataLine(6, "Memory Allocated", "0MB")
 		eprov := ga.NewDataLine(7, "Stored Provider Records", "0")
-		eprlat := ga.NewDataLine(8, "Store Provider Latency", "0s")
+		erts := ga.NewDataLine(8, "Routing Table Size", "0")
 		etime := ga.NewDataLine(9, "Uptime", "0h 0m 0s")
 		ga.Print()
 
-		var closed bool
 		second := time.NewTicker(time.Second)
 
 		for {
@@ -62,21 +84,16 @@ func NewUI(peers []peer.ID, statusReports chan reports.StatusReport, opts ...uio
 			// case m := <-messages:
 			// 	ga.Log.Add(m)
 			// 	ga.Log.Print()
-			case r, ok := <-statusReports:
+			case m, ok := <-ch:
 				if !ok {
 					second.Stop()
-					closed = true
-					break
+					return nil
 				}
-				emem.SetVal(humanize.Bytes(r.MemStats.Alloc))
-				econs.SetVal(fmt.Sprintf("%d peers", r.TotalConnectedPeers))
-				uniqprs.SetVal(fmt.Sprint(r.TotalUniquePeers))
-				eprov.SetVal(fmt.Sprint(r.TotalProvs))
-
-				if r.TotalProvs > 0 {
-					eprlat.SetVal(fmt.Sprint(r.TotalProvTime / time.Duration(r.TotalProvs)))
-				}
-
+				emem.SetVal(humanize.Bytes(uint64(getGaugeValue(m, "go_memstats_alloc_bytes"))))
+				econs.SetVal(fmt.Sprintf("%v peers", getCounterValue(m, nsName(metrics.ConnectedPeers))))
+				uniqprs.SetVal(fmt.Sprint(getGaugeValue(m, nsName(metrics.UniquePeers))))
+				eprov.SetVal(fmt.Sprint(getGaugeValue(m, nsName(metrics.ProviderRecords))))
+				erts.SetVal(fmt.Sprint(getGaugeValue(m, nsName(metrics.RoutingTableSize))))
 				ga.Print()
 			case <-second.C:
 				t := time.Since(options.Start)
@@ -86,26 +103,38 @@ func NewUI(peers []peer.ID, statusReports chan reports.StatusReport, opts ...uio
 				etime.SetVal(fmt.Sprintf("%dh %dm %ds", h, m, s))
 				ga.Print()
 			}
-
-			if closed {
-				break
-			}
 		}
 	}
 
 	return nil
 }
 
-func printStatusLine(writer io.Writer, report reports.StatusReport, start time.Time) {
-	fmt.Fprintf(
-		writer,
-		"[NumSybils: %d, Uptime: %s, Memory Usage: %s, PeersConnected: %d, TotalUniquePeersSeen: %d, Total Provs: %d, BootstrapsDone: %d]\n",
-		report.TotalHydraNodes,
-		time.Second*time.Duration(int(time.Since(start).Seconds())),
-		humanize.Bytes(report.MemStats.Alloc),
-		report.TotalConnectedPeers,
-		report.TotalUniquePeers,
-		report.TotalProvs,
-		report.TotalBootstrappedHydraNodes,
-	)
+func nsName(m stats.Measure) string {
+	return fmt.Sprintf("%s_%s", metrics.PrometheusNamespace, m.Name())
+}
+
+func getGaugeValue(m *pmc.Metrics, name string) int {
+	for _, g := range m.Gauges {
+		if g.Name == name {
+			return int(sum(g.Values))
+		}
+	}
+	return 0
+}
+
+func getCounterValue(m *pmc.Metrics, name string) int {
+	for _, c := range m.Counters {
+		if c.Name == name {
+			return int(sum(c.Values))
+		}
+	}
+	return 0
+}
+
+func sum(values []pmc.Value) float64 {
+	var val float64
+	for _, v := range values {
+		val += v.Value
+	}
+	return val
 }
