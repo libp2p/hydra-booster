@@ -3,7 +3,6 @@ package hydra
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/ipfs/go-datastore/query"
@@ -13,9 +12,7 @@ import (
 
 // PeriodicMetrics periodically collects and records statistics with prometheus.
 type PeriodicMetrics struct {
-	hydra   *Hydra
-	wg      sync.WaitGroup
-	stopped bool
+	hydra *Hydra
 }
 
 // NewPeriodicMetrics creates a new PeriodicMetrics that immeidately begins to periodically collect and record statistics with prometheus.
@@ -24,15 +21,8 @@ func NewPeriodicMetrics(hy *Hydra, period time.Duration) *PeriodicMetrics {
 
 	go func() {
 		for {
-			if pm.stopped {
-				return
-			}
-
-			pm.wg.Add(1)
 			time.Sleep(period)
 			err := pm.periodicCollectAndRecord()
-			pm.wg.Done()
-
 			if err != nil {
 				fmt.Println(fmt.Errorf("failed to collect and record stats: %w", err))
 			}
