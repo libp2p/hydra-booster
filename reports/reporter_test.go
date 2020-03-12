@@ -5,26 +5,26 @@ import (
 	"testing"
 	"time"
 
-	"github.com/libp2p/hydra-booster/node"
-	"github.com/libp2p/hydra-booster/node/opts"
+	"github.com/libp2p/hydra-booster/sybil"
+	"github.com/libp2p/hydra-booster/sybil/opts"
 	hytesting "github.com/libp2p/hydra-booster/testing"
 	"github.com/multiformats/go-multiaddr"
 )
 
 func TestReporterRequiresNodesToReportOn(t *testing.T) {
-	_, err := NewReporter([]*node.HydraNode{}, time.Second)
+	_, err := NewReporter([]*sybil.Sybil{}, time.Second)
 	if err != ErrMissingNodes {
 		t.Fatal("created a reporter with no hydra nodes to report on")
 	}
 }
 
 func TestReporterPublishesReports(t *testing.T) {
-	nodes, err := hytesting.SpawnNodes(2)
+	sybils, err := hytesting.SpawnNodes(2)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	reporter, err := NewReporter(nodes, time.Millisecond*50)
+	reporter, err := NewReporter(sybils, time.Millisecond*50)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -42,8 +42,8 @@ func TestReporterPublishesReports(t *testing.T) {
 	reporter.Stop()
 
 	for _, report := range reports {
-		if report.TotalHydraNodes != len(nodes) {
-			t.Fatalf("invalid total nodes, wanted %d got %d", len(nodes), report.TotalHydraNodes)
+		if report.TotalHydraNodes != len(sybils) {
+			t.Fatalf("invalid total nodes, wanted %d got %d", len(sybils), report.TotalHydraNodes)
 		}
 		if report.TotalBootstrappedHydraNodes != 0 {
 			t.Fatalf("invalid bootstrapped nodes, wanted 0 got %d", report.TotalBootstrappedHydraNodes)
@@ -55,23 +55,23 @@ func TestReporterPublishesReports(t *testing.T) {
 }
 
 func TestReporterPublishesReportsWithBootstrappedNodes(t *testing.T) {
-	n0, err := hytesting.SpawnNode()
+	s0, err := hytesting.SpawnNode()
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	var bsAddrs []multiaddr.Multiaddr
-	for _, addr := range n0.Host.Addrs() {
-		p2p, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/p2p/%s", n0.Host.ID()))
+	for _, addr := range s0.Host.Addrs() {
+		p2p, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/p2p/%s", s0.Host.ID()))
 		bsAddrs = append(bsAddrs, addr.Encapsulate(p2p))
 	}
 
-	n1, err := hytesting.SpawnNode(opts.BootstrapPeers(bsAddrs))
+	s1, err := hytesting.SpawnNode(opts.BootstrapPeers(bsAddrs))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	reporter, err := NewReporter([]*node.HydraNode{n0, n1}, time.Millisecond*50)
+	reporter, err := NewReporter([]*sybil.Sybil{s0, s1}, time.Millisecond*50)
 	if err != nil {
 		t.Fatal(err)
 	}

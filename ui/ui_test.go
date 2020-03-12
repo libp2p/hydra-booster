@@ -24,7 +24,7 @@ func TestUIRequiresPeers(t *testing.T) {
 func TestGooeyUI(t *testing.T) {
 	var b bytes.Buffer
 
-	peerId, _, _, err := hytesting.GeneratePeerID()
+	peerID, _, _, err := hytesting.GeneratePeerID()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -37,10 +37,10 @@ func TestGooeyUI(t *testing.T) {
 		close(srs)
 	}()
 
-	NewUI([]peer.ID{peerId}, srs, opts.Writer(&b))
+	NewUI([]peer.ID{peerID}, srs, opts.Writer(&b))
 
-	if !strings.Contains(b.String(), peerId.Pretty()) {
-		t.Fatalf("%v not found in output", peerId.Pretty())
+	if !strings.Contains(b.String(), peerID.Pretty()) {
+		t.Fatalf("%v not found in output", peerID.Pretty())
 	}
 
 	// ensure uptime got updated
@@ -52,12 +52,12 @@ func TestGooeyUI(t *testing.T) {
 func TestLogeyUI(t *testing.T) {
 	var b bytes.Buffer
 
-	peerId0, _, _, err := hytesting.GeneratePeerID()
+	peerID0, _, _, err := hytesting.GeneratePeerID()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	peerId1, _, _, err := hytesting.GeneratePeerID()
+	peerID1, _, _, err := hytesting.GeneratePeerID()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -77,7 +77,7 @@ func TestLogeyUI(t *testing.T) {
 		close(srs)
 	}()
 
-	NewUI([]peer.ID{peerId0, peerId1}, srs, opts.Writer(&b))
+	NewUI([]peer.ID{peerID0, peerID1}, srs, opts.Writer(&b))
 
 	expects := []string{
 		fmt.Sprintf("NumSybils: %v", r.TotalHydraNodes),

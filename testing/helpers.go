@@ -6,8 +6,8 @@ import (
 	"github.com/ipfs/go-datastore"
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/libp2p/hydra-booster/node"
-	"github.com/libp2p/hydra-booster/node/opts"
+	"github.com/libp2p/hydra-booster/sybil"
+	"github.com/libp2p/hydra-booster/sybil/opts"
 )
 
 // Defaults are the SpawnNode defaults
@@ -16,10 +16,10 @@ var defaults = []opts.Option{
 	opts.BootstrapPeers(nil),
 }
 
-// SpawnNode a new Hydra nodes with an in memory datastore and 0 bootstrap peers by default.
+// SpawnNode creates a new Hydra sybil with an in memory datastore and 0 bootstrap peers by default.
 // It also waits for bootstrapping to complete.
-func SpawnNode(options ...opts.Option) (*node.HydraNode, error) {
-	nd, bsCh, err := node.NewHydraNode(append(defaults, options...)...)
+func SpawnNode(options ...opts.Option) (*sybil.Sybil, error) {
+	nd, bsCh, err := sybil.NewSybil(append(defaults, options...)...)
 	if err != nil {
 		return nil, err
 	}
@@ -38,20 +38,20 @@ func SpawnNode(options ...opts.Option) (*node.HydraNode, error) {
 }
 
 // SpawnNodes creates n new Hydra nodes with an in memory datastore and 0 bootstrap peers by default
-func SpawnNodes(n int, options ...opts.Option) ([]*node.HydraNode, error) {
-	var nodes []*node.HydraNode
+func SpawnNodes(n int, options ...opts.Option) ([]*sybil.Sybil, error) {
+	var sybils []*sybil.Sybil
 	for i := 0; i < n; i++ {
-		nd, err := SpawnNode(options...)
+		syb, err := SpawnNode(options...)
 		if err != nil {
-			for _, nd := range nodes {
+			for _, nd := range sybils {
 				nd.Host.Close()
 			}
 			return nil, err
 		}
-		nodes = append(nodes, nd)
+		sybils = append(sybils, syb)
 	}
 
-	return nodes, nil
+	return sybils, nil
 }
 
 // GeneratePeerID ...
@@ -61,10 +61,10 @@ func GeneratePeerID() (peer.ID, crypto.PrivKey, crypto.PubKey, error) {
 		return "", nil, nil, err
 	}
 
-	peerId, err := peer.IDFromPrivateKey(priv)
+	peerID, err := peer.IDFromPrivateKey(priv)
 	if err != nil {
 		return "", nil, nil, err
 	}
 
-	return peerId, priv, pub, nil
+	return peerID, priv, pub, nil
 }

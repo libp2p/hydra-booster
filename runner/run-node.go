@@ -11,9 +11,9 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	dhtmetrics "github.com/libp2p/go-libp2p-kad-dht/metrics"
 	"github.com/libp2p/hydra-booster/httpapi"
-	"github.com/libp2p/hydra-booster/node"
-	hydraNodeOpts "github.com/libp2p/hydra-booster/node/opts"
 	"github.com/libp2p/hydra-booster/reports"
+	"github.com/libp2p/hydra-booster/sybil"
+	sybopts "github.com/libp2p/hydra-booster/sybil/opts"
 	"github.com/libp2p/hydra-booster/ui"
 	uiopts "github.com/libp2p/hydra-booster/ui/opts"
 	"github.com/multiformats/go-multiaddr"
@@ -31,12 +31,8 @@ var _ = circuit.P_CIRCUIT
 const singleDHTSwarmAddr = "/ip4/0.0.0.0/tcp/19264"
 const httpAPIAddr = "127.0.0.1:7779"
 
-func handleBootstrapStatus(ch chan node.BootstrapStatus) {
-	for {
-		status, ok := <-ch
-		if !ok {
-			return
-		}
+func handleBootstrapStatus(ch chan sybil.BootstrapStatus) {
+	for status := range ch {
 		if status.Err != nil {
 			fmt.Println(status.Err)
 		}
@@ -63,7 +59,8 @@ func RunMany(opts Options) error {
 		return fmt.Errorf("failed to create datastore: %w", err)
 	}
 
-	var nodes []*node.HydraNode
+	var sybils []*sybil.Sybil
+	var peers []peer.ID
 
 	fmt.Fprintf(os.Stderr, "Running %d DHT Instances:\n", opts.NSybils)
 
@@ -75,29 +72,25 @@ func RunMany(opts Options) error {
 		fmt.Fprintf(os.Stderr, ".")
 
 		addr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", opts.GetPort()))
-		nd, bsCh, err := node.NewHydraNode(
-			hydraNodeOpts.Datastore(sharedDatastore),
-			hydraNodeOpts.Addr(addr),
-			hydraNodeOpts.Relay(opts.Relay),
-			hydraNodeOpts.BucketSize(opts.BucketSize),
-			hydraNodeOpts.Limiter(limiter),
+		syb, bsCh, err := sybil.NewSybil(
+			sybopts.Datastore(sharedDatastore),
+			sybopts.Addr(addr),
+			sybopts.Relay(opts.Relay),
+			sybopts.BucketSize(opts.BucketSize),
+			sybopts.Limiter(limiter),
 		)
 		if err != nil {
 			return fmt.Errorf("failed to spawn node with swarm address %v: %w", addr, err)
 		}
 		go handleBootstrapStatus(bsCh)
-		nodes = append(nodes, nd)
+		sybils = append(sybils, syb)
+		peers = append(peers, syb.Host.ID())
 	}
 	fmt.Fprintf(os.Stderr, "\n")
 
-	reporter, err := reports.NewReporter(nodes, time.Second*5)
+	reporter, err := reports.NewReporter(sybils, time.Second*5)
 	if err != nil {
 		return err
-	}
-
-	var peers []peer.ID
-	for _, nd := range nodes {
-		peers = append(peers, nd.Host.ID())
 	}
 
 	return ui.NewUI(peers, reporter.StatusReports, uiopts.Start(start))
@@ -113,11 +106,11 @@ func RunSingle(opts Options) error {
 	}
 
 	addr, _ := multiaddr.NewMultiaddr(singleDHTSwarmAddr)
-	nd, bsCh, err := node.NewHydraNode(
-		hydraNodeOpts.Datastore(datastore),
-		hydraNodeOpts.Addr(addr),
-		hydraNodeOpts.Relay(opts.Relay),
-		hydraNodeOpts.BucketSize(opts.BucketSize),
+	syb, bsCh, err := sybil.NewSybil(
+		sybopts.Datastore(datastore),
+		sybopts.Addr(addr),
+		sybopts.Relay(opts.Relay),
+		sybopts.BucketSize(opts.BucketSize),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to spawn node with swarm address %v: %w", singleDHTSwarmAddr, err)
@@ -126,13 +119,13 @@ func RunSingle(opts Options) error {
 	go handleBootstrapStatus(bsCh)
 
 	// Launch HTTP API
-	go httpapi.ListenAndServe([]*node.HydraNode{nd}, httpAPIAddr)
+	go httpapi.ListenAndServe([]*sybil.Sybil{syb}, httpAPIAddr)
 
-	nodes := []*node.HydraNode{nd}
+	nodes := []*sybil.Sybil{syb}
 	reporter, err := reports.NewReporter(nodes, time.Second*3)
 	if err != nil {
 		return err
 	}
 
-	return ui.NewUI([]peer.ID{nd.Host.ID()}, reporter.StatusReports, uiopts.Start(start))
+	return ui.NewUI([]peer.ID{syb.Host.ID()}, reporter.StatusReports, uiopts.Start(start))
 }
