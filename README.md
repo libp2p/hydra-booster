@@ -80,7 +80,7 @@ docker push libp2p/hydra-booster
 Install [Prometheus](https://prometheus.io/) and then start it using the provided config:
 
 ```console
-prometheus --config.file=promconfig.yaml
+prometheus --config.file=promconfig.yaml --storage.tsdb.path=prometheus-data
 ```
 
 Next start the Hydra Booster, specifying the port to run metrics on:
