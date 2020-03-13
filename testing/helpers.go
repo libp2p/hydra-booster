@@ -69,3 +69,30 @@ func GeneratePeerID() (peer.ID, crypto.PrivKey, crypto.PubKey, error) {
 
 	return peerID, priv, pub, nil
 }
+
+// ChanWriter is a writer that writes to a channel
+type ChanWriter struct {
+	ch chan []byte
+}
+
+// NewChanWriter creates a new channel writer
+func NewChanWriter() *ChanWriter {
+	return &ChanWriter{make(chan []byte)}
+}
+
+// Chan retrieves the channel that will receive bytes
+func (w *ChanWriter) Chan() <-chan []byte {
+	return w.ch
+}
+
+// Write writes to the channel
+func (w *ChanWriter) Write(p []byte) (int, error) {
+	w.ch <- p
+	return len(p), nil
+}
+
+// Close the channel
+func (w *ChanWriter) Close() error {
+	close(w.ch)
+	return nil
+}
