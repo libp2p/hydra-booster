@@ -2,10 +2,10 @@ package idgen
 
 import "bytes"
 
-// BitVec is a vector of bits backed by a Go byte slice.
-type BitVec []byte
+// TrieKey is a vector of bits backed by a Go byte slice in big endian byte order and big-endian bit order.
+type TrieKey []byte
 
-func (bs BitVec) BitAt(offset int) byte {
+func (bs TrieKey) BitAt(offset int) byte {
 	if bs[offset/8]&(1<<(offset%8)) == 0 {
 		return 0
 	} else {
@@ -13,29 +13,29 @@ func (bs BitVec) BitAt(offset int) byte {
 	}
 }
 
-func (bs BitVec) BitLen() int {
+func (bs TrieKey) BitLen() int {
 	return 8 * len(bs)
 }
 
-func BitVecEqual(x, y BitVec) bool {
+func TrieKeyEqual(x, y TrieKey) bool {
 	return bytes.Equal(x, y)
 }
 
 // XorTrie is a trie for equal-length bit vectors, which stores values only in the leaves.
 type XorTrie struct {
 	branch [2]*XorTrie
-	key    BitVec
+	key    TrieKey
 }
 
 func NewXorTrie() *XorTrie {
 	return &XorTrie{}
 }
 
-func (trie *XorTrie) Insert(q BitVec) (insertedDepth int, insertedOK bool) {
+func (trie *XorTrie) Insert(q TrieKey) (insertedDepth int, insertedOK bool) {
 	return trie.insert(0, q)
 }
 
-func (trie *XorTrie) insert(depth int, q BitVec) (insertedDepth int, insertedOK bool) {
+func (trie *XorTrie) insert(depth int, q TrieKey) (insertedDepth int, insertedOK bool) {
 	if qb := trie.branch[q.BitAt(depth)]; qb != nil {
 		return qb.insert(depth+1, q)
 	} else {
@@ -43,21 +43,25 @@ func (trie *XorTrie) insert(depth int, q BitVec) (insertedDepth int, insertedOK 
 			trie.key = q
 			return depth, true
 		} else {
-			p := trie.key
-			trie.key = nil
-			// both branches are nil
-			trie.branch[0], trie.branch[1] = &XorTrie{}, &XorTrie{}
-			trie.branch[p.BitAt(depth)].insert(depth+1, p)
-			return trie.branch[q.BitAt(depth)].insert(depth+1, q)
+			if TrieKeyEqual(trie.key, q) {
+				return depth, false
+			} else {
+				p := trie.key
+				trie.key = nil
+				// both branches are nil
+				trie.branch[0], trie.branch[1] = &XorTrie{}, &XorTrie{}
+				trie.branch[p.BitAt(depth)].insert(depth+1, p)
+				return trie.branch[q.BitAt(depth)].insert(depth+1, q)
+			}
 		}
 	}
 }
 
-func (trie *XorTrie) Remove(q BitVec) (removedDepth int, removed bool) {
+func (trie *XorTrie) Remove(q TrieKey) (removedDepth int, removed bool) {
 	return trie.remove(0, q)
 }
 
-func (trie *XorTrie) remove(depth int, q BitVec) (reachedDepth int, removed bool) {
+func (trie *XorTrie) remove(depth int, q TrieKey) (reachedDepth int, removed bool) {
 	if qb := trie.branch[q.BitAt(depth)]; qb != nil {
 		if d, ok := qb.remove(depth+1, q); ok {
 			trie.shrink()
@@ -66,7 +70,7 @@ func (trie *XorTrie) remove(depth int, q BitVec) (reachedDepth int, removed bool
 			return d, false
 		}
 	} else {
-		if trie.key != nil && BitVecEqual(q, trie.key) {
+		if trie.key != nil && TrieKeyEqual(q, trie.key) {
 			trie.key = nil
 			return depth, true
 		} else {
