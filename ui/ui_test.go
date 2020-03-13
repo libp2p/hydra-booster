@@ -89,7 +89,7 @@ func TestLogeyUI(t *testing.T) {
 	for c := range cw.C {
 		found := true
 		for _, str := range expects {
-			if !strings.Contains(c.String(), str) {
+			if !strings.Contains(string(c), str) {
 				found = false
 				break
 			}
@@ -123,12 +123,12 @@ func TestRefreshPeriod(t *testing.T) {
 
 	go ui.Render(ctx)
 
-	var lines []string
+	var lines int
 	for c := range cw.C {
-		if strings.Index(c.String(), "[") == 0 {
-			lines = append(lines, c)
+		if strings.Index(string(c), "[") == 0 {
+			lines++
 		}
-		if len(logLines) >= 2 {
+		if lines >= 2 {
 			break
 		}
 	}
