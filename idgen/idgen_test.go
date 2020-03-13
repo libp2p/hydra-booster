@@ -1,7 +1,6 @@
 package idgen
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -22,5 +21,7 @@ func TestBalancedGeneration(t *testing.T) {
 		}
 	}
 
-	fmt.Printf("balanced depth %d, unbalanced depth %d\n", genBalanced.Depth(), genUnbalanced.Depth())
+	if dBal, dUnbal := genBalanced.Depth(), genUnbalanced.Depth(); dBal > dUnbal {
+		t.Errorf("balanced depth %d is bigger than unbalanced depth %d\n", dBal, dUnbal)
+	}
 }
