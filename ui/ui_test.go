@@ -85,3 +85,40 @@ func TestLogeyUI(t *testing.T) {
 		}
 	}
 }
+
+func TestRefreshPeriod(t *testing.T) {
+	listener, mux := newMockMetricsServeMux(t, "../testdata/metrics/1sybil.txt")
+	go http.Serve(listener, mux)
+	defer listener.Close()
+
+	var b bytes.Buffer
+
+	ui, err := NewUI(
+		Logey,
+		opts.Writer(&b),
+		opts.MetricsURL(fmt.Sprintf("http://%v/metrics", listener.Addr().String())),
+		opts.RefreshPeriod(time.Second),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	go ui.Render()
+
+	// give it time to refresh
+	time.Sleep(time.Second + (time.Millisecond * 100))
+	ui.Stop()
+
+	lines := strings.Split(b.String(), "\n")
+
+	var logLines []string
+	for _, l := range lines {
+		if strings.Index(l, "[") == 0 {
+			logLines = append(logLines, l)
+		}
+	}
+
+	if len(logLines) < 2 {
+		t.Fatal("expected 2 or more log lines")
+	}
+}
