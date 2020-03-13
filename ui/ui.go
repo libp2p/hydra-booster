@@ -23,9 +23,6 @@ const (
 	Gooey
 )
 
-// ErrMissingPeers is returned when no nodes are passed to the UI
-var ErrMissingPeers = fmt.Errorf("ui needs at least one peer")
-
 // UI is a simple command line interface to the Prometheus /metrics endpoint
 type UI struct {
 	theme   Theme

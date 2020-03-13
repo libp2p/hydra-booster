@@ -45,14 +45,14 @@ func TestGooeyUI(t *testing.T) {
 
 	go ui.Render(ctx)
 
-	var chunks bytes.Buffer
-	for chunk := range cw.Chan() {
-		chunks.Write(chunk)
-		if !strings.Contains(chunks.String(), "12D3KooWETMx8cDb7JtmpUjPrhXv27mRi7rLmENoK5JT2FYogZvo") {
+	var out bytes.Buffer
+	for c := range cw.C {
+		out.Write(c)
+		if !strings.Contains(out.String(), "12D3KooWETMx8cDb7JtmpUjPrhXv27mRi7rLmENoK5JT2FYogZvo") {
 			continue
 		}
 		// ensure uptime got updated
-		if !strings.Contains(chunks.String(), "0h 0m 1s") {
+		if !strings.Contains(out.String(), "0h 0m 1s") {
 			continue
 		}
 		break
@@ -86,12 +86,10 @@ func TestLogeyUI(t *testing.T) {
 		"TotalUniquePeersSeen: 9",
 	}
 
-	var chunks bytes.Buffer
-	for chunk := range cw.Chan() {
-		chunks.Write(chunk)
+	for c := range cw.C {
 		found := true
 		for _, str := range expects {
-			if !strings.Contains(chunks.String(), str) {
+			if !strings.Contains(c.String(), str) {
 				found = false
 				break
 			}
@@ -125,18 +123,11 @@ func TestRefreshPeriod(t *testing.T) {
 
 	go ui.Render(ctx)
 
-	var chunks bytes.Buffer
-	for chunk := range cw.Chan() {
-		chunks.Write(chunk)
-		lines := strings.Split(chunks.String(), "\n")
-
-		var logLines []string
-		for _, l := range lines {
-			if strings.Index(l, "[") == 0 {
-				logLines = append(logLines, l)
-			}
+	var lines []string
+	for c := range cw.C {
+		if strings.Index(c.String(), "[") == 0 {
+			lines = append(lines, c)
 		}
-
 		if len(logLines) >= 2 {
 			break
 		}

@@ -5,8 +5,6 @@ import (
 	"fmt"
 
 	"github.com/ipfs/go-datastore"
-	"github.com/libp2p/go-libp2p-core/crypto"
-	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/hydra-booster/sybil"
 	"github.com/libp2p/hydra-booster/sybil/opts"
 )
@@ -55,24 +53,9 @@ func SpawnSybils(ctx context.Context, n int, options ...opts.Option) ([]*sybil.S
 	return sybils, nil
 }
 
-// GeneratePeerID ...
-func GeneratePeerID() (peer.ID, crypto.PrivKey, crypto.PubKey, error) {
-	priv, pub, err := crypto.GenerateKeyPair(crypto.Ed25519, 0)
-	if err != nil {
-		return "", nil, nil, err
-	}
-
-	peerID, err := peer.IDFromPrivateKey(priv)
-	if err != nil {
-		return "", nil, nil, err
-	}
-
-	return peerID, priv, pub, nil
-}
-
 // ChanWriter is a writer that writes to a channel
 type ChanWriter struct {
-	ch chan []byte
+	C chan []byte
 }
 
 // NewChanWriter creates a new channel writer
@@ -80,19 +63,10 @@ func NewChanWriter() *ChanWriter {
 	return &ChanWriter{make(chan []byte)}
 }
 
-// Chan retrieves the channel that will receive bytes
-func (w *ChanWriter) Chan() <-chan []byte {
-	return w.ch
-}
-
 // Write writes to the channel
 func (w *ChanWriter) Write(p []byte) (int, error) {
-	w.ch <- p
+	d := make([]byte, len(p))
+	copy(d, p)
+	w.ch <- d
 	return len(p), nil
-}
-
-// Close the channel
-func (w *ChanWriter) Close() error {
-	close(w.ch)
-	return nil
 }
