@@ -2,10 +2,12 @@ package ui
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"net"
 	"net/http"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -26,23 +28,47 @@ func newMockMetricsServeMux(t *testing.T, name string) (net.Listener, *http.Serv
 	return listener, mux
 }
 
+// Buffer is a goroutine safe bytes.Buffer
+type Buffer struct {
+	buffer bytes.Buffer
+	mutex  sync.Mutex
+}
+
+// Write appends the contents of p to the buffer, growing the buffer as needed. It returns
+// the number of bytes written.
+func (s *Buffer) Write(p []byte) (n int, err error) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	return s.buffer.Write(p)
+}
+
+// String returns the contents of the unread portion of the buffer
+// as a string.  If the Buffer is a nil pointer, it returns "<nil>".
+func (s *Buffer) String() string {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	return s.buffer.String()
+}
+
 func TestGooeyUI(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	listener, mux := newMockMetricsServeMux(t, "../testdata/metrics/1sybil.txt")
 	go http.Serve(listener, mux)
 	defer listener.Close()
 
-	var b bytes.Buffer
+	var b Buffer
 
 	ui, err := NewUI(Gooey, opts.Writer(&b), opts.MetricsURL(fmt.Sprintf("http://%v/metrics", listener.Addr().String())))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	go ui.Render()
+	go ui.Render(ctx)
 
 	// wait for output after just over 1s
 	time.Sleep(time.Second + (time.Millisecond * 100))
-	ui.Stop()
 
 	if !strings.Contains(b.String(), "12D3KooWETMx8cDb7JtmpUjPrhXv27mRi7rLmENoK5JT2FYogZvo") {
 		t.Fatalf("12D3KooWETMx8cDb7JtmpUjPrhXv27mRi7rLmENoK5JT2FYogZvo not found in output")
@@ -55,22 +81,24 @@ func TestGooeyUI(t *testing.T) {
 }
 
 func TestLogeyUI(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	listener, mux := newMockMetricsServeMux(t, "../testdata/metrics/2sybils.txt")
 	go http.Serve(listener, mux)
 	defer listener.Close()
 
-	var b bytes.Buffer
+	var b Buffer
 
 	ui, err := NewUI(Logey, opts.Writer(&b), opts.MetricsURL(fmt.Sprintf("http://%v/metrics", listener.Addr().String())))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	go ui.Render()
+	go ui.Render(ctx)
 
 	// give it time to render once!
 	time.Sleep(time.Millisecond * 100)
-	ui.Stop()
 
 	expects := []string{
 		"NumSybils: 2",
@@ -87,11 +115,14 @@ func TestLogeyUI(t *testing.T) {
 }
 
 func TestRefreshPeriod(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	listener, mux := newMockMetricsServeMux(t, "../testdata/metrics/1sybil.txt")
 	go http.Serve(listener, mux)
 	defer listener.Close()
 
-	var b bytes.Buffer
+	var b Buffer
 
 	ui, err := NewUI(
 		Logey,
@@ -103,12 +134,12 @@ func TestRefreshPeriod(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	go ui.Render()
+	go ui.Render(ctx)
 
 	// give it time to refresh
 	time.Sleep(time.Second + (time.Millisecond * 100))
-	ui.Stop()
 
+	fmt.Println(b.String())
 	lines := strings.Split(b.String(), "\n")
 
 	var logLines []string

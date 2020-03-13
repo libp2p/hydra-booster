@@ -52,7 +52,7 @@ type Sybil struct {
 }
 
 // NewSybil constructs a new Hydra Booster sybil node
-func NewSybil(options ...opts.Option) (*Sybil, chan BootstrapStatus, error) {
+func NewSybil(ctx context.Context, options ...opts.Option) (*Sybil, chan BootstrapStatus, error) {
 	cfg := opts.Options{}
 	cfg.Apply(append([]opts.Option{opts.Defaults}, options...)...)
 
@@ -69,12 +69,12 @@ func NewSybil(options ...opts.Option) (*Sybil, chan BootstrapStatus, error) {
 		libp2pOpts = append(libp2pOpts, libp2p.EnableRelay(circuit.OptHop))
 	}
 
-	node, err := libp2p.New(context.Background(), libp2pOpts...)
+	node, err := libp2p.New(ctx, libp2pOpts...)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to spawn libp2p node: %w", err)
 	}
 
-	dhtNode, err := dht.New(context.Background(), node, dhtopts.BucketSize(cfg.BucketSize), dhtopts.Datastore(cfg.Datastore), dhtopts.Validator(record.NamespacedValidator{
+	dhtNode, err := dht.New(ctx, node, dhtopts.BucketSize(cfg.BucketSize), dhtopts.Datastore(cfg.Datastore), dhtopts.Validator(record.NamespacedValidator{
 		"pk":   record.PublicKeyValidator{},
 		"ipns": ipns.Validator{KeyBook: node.Peerstore()},
 	}))
@@ -85,7 +85,7 @@ func NewSybil(options ...opts.Option) (*Sybil, chan BootstrapStatus, error) {
 	// bootstrap in the background
 	// it's safe to start doing this _before_ establishing any connections
 	// as we'll trigger a boostrap round as soon as we get a connection anyways.
-	dhtNode.Bootstrap(context.Background())
+	dhtNode.Bootstrap(ctx)
 
 	bsCh := make(chan BootstrapStatus, 1)
 	sybil := Sybil{

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -52,6 +53,9 @@ func main() {
 	// TODO: Remove this when we shut those bootstrappers down.
 	crypto.MinRsaKeyBits = 1024
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	opts := hydra.Options{
 		DatastorePath: *dbpath,
 		Relay:         *relay,
@@ -72,11 +76,10 @@ func main() {
 		fmt.Printf("Prometheus metrics and pprof server listening on http://0.0.0.0:%d\n", *metricsPort)
 	}
 
-	hy, err := hydra.NewHydra(opts)
+	hy, err := hydra.NewHydra(ctx, opts)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	defer hy.Stop()
 
 	var ui *hyui.UI
 	if *uiTheme != "none" {
@@ -92,10 +95,9 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		defer ui.Stop()
 
 		go func() {
-			err = ui.Render()
+			err = ui.Render(ctx)
 			if err != nil {
 				log.Fatalln(err)
 			}

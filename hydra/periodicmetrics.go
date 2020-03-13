@@ -12,23 +12,23 @@ import (
 
 // PeriodicMetrics periodically collects and records statistics with prometheus.
 type PeriodicMetrics struct {
-	hydra   *Hydra
-	stopped bool
+	hydra *Hydra
 }
 
 // NewPeriodicMetrics creates a new PeriodicMetrics that immeidately begins to periodically collect and record statistics with prometheus.
-func NewPeriodicMetrics(hy *Hydra, period time.Duration) *PeriodicMetrics {
+func NewPeriodicMetrics(ctx context.Context, hy *Hydra, period time.Duration) *PeriodicMetrics {
 	pm := PeriodicMetrics{hydra: hy}
 
 	go func() {
 		for {
-			if pm.stopped {
+			select {
+			case <-ctx.Done():
 				return
-			}
-			time.Sleep(period)
-			err := pm.periodicCollectAndRecord()
-			if err != nil {
-				fmt.Println(fmt.Errorf("failed to collect and record stats: %w", err))
+			case <-time.After(period):
+				err := pm.periodicCollectAndRecord(ctx)
+				if err != nil {
+					fmt.Println(fmt.Errorf("failed to collect and record stats: %w", err))
+				}
 			}
 		}
 	}()
@@ -36,17 +36,12 @@ func NewPeriodicMetrics(hy *Hydra, period time.Duration) *PeriodicMetrics {
 	return &pm
 }
 
-// Stop halts periodic collection and recording after the current collection (note this function returns before that happens)
-func (pm *PeriodicMetrics) Stop() {
-	pm.stopped = true
-}
-
-func (pm *PeriodicMetrics) periodicCollectAndRecord() error {
+func (pm *PeriodicMetrics) periodicCollectAndRecord(ctx context.Context) error {
 	var rts int
 	for i := range pm.hydra.Sybils {
 		rts += pm.hydra.Sybils[i].RoutingTable.Size()
 	}
-	stats.Record(context.Background(), metrics.RoutingTableSize.M(int64(rts)))
+	stats.Record(ctx, metrics.RoutingTableSize.M(int64(rts)))
 
 	prs, err := pm.hydra.SharedDatastore.Query(query.Query{Prefix: "/providers", KeysOnly: true})
 	if err == nil {
@@ -55,10 +50,10 @@ func (pm *PeriodicMetrics) periodicCollectAndRecord() error {
 		for range prs.Next() {
 			provRecords++
 		}
-		stats.Record(context.Background(), metrics.ProviderRecords.M(int64(provRecords)))
+		stats.Record(ctx, metrics.ProviderRecords.M(int64(provRecords)))
 	}
 
-	stats.Record(context.Background(), metrics.UniquePeers.M(int64(pm.hydra.GetUniquePeersCount())))
+	stats.Record(ctx, metrics.UniquePeers.M(int64(pm.hydra.GetUniquePeersCount())))
 
 	return err
 }
