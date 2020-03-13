@@ -11,6 +11,7 @@ import (
 	"github.com/ipfs/go-datastore"
 	levelds "github.com/ipfs/go-ds-leveldb"
 	"github.com/libp2p/go-libp2p-core/network"
+	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/hydra-booster/metrics"
 	"github.com/libp2p/hydra-booster/sybil"
 	"github.com/libp2p/hydra-booster/sybil/opts"
@@ -28,6 +29,7 @@ type Hydra struct {
 	hyperLock       *sync.Mutex
 	hyperlog        *hyperloglog.Sketch
 	periodicMetrics *PeriodicMetrics
+	stopped         bool
 }
 
 // Options are configuration for a new hydra
@@ -109,6 +111,22 @@ func NewHydra(options Options) (*Hydra, error) {
 	hydra.periodicMetrics = NewPeriodicMetrics(&hydra, time.Second*5)
 
 	return &hydra, nil
+}
+
+// Stop halts the hydra node
+func (hy *Hydra) Stop() {
+	hy.periodicMetrics.Stop()
+	for _, syb := range hy.Sybils {
+		err := syb.Routing.(*dht.IpfsDHT).Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+		err = syb.Host.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+	hy.SharedDatastore.Close()
 }
 
 func handleBootstrapStatus(ctx context.Context, ch chan sybil.BootstrapStatus) {

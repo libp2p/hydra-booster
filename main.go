@@ -10,12 +10,11 @@ import (
 	"time"
 
 	"github.com/libp2p/go-libp2p-core/crypto"
-	peer "github.com/libp2p/go-libp2p-core/peer"
 	id "github.com/libp2p/go-libp2p/p2p/protocol/identify"
 	"github.com/libp2p/hydra-booster/httpapi"
 	"github.com/libp2p/hydra-booster/hydra"
 	"github.com/libp2p/hydra-booster/metrics"
-	"github.com/libp2p/hydra-booster/ui"
+	hyui "github.com/libp2p/hydra-booster/ui"
 	uiopts "github.com/libp2p/hydra-booster/ui/opts"
 	"github.com/libp2p/hydra-booster/utils"
 )
@@ -36,7 +35,7 @@ func main() {
 	bucketSize := flag.Int("bucketSize", defaultKValue, "Specify the bucket size")
 	bootstrapConcurency := flag.Int("bootstrapConc", 32, "How many concurrent bootstraps to run")
 	stagger := flag.Duration("stagger", 0*time.Second, "Duration to stagger nodes starts by")
-	noUI := flag.Bool("no-ui", false, "Disable UI")
+	uiTheme := flag.String("ui-theme", "default", "UI theme, \"gooey\", \"logey\" or \"none\" (default \"gooey\" for 1 sybil otherwise \"logey\")")
 	flag.Parse()
 	// Set the protocol for Identify to report on handshake
 	id.ClientVersion = "hydra-booster/1"
@@ -70,22 +69,33 @@ func main() {
 				log.Fatalln(err)
 			}
 		}()
-		fmt.Printf("Metrics server listening on http://0.0.0.0:%d\n", *metricsPort)
+		fmt.Printf("Prometheus metrics and pprof server listening on http://0.0.0.0:%d\n", *metricsPort)
 	}
 
 	hy, err := hydra.NewHydra(opts)
 	if err != nil {
 		log.Fatalln(err)
 	}
+	defer hy.Stop()
 
-	if !*noUI {
-		var peers []peer.ID
-		for _, syb := range hy.Sybils {
-			peers = append(peers, syb.Host.ID())
+	var ui *hyui.UI
+	if *uiTheme != "none" {
+		if *uiTheme == "default" && len(hy.Sybils) == 1 {
+			*uiTheme = "gooey"
+		}
+		var theme hyui.Theme
+		if *uiTheme == "gooey" {
+			theme = hyui.Gooey
 		}
 
+		ui, err = hyui.NewUI(theme, uiopts.Start(start), uiopts.MetricsURL(fmt.Sprintf("http://127.0.0.1:%v/metrics", *metricsPort)))
+		if err != nil {
+			log.Fatalln(err)
+		}
+		defer ui.Stop()
+
 		go func() {
-			err = ui.Render(peers, uiopts.Start(start), uiopts.MetricsPort(*metricsPort))
+			err = ui.Render()
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -104,5 +114,4 @@ func main() {
 	signal.Notify(termChan, os.Interrupt, syscall.SIGTERM)
 	<-termChan // Blocks here until either SIGINT or SIGTERM is received.
 	fmt.Println("Received interrupt signal, shutting down...")
-	// TODO: clean up properly
 }

@@ -12,7 +12,8 @@ import (
 
 // PeriodicMetrics periodically collects and records statistics with prometheus.
 type PeriodicMetrics struct {
-	hydra *Hydra
+	hydra   *Hydra
+	stopped bool
 }
 
 // NewPeriodicMetrics creates a new PeriodicMetrics that immeidately begins to periodically collect and record statistics with prometheus.
@@ -21,6 +22,9 @@ func NewPeriodicMetrics(hy *Hydra, period time.Duration) *PeriodicMetrics {
 
 	go func() {
 		for {
+			if pm.stopped {
+				return
+			}
 			time.Sleep(period)
 			err := pm.periodicCollectAndRecord()
 			if err != nil {
@@ -30,6 +34,11 @@ func NewPeriodicMetrics(hy *Hydra, period time.Duration) *PeriodicMetrics {
 	}()
 
 	return &pm
+}
+
+// Stop halts periodic collection and recording after the current collection (note this function returns before that happens)
+func (pm *PeriodicMetrics) Stop() {
+	pm.stopped = true
 }
 
 func (pm *PeriodicMetrics) periodicCollectAndRecord() error {

@@ -3,44 +3,49 @@ package ui
 import (
 	"bytes"
 	"fmt"
-	"math/rand"
+	"net"
+	"net/http"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/libp2p/hydra-booster/reports"
-	hytesting "github.com/libp2p/hydra-booster/testing"
 	"github.com/libp2p/hydra-booster/ui/opts"
 )
 
-func TestUIRequiresPeers(t *testing.T) {
-	err := NewUI([]peer.ID{}, make(chan reports.StatusReport))
-	if err != ErrMissingPeers {
-		t.Fatal("created a UI with no peers")
-	}
-}
-
-func TestGooeyUI(t *testing.T) {
-	var b bytes.Buffer
-
-	peerID, _, _, err := hytesting.GeneratePeerID()
+func newMockMetricsServeMux(t *testing.T, name string) (net.Listener, *http.ServeMux) {
+	listener, err := net.Listen("tcp", ":0")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	srs := make(chan reports.StatusReport)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/metrics", func(w http.ResponseWriter, req *http.Request) {
+		http.ServeFile(w, req, name)
+	})
 
-	go func() {
-		srs <- reports.StatusReport{}
-		time.Sleep(time.Second * 2) // Wait for uptime to update
-		close(srs)
-	}()
+	return listener, mux
+}
 
-	NewUI([]peer.ID{peerID}, srs, opts.Writer(&b))
+func TestGooeyUI(t *testing.T) {
+	listener, mux := newMockMetricsServeMux(t, "../testdata/metrics/1sybil.txt")
+	go http.Serve(listener, mux)
+	defer listener.Close()
 
-	if !strings.Contains(b.String(), peerID.Pretty()) {
-		t.Fatalf("%v not found in output", peerID.Pretty())
+	var b bytes.Buffer
+
+	ui, err := NewUI(Gooey, opts.Writer(&b), opts.MetricsURL(fmt.Sprintf("http://%v/metrics", listener.Addr().String())))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	go ui.Render()
+	defer ui.Stop()
+
+	// wait for output after just over 1s
+	time.Sleep(time.Second + (time.Millisecond * 100))
+
+	if !strings.Contains(b.String(), "12D3KooWETMx8cDb7JtmpUjPrhXv27mRi7rLmENoK5JT2FYogZvo") {
+		t.Fatalf("12D3KooWETMx8cDb7JtmpUjPrhXv27mRi7rLmENoK5JT2FYogZvo not found in output")
 	}
 
 	// ensure uptime got updated
@@ -50,40 +55,28 @@ func TestGooeyUI(t *testing.T) {
 }
 
 func TestLogeyUI(t *testing.T) {
+	listener, mux := newMockMetricsServeMux(t, "../testdata/metrics/2sybils.txt")
+	go http.Serve(listener, mux)
+	defer listener.Close()
+
 	var b bytes.Buffer
 
-	peerID0, _, _, err := hytesting.GeneratePeerID()
+	ui, err := NewUI(Logey, opts.Writer(&b), opts.MetricsURL(fmt.Sprintf("http://%v/metrics", listener.Addr().String())))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	peerID1, _, _, err := hytesting.GeneratePeerID()
-	if err != nil {
-		t.Fatal(err)
-	}
+	go ui.Render()
+	defer ui.Stop()
 
-	srs := make(chan reports.StatusReport)
-
-	rand.Seed(time.Now().UnixNano())
-	r := reports.StatusReport{
-		TotalHydraNodes:             rand.Int(),
-		TotalBootstrappedHydraNodes: rand.Int(),
-		TotalConnectedPeers:         rand.Int(),
-		TotalUniquePeers:            rand.Uint64(),
-	}
-
-	go func() {
-		srs <- r
-		close(srs)
-	}()
-
-	NewUI([]peer.ID{peerID0, peerID1}, srs, opts.Writer(&b))
+	// give it time to render once!
+	time.Sleep(time.Millisecond * 100)
 
 	expects := []string{
-		fmt.Sprintf("NumSybils: %v", r.TotalHydraNodes),
-		fmt.Sprintf("BootstrapsDone: %v", r.TotalBootstrappedHydraNodes),
-		fmt.Sprintf("PeersConnected: %v", r.TotalConnectedPeers),
-		fmt.Sprintf("TotalUniquePeersSeen: %v", r.TotalUniquePeers),
+		"NumSybils: 2",
+		"BootstrapsDone: 2",
+		"PeersConnected: 11",
+		"TotalUniquePeersSeen: 9",
 	}
 
 	for _, str := range expects {

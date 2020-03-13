@@ -2,62 +2,77 @@ package ui
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	pmc "github.com/alanshaw/prom-metrics-client"
 	"github.com/dustin/go-humanize"
-	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/hydra-booster/metrics"
 	uiopts "github.com/libp2p/hydra-booster/ui/opts"
 	"go.opencensus.io/stats"
 )
 
+// Theme is the style of UI to render
+type Theme int
+
 const (
-	logey = iota
-	gooey
+	// Logey is a UI theme that simply logs data periodically to stdout
+	Logey Theme = iota
+	// Gooey is a UI theme that refreshes values in place
+	Gooey
 )
 
 // ErrMissingPeers is returned when no nodes are passed to the UI
 var ErrMissingPeers = fmt.Errorf("ui needs at least one peer")
 
-// Render displays and updates a "UI" for the Prometheus /metrics endpoint - CLI output based on the number of Hydra nodes
-func Render(peers []peer.ID, opts ...uiopts.Option) error {
-	if len(peers) == 0 {
-		return ErrMissingPeers
-	}
+// UI is a simple command line interface to the Prometheus /metrics endpoint
+type UI struct {
+	theme   Theme
+	options uiopts.Options
+	stopped bool
+}
 
+// NewUI constructs a new "UI" for the Prometheus /metrics endpoint
+func NewUI(theme Theme, opts ...uiopts.Option) (*UI, error) {
 	options := uiopts.Options{}
 	options.Apply(append([]uiopts.Option{uiopts.Defaults}, opts...)...)
+	return &UI{theme: theme, options: options}, nil
+}
 
-	uiType := logey
+// Stop halts UI rendering after the next render cycle (note this function returns before that happens)
+func (ui *UI) Stop() {
+	ui.stopped = true
+}
 
-	if len(peers) == 1 {
-		uiType = gooey
-	}
-
-	client := pmc.PromMetricsClient{URL: fmt.Sprintf("http://127.0.0.1:%d/metrics", options.MetricsPort)}
+// Render displays and updates a "UI" for the Prometheus /metrics endpoint
+func (ui *UI) Render() error {
+	client := pmc.PromMetricsClient{URL: ui.options.MetricsURL}
 	ch := make(chan *pmc.Metrics)
 
 	go func() {
 		for {
-			time.Sleep(options.RefreshPeriod)
 			m, err := client.GetMetrics()
 			if err != nil {
 				fmt.Println(err)
-				continue
+			} else {
+				ch <- m
 			}
-			ch <- m
+			if ui.stopped {
+				close(ch)
+				return
+			}
+			time.Sleep(ui.options.RefreshPeriod)
 		}
 	}()
 
-	switch uiType {
-	case logey: // many node
+	switch ui.theme {
+	case Logey:
 		for m := range ch {
 			fmt.Fprintf(
-				options.Writer,
+				ui.options.Writer,
 				"[NumSybils: %v, Uptime: %s, MemoryUsage: %s, PeersConnected: %v, TotalUniquePeersSeen: %v, BootstrapsDone: %v, ProviderRecords: %v, RoutingTableSize: %v]\n",
 				getCounterValue(m, nsName(metrics.Sybils)),
-				time.Second*time.Duration(int(time.Since(options.Start).Seconds())),
+				time.Second*time.Duration(int(time.Since(ui.options.Start).Seconds())),
 				humanize.Bytes(uint64(getGaugeValue(m, "go_memstats_alloc_bytes"))),
 				getCounterValue(m, nsName(metrics.ConnectedPeers)),
 				getGaugeValue(m, nsName(metrics.UniquePeers)),
@@ -66,9 +81,9 @@ func Render(peers []peer.ID, opts ...uiopts.Option) error {
 				getGaugeValue(m, nsName(metrics.RoutingTableSize)),
 			)
 		}
-	case gooey: // 1 node
-		ga := &GooeyApp{Title: "Hydra Booster Sybil", Log: NewLog(options.Writer, 15, 15), writer: options.Writer}
-		ga.NewDataLine(3, "Peer ID", peers[0].Pretty())
+	case Gooey:
+		ga := &GooeyApp{Title: "Hydra Booster", Log: NewLog(ui.options.Writer, 15, 15), writer: ui.options.Writer}
+		esybs := ga.NewDataLine(3, "Sybil ID(s)", "")
 		econs := ga.NewDataLine(4, "Connections", "0")
 		uniqprs := ga.NewDataLine(5, "Unique Peers Seen", "0")
 		emem := ga.NewDataLine(6, "Memory Allocated", "0MB")
@@ -89,6 +104,7 @@ func Render(peers []peer.ID, opts ...uiopts.Option) error {
 					second.Stop()
 					return nil
 				}
+				esybs.SetVal(fmt.Sprintf("%v", getCounterTagValues(m, nsName(metrics.Sybils), "peer_id")))
 				emem.SetVal(humanize.Bytes(uint64(getGaugeValue(m, "go_memstats_alloc_bytes"))))
 				econs.SetVal(fmt.Sprintf("%v peers", getCounterValue(m, nsName(metrics.ConnectedPeers))))
 				uniqprs.SetVal(fmt.Sprint(getGaugeValue(m, nsName(metrics.UniquePeers))))
@@ -96,7 +112,7 @@ func Render(peers []peer.ID, opts ...uiopts.Option) error {
 				erts.SetVal(fmt.Sprint(getGaugeValue(m, nsName(metrics.RoutingTableSize))))
 				ga.Print()
 			case <-second.C:
-				t := time.Since(options.Start)
+				t := time.Since(ui.options.Start)
 				h := int(t.Hours())
 				m := int(t.Minutes()) % 60
 				s := int(t.Seconds()) % 60
@@ -120,6 +136,22 @@ func getGaugeValue(m *pmc.Metrics, name string) int {
 		}
 	}
 	return 0
+}
+
+func getCounterTagValues(m *pmc.Metrics, metricName string, tagName string) []string {
+	var vals []string
+	for _, c := range m.Counters {
+		if c.Name == metricName {
+			for _, v := range c.Values {
+				// TODO add tag parsing to prom-metrics-client
+				if strings.Index(v.Name, tagName+"=\"") > -1 {
+					val := strings.Split(v.Name, tagName+"=\"")[1]
+					vals = append(vals, strings.Split(val, "\"")[0])
+				}
+			}
+		}
+	}
+	return vals
 }
 
 func getCounterValue(m *pmc.Metrics, name string) int {
