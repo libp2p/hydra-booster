@@ -10,9 +10,12 @@ import (
 	kbucket "github.com/libp2p/go-libp2p-kbucket"
 )
 
+var HydraIdentityGenerator = NewBalancedIdentityGenerator()
+
 type BalancedIdentityGenerator struct {
 	sync.Mutex
 	xorTrie *XorTrie
+	count   int
 }
 
 func NewBalancedIdentityGenerator() *BalancedIdentityGenerator {
@@ -21,7 +24,19 @@ func NewBalancedIdentityGenerator() *BalancedIdentityGenerator {
 	}
 }
 
-func (bg *BalancedIdentityGenerator) Add() (crypto.PrivKey, error) {
+func (bg *BalancedIdentityGenerator) AddUnbalanced() (crypto.PrivKey, error) {
+	bg.Lock()
+	defer bg.Unlock()
+	p0, t0, _, err0 := bg.genUniqueID()
+	if err0 != nil {
+		return nil, fmt.Errorf("generating unbalanced ID candidate, %w", err0)
+	}
+	bg.xorTrie.Insert(t0)
+	bg.count++
+	return p0, nil
+}
+
+func (bg *BalancedIdentityGenerator) AddBalanced() (crypto.PrivKey, error) {
 	bg.Lock()
 	defer bg.Unlock()
 	p0, t0, d0, err0 := bg.genUniqueID()
@@ -34,9 +49,11 @@ func (bg *BalancedIdentityGenerator) Add() (crypto.PrivKey, error) {
 	}
 	if d0 < d1 {
 		bg.xorTrie.Insert(t0)
+		bg.count++
 		return p0, nil
 	} else {
 		bg.xorTrie.Insert(t1)
+		bg.count++
 		return p1, nil
 	}
 }
@@ -59,9 +76,23 @@ func (bg *BalancedIdentityGenerator) Remove(privKey crypto.PrivKey) error {
 	if trieKey, err := privKeyToTrieKey(privKey); err != nil {
 		return err
 	} else {
-		bg.xorTrie.Remove(trieKey)
+		if _, ok := bg.xorTrie.Remove(trieKey); ok {
+			bg.count--
+		}
 		return nil
 	}
+}
+
+func (bg *BalancedIdentityGenerator) Count() int {
+	bg.Lock()
+	defer bg.Unlock()
+	return bg.count
+}
+
+func (bg *BalancedIdentityGenerator) Depth() int {
+	bg.Lock()
+	defer bg.Unlock()
+	return bg.xorTrie.Depth()
 }
 
 func genID() (crypto.PrivKey, TrieKey, error) {

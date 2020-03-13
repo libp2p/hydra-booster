@@ -31,6 +31,25 @@ func NewXorTrie() *XorTrie {
 	return &XorTrie{}
 }
 
+func (trie *XorTrie) Depth() int {
+	return trie.depth(0)
+}
+
+func (trie *XorTrie) depth(depth int) int {
+	if trie.branch[0] == nil && trie.branch[1] == nil {
+		return depth
+	} else {
+		return max(trie.branch[0].depth(depth+1), trie.branch[1].depth(depth+1))
+	}
+}
+
+func max(x, y int) int {
+	if x > y {
+		return x
+	}
+	return y
+}
+
 func (trie *XorTrie) Insert(q TrieKey) (insertedDepth int, insertedOK bool) {
 	return trie.insert(0, q)
 }

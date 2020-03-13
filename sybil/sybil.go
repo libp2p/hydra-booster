@@ -11,7 +11,6 @@ import (
 	"github.com/libp2p/go-libp2p"
 	circuit "github.com/libp2p/go-libp2p-circuit"
 	connmgr "github.com/libp2p/go-libp2p-connmgr"
-	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/routing"
@@ -19,6 +18,7 @@ import (
 	dhtopts "github.com/libp2p/go-libp2p-kad-dht/opts"
 	kbucket "github.com/libp2p/go-libp2p-kbucket"
 	record "github.com/libp2p/go-libp2p-record"
+	"github.com/libp2p/hydra-booster/idgen"
 	"github.com/libp2p/hydra-booster/sybil/opts"
 	"github.com/multiformats/go-multiaddr"
 )
@@ -58,9 +58,9 @@ func NewSybil(ctx context.Context, options ...opts.Option) (*Sybil, chan Bootstr
 
 	cmgr := connmgr.NewConnManager(lowWater, highWater, gracePeriod)
 
-	priv, _, err := crypto.GenerateKeyPair(crypto.Ed25519, 0)
+	priv, err := idgen.HydraIdentityGenerator.AddBalanced()
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to generate private key: %w", err)
+		return nil, nil, fmt.Errorf("failed to generate balanced private key: %w", err)
 	}
 
 	libp2pOpts := []libp2p.Option{libp2p.ListenAddrs(cfg.Addr), libp2p.ConnectionManager(cmgr), libp2p.Identity(priv)}
