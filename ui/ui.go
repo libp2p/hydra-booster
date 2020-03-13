@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	pmc "github.com/alanshaw/prom-metrics-client"
@@ -27,47 +28,72 @@ var ErrMissingPeers = fmt.Errorf("ui needs at least one peer")
 
 // UI is a simple command line interface to the Prometheus /metrics endpoint
 type UI struct {
-	theme   Theme
-	options uiopts.Options
-	stopped bool
+	theme        Theme
+	options      uiopts.Options
+	refreshTicks *time.Ticker
+	secondTicks  *time.Ticker
+	metricsC     chan *pmc.Metrics
+	stopC        chan bool
+	wg           sync.WaitGroup
 }
 
 // NewUI constructs a new "UI" for the Prometheus /metrics endpoint
 func NewUI(theme Theme, opts ...uiopts.Option) (*UI, error) {
 	options := uiopts.Options{}
 	options.Apply(append([]uiopts.Option{uiopts.Defaults}, opts...)...)
-	return &UI{theme: theme, options: options}, nil
+	return &UI{
+		theme:        theme,
+		options:      options,
+		refreshTicks: time.NewTicker(options.RefreshPeriod),
+		secondTicks:  time.NewTicker(time.Second),
+		metricsC:     make(chan *pmc.Metrics),
+		stopC:        make(chan bool),
+	}, nil
 }
 
 // Stop halts UI rendering after the next render cycle (note this function returns before that happens)
 func (ui *UI) Stop() {
-	ui.stopped = true
+	ui.refreshTicks.Stop() // prevent further ticks
+	ui.secondTicks.Stop()  // prevent further ticks
+	ui.wg.Wait()           // wait for current metrics fetch and/or write to complete
+	close(ui.metricsC)     // close the metrics channel
+	close(ui.stopC)        // signal the UI is stopping
 }
 
 // Render displays and updates a "UI" for the Prometheus /metrics endpoint
 func (ui *UI) Render() error {
 	client := pmc.PromMetricsClient{URL: ui.options.MetricsURL}
-	ch := make(chan *pmc.Metrics)
 
 	go func() {
+		ui.wg.Add(1)
+		m, err := client.GetMetrics()
+		if err != nil {
+			fmt.Println(err)
+		}
+		ui.metricsC <- m
+		ui.wg.Done()
+
 		for {
-			m, err := client.GetMetrics()
-			if err != nil {
-				fmt.Println(err)
-			} else {
-				ch <- m
-			}
-			if ui.stopped {
-				close(ch)
+			select {
+			case <-ui.refreshTicks.C:
+				ui.wg.Add(1)
+				m, err := client.GetMetrics()
+				if err != nil {
+					fmt.Println(err)
+				} else {
+					ui.metricsC <- m
+				}
+				ui.wg.Done()
+			case <-ui.stopC:
 				return
 			}
-			time.Sleep(ui.options.RefreshPeriod)
 		}
 	}()
 
 	switch ui.theme {
 	case Logey:
-		for m := range ch {
+		for m := range ui.metricsC {
+			ui.wg.Add(1)
 			fmt.Fprintf(
 				ui.options.Writer,
 				"[NumSybils: %v, Uptime: %s, MemoryUsage: %s, PeersConnected: %v, TotalUniquePeersSeen: %v, BootstrapsDone: %v, ProviderRecords: %v, RoutingTableSize: %v]\n",
@@ -80,6 +106,7 @@ func (ui *UI) Render() error {
 				getGaugeValue(m, nsName(metrics.ProviderRecords)),
 				getGaugeValue(m, nsName(metrics.RoutingTableSize)),
 			)
+			ui.wg.Done()
 		}
 	case Gooey:
 		ga := &GooeyApp{Title: "Hydra Booster", Log: NewLog(ui.options.Writer, 15, 15), writer: ui.options.Writer}
@@ -92,16 +119,13 @@ func (ui *UI) Render() error {
 		etime := ga.NewDataLine(9, "Uptime", "0h 0m 0s")
 		ga.Print()
 
-		second := time.NewTicker(time.Second)
-
 		for {
 			select {
 			// case m := <-messages:
 			// 	ga.Log.Add(m)
 			// 	ga.Log.Print()
-			case m, ok := <-ch:
+			case m, ok := <-ui.metricsC:
 				if !ok {
-					second.Stop()
 					return nil
 				}
 				esybs.SetVal(fmt.Sprintf("%v", getCounterTagValues(m, nsName(metrics.Sybils), "peer_id")))
@@ -110,15 +134,16 @@ func (ui *UI) Render() error {
 				uniqprs.SetVal(fmt.Sprint(getGaugeValue(m, nsName(metrics.UniquePeers))))
 				eprov.SetVal(fmt.Sprint(getGaugeValue(m, nsName(metrics.ProviderRecords))))
 				erts.SetVal(fmt.Sprint(getGaugeValue(m, nsName(metrics.RoutingTableSize))))
-				ga.Print()
-			case <-second.C:
+			case <-ui.secondTicks.C:
 				t := time.Since(ui.options.Start)
 				h := int(t.Hours())
 				m := int(t.Minutes()) % 60
 				s := int(t.Seconds()) % 60
 				etime.SetVal(fmt.Sprintf("%dh %dm %ds", h, m, s))
-				ga.Print()
 			}
+			ui.wg.Add(1)
+			ga.Print()
+			ui.wg.Done()
 		}
 	}
 

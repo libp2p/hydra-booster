@@ -39,10 +39,10 @@ func TestGooeyUI(t *testing.T) {
 	}
 
 	go ui.Render()
-	defer ui.Stop()
 
 	// wait for output after just over 1s
 	time.Sleep(time.Second + (time.Millisecond * 100))
+	ui.Stop()
 
 	if !strings.Contains(b.String(), "12D3KooWETMx8cDb7JtmpUjPrhXv27mRi7rLmENoK5JT2FYogZvo") {
 		t.Fatalf("12D3KooWETMx8cDb7JtmpUjPrhXv27mRi7rLmENoK5JT2FYogZvo not found in output")
@@ -67,10 +67,10 @@ func TestLogeyUI(t *testing.T) {
 	}
 
 	go ui.Render()
-	defer ui.Stop()
 
 	// give it time to render once!
 	time.Sleep(time.Millisecond * 100)
+	ui.Stop()
 
 	expects := []string{
 		"NumSybils: 2",
