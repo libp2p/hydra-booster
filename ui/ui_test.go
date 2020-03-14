@@ -59,6 +59,31 @@ func TestGooeyUI(t *testing.T) {
 	}
 }
 
+func TestCancelByContext(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+
+	listener, mux := newMockMetricsServeMux(t, "../testdata/metrics/1sybil.txt")
+	go http.Serve(listener, mux)
+	defer listener.Close()
+
+	var b bytes.Buffer
+
+	ui, err := NewUI(Gooey, opts.Writer(&b), opts.MetricsURL(fmt.Sprintf("http://%v/metrics", listener.Addr().String())))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	go func() {
+		time.Sleep(time.Second)
+		cancel()
+	}()
+
+	err = ui.Render(ctx)
+	if err != nil {
+		t.Fatal("unexpected err", err)
+	}
+}
+
 func TestLogeyUI(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
