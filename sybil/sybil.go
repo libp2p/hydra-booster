@@ -87,7 +87,7 @@ func NewSybil(ctx context.Context, options ...opts.Option) (*Sybil, chan Bootstr
 	// as we'll trigger a boostrap round as soon as we get a connection anyways.
 	dhtNode.Bootstrap(ctx)
 
-	bsCh := make(chan BootstrapStatus, 1)
+	bsCh := make(chan BootstrapStatus)
 	sybil := Sybil{
 		Host:         node,
 		Datastore:    cfg.Datastore,
@@ -115,13 +115,13 @@ func NewSybil(ctx context.Context, options ...opts.Option) (*Sybil, chan Bootstr
 				break
 			}
 			sybil.Bootstrapped = true
+			bsCh <- BootstrapStatus{Done: true}
 		}
 
 		if cfg.Limiter != nil {
 			<-cfg.Limiter
 		}
 
-		bsCh <- BootstrapStatus{Done: true}
 		close(bsCh)
 	}()
 

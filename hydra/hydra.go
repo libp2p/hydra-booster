@@ -39,6 +39,7 @@ type Options struct {
 	BsCon         int
 	Relay         bool
 	Stagger       time.Duration
+	MetricsPeriod time.Duration
 }
 
 // NewHydra creates a new Hydra with the passed options.
@@ -107,26 +108,18 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		hyperlog:        hyperlog,
 	}
 
-	hydra.periodicMetrics = NewPeriodicMetrics(ctx, &hydra, time.Second*5)
+	hydra.periodicMetrics = NewPeriodicMetrics(ctx, &hydra, options.MetricsPeriod)
 
 	return &hydra, nil
 }
 
 func handleBootstrapStatus(ctx context.Context, ch chan sybil.BootstrapStatus) {
-	for {
-		select {
-		case status, ok := <-ch:
-			if !ok {
-				return
-			}
-			if status.Err != nil {
-				fmt.Println(status.Err)
-			}
-			if status.Done {
-				stats.Record(ctx, metrics.BootstrappedSybils.M(1))
-			}
-		case <-ctx.Done():
-			return
+	for status := range ch {
+		if status.Err != nil {
+			fmt.Println(status.Err)
+		}
+		if status.Done {
+			stats.Record(ctx, metrics.BootstrappedSybils.M(1))
 		}
 	}
 }

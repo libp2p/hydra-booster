@@ -19,6 +19,10 @@ type PeriodicMetrics struct {
 func NewPeriodicMetrics(ctx context.Context, hy *Hydra, period time.Duration) *PeriodicMetrics {
 	pm := PeriodicMetrics{hydra: hy}
 
+	if period == 0 {
+		period = time.Second * 5
+	}
+
 	go func() {
 		for {
 			select {
