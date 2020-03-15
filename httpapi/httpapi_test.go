@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -14,7 +15,10 @@ import (
 )
 
 func TestHTTPAPISybils(t *testing.T) {
-	sybils, err := hytesting.SpawnNodes(2)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	sybils, err := hytesting.SpawnSybils(ctx, 2)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -62,7 +66,10 @@ func TestHTTPAPISybils(t *testing.T) {
 }
 
 func TestHTTPAPIRecordsListWithoutRecords(t *testing.T) {
-	sybils, err := hytesting.SpawnNodes(1)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	sybils, err := hytesting.SpawnSybils(ctx, 1)
 	if err != nil {
 		t.Fatal(err)
 	}

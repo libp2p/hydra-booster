@@ -2,93 +2,159 @@ package ui
 
 import (
 	"bytes"
+	"context"
 	"fmt"
-	"math/rand"
+	"net"
+	"net/http"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/libp2p/hydra-booster/reports"
 	hytesting "github.com/libp2p/hydra-booster/testing"
 	"github.com/libp2p/hydra-booster/ui/opts"
 )
 
-func TestUIRequiresPeers(t *testing.T) {
-	err := NewUI([]peer.ID{}, make(chan reports.StatusReport))
-	if err != ErrMissingPeers {
-		t.Fatal("created a UI with no peers")
-	}
-}
-
-func TestGooeyUI(t *testing.T) {
-	var b bytes.Buffer
-
-	peerID, _, _, err := hytesting.GeneratePeerID()
+func newMockMetricsServeMux(t *testing.T, name string) (net.Listener, *http.ServeMux) {
+	listener, err := net.Listen("tcp", ":0")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	srs := make(chan reports.StatusReport)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/metrics", func(w http.ResponseWriter, req *http.Request) {
+		http.ServeFile(w, req, name)
+	})
 
-	go func() {
-		srs <- reports.StatusReport{}
-		time.Sleep(time.Second * 2) // Wait for uptime to update
-		close(srs)
-	}()
+	return listener, mux
+}
 
-	NewUI([]peer.ID{peerID}, srs, opts.Writer(&b))
+func TestGooeyUI(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	if !strings.Contains(b.String(), peerID.Pretty()) {
-		t.Fatalf("%v not found in output", peerID.Pretty())
+	listener, mux := newMockMetricsServeMux(t, "../testdata/metrics/1sybil.txt")
+	go http.Serve(listener, mux)
+	defer listener.Close()
+
+	cw := hytesting.NewChanWriter()
+
+	ui, err := NewUI(Gooey, opts.Writer(cw), opts.MetricsURL(fmt.Sprintf("http://%v/metrics", listener.Addr().String())))
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	// ensure uptime got updated
-	if !strings.Contains(b.String(), "0h 0m 1s") {
-		t.Fatalf("%v not found in output", "0h 0m 1s")
+	go ui.Render(ctx)
+
+	var out bytes.Buffer
+	for c := range cw.C {
+		out.Write(c)
+		if !strings.Contains(out.String(), "12D3KooWETMx8cDb7JtmpUjPrhXv27mRi7rLmENoK5JT2FYogZvo") {
+			continue
+		}
+		// ensure uptime got updated
+		if !strings.Contains(out.String(), "0h 0m 1s") {
+			continue
+		}
+		break
+	}
+}
+
+func TestCancelByContext(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+
+	listener, mux := newMockMetricsServeMux(t, "../testdata/metrics/1sybil.txt")
+	go http.Serve(listener, mux)
+	defer listener.Close()
+
+	var b bytes.Buffer
+
+	ui, err := NewUI(Gooey, opts.Writer(&b), opts.MetricsURL(fmt.Sprintf("http://%v/metrics", listener.Addr().String())))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	go func() {
+		time.Sleep(time.Second)
+		cancel()
+	}()
+
+	err = ui.Render(ctx)
+	if err != nil {
+		t.Fatal("unexpected err", err)
 	}
 }
 
 func TestLogeyUI(t *testing.T) {
-	var b bytes.Buffer
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	peerID0, _, _, err := hytesting.GeneratePeerID()
+	listener, mux := newMockMetricsServeMux(t, "../testdata/metrics/2sybils.txt")
+	go http.Serve(listener, mux)
+	defer listener.Close()
+
+	cw := hytesting.NewChanWriter()
+
+	ui, err := NewUI(Logey, opts.Writer(cw), opts.MetricsURL(fmt.Sprintf("http://%v/metrics", listener.Addr().String())))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	peerID1, _, _, err := hytesting.GeneratePeerID()
-	if err != nil {
-		t.Fatal(err)
-	}
+	go ui.Render(ctx)
 
-	srs := make(chan reports.StatusReport)
-
-	rand.Seed(time.Now().UnixNano())
-	r := reports.StatusReport{
-		TotalHydraNodes:             rand.Int(),
-		TotalBootstrappedHydraNodes: rand.Int(),
-		TotalConnectedPeers:         rand.Int(),
-		TotalUniquePeers:            rand.Uint64(),
-	}
-
-	go func() {
-		srs <- r
-		close(srs)
-	}()
-
-	NewUI([]peer.ID{peerID0, peerID1}, srs, opts.Writer(&b))
+	// give it time to render once!
+	time.Sleep(time.Millisecond * 100)
 
 	expects := []string{
-		fmt.Sprintf("NumSybils: %v", r.TotalHydraNodes),
-		fmt.Sprintf("BootstrapsDone: %v", r.TotalBootstrappedHydraNodes),
-		fmt.Sprintf("PeersConnected: %v", r.TotalConnectedPeers),
-		fmt.Sprintf("TotalUniquePeersSeen: %v", r.TotalUniquePeers),
+		"NumSybils: 2",
+		"BootstrapsDone: 2",
+		"PeersConnected: 11",
+		"TotalUniquePeersSeen: 9",
 	}
 
-	for _, str := range expects {
-		if !strings.Contains(b.String(), str) {
-			t.Fatalf("%v not found in output", str)
+	for c := range cw.C {
+		found := true
+		for _, str := range expects {
+			if !strings.Contains(string(c), str) {
+				found = false
+				break
+			}
+		}
+
+		if found {
+			break
+		}
+	}
+}
+
+func TestRefreshPeriod(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	listener, mux := newMockMetricsServeMux(t, "../testdata/metrics/1sybil.txt")
+	go http.Serve(listener, mux)
+	defer listener.Close()
+
+	cw := hytesting.NewChanWriter()
+
+	ui, err := NewUI(
+		Logey,
+		opts.Writer(cw),
+		opts.MetricsURL(fmt.Sprintf("http://%v/metrics", listener.Addr().String())),
+		opts.RefreshPeriod(time.Second),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	go ui.Render(ctx)
+
+	var lines int
+	for c := range cw.C {
+		if strings.Index(string(c), "[") == 0 {
+			lines++
+		}
+		if lines >= 2 {
+			break
 		}
 	}
 }

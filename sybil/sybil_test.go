@@ -1,6 +1,7 @@
 package sybil
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -8,9 +9,11 @@ import (
 	"github.com/libp2p/hydra-booster/sybil/opts"
 )
 
-func TestSpawnNode(t *testing.T) { // TODO spawn a node to bootstrap from so we don't hit the public bootstrappers
-	nd, bsCh, err := NewSybil(opts.Datastore(datastore.NewMapDatastore()))
+func TestSpawnSybil(t *testing.T) { // TODO spawn a node to bootstrap from so we don't hit the public bootstrappers
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
+	_, bsCh, err := NewSybil(ctx, opts.Datastore(datastore.NewMapDatastore()))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -21,16 +24,10 @@ func TestSpawnNode(t *testing.T) { // TODO spawn a node to bootstrap from so we 
 			t.Fatal(fmt.Errorf("channel closed before bootstrap complete"))
 		}
 		if status.Err != nil {
-			t.Fatal(status.Err)
+			fmt.Println(status.Err)
 		}
 		if status.Done {
 			break
 		}
-	}
-
-	err = nd.Host.Close()
-
-	if err != nil {
-		t.Fatal(err)
 	}
 }

@@ -1,11 +1,10 @@
 package testing
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/ipfs/go-datastore"
-	"github.com/libp2p/go-libp2p-core/crypto"
-	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/hydra-booster/sybil"
 	"github.com/libp2p/hydra-booster/sybil/opts"
 )
@@ -16,10 +15,10 @@ var defaults = []opts.Option{
 	opts.BootstrapPeers(nil),
 }
 
-// SpawnNode creates a new Hydra sybil with an in memory datastore and 0 bootstrap peers by default.
+// SpawnSybil creates a new Hydra sybil with an in memory datastore and 0 bootstrap peers by default.
 // It also waits for bootstrapping to complete.
-func SpawnNode(options ...opts.Option) (*sybil.Sybil, error) {
-	nd, bsCh, err := sybil.NewSybil(append(defaults, options...)...)
+func SpawnSybil(ctx context.Context, options ...opts.Option) (*sybil.Sybil, error) {
+	nd, bsCh, err := sybil.NewSybil(ctx, append(defaults, options...)...)
 	if err != nil {
 		return nil, err
 	}
@@ -37,11 +36,11 @@ func SpawnNode(options ...opts.Option) (*sybil.Sybil, error) {
 	return nd, nil
 }
 
-// SpawnNodes creates n new Hydra nodes with an in memory datastore and 0 bootstrap peers by default
-func SpawnNodes(n int, options ...opts.Option) ([]*sybil.Sybil, error) {
+// SpawnSybils creates n new Hydra nodes with an in memory datastore and 0 bootstrap peers by default
+func SpawnSybils(ctx context.Context, n int, options ...opts.Option) ([]*sybil.Sybil, error) {
 	var sybils []*sybil.Sybil
 	for i := 0; i < n; i++ {
-		syb, err := SpawnNode(options...)
+		syb, err := SpawnSybil(ctx, options...)
 		if err != nil {
 			for _, nd := range sybils {
 				nd.Host.Close()
@@ -54,17 +53,20 @@ func SpawnNodes(n int, options ...opts.Option) ([]*sybil.Sybil, error) {
 	return sybils, nil
 }
 
-// GeneratePeerID ...
-func GeneratePeerID() (peer.ID, crypto.PrivKey, crypto.PubKey, error) {
-	priv, pub, err := crypto.GenerateKeyPair(crypto.Ed25519, 0)
-	if err != nil {
-		return "", nil, nil, err
-	}
+// ChanWriter is a writer that writes to a channel
+type ChanWriter struct {
+	C chan []byte
+}
 
-	peerID, err := peer.IDFromPrivateKey(priv)
-	if err != nil {
-		return "", nil, nil, err
-	}
+// NewChanWriter creates a new channel writer
+func NewChanWriter() *ChanWriter {
+	return &ChanWriter{make(chan []byte)}
+}
 
-	return peerID, priv, pub, nil
+// Write writes to the channel
+func (w *ChanWriter) Write(p []byte) (int, error) {
+	d := make([]byte, len(p))
+	copy(d, p)
+	w.C <- d
+	return len(p), nil
 }

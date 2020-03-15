@@ -75,6 +75,22 @@ docker commit -m="some commit message" <CONTAINER_ID> libp2p/hydra-booster
 docker push libp2p/hydra-booster
 ```
 
+### Metrics collection with Prometheus
+
+Install [Prometheus](https://prometheus.io/) and then start it using the provided config:
+
+```console
+prometheus --config.file=promconfig.yaml --storage.tsdb.path=prometheus-data
+```
+
+Next start the Hydra Booster, specifying the port to run metrics on:
+
+```console
+go run ./main.go -many=5 -metrics-port=8888
+```
+
+You should now be able to access metrics at http://127.0.0.1:9090.
+
 ## API
 
 ### HTTP API
