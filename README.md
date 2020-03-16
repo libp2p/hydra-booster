@@ -44,13 +44,13 @@ go get -u github.com/libp2p/hydra-booster
 go run ./main.go
 ```
 
-The second mode is called 'many mode'. Passing the `-nsybils=N` allows you to run N heads (called [sybils](https://en.wikipedia.org/wiki/Sybil_attack)) at a time in the same process. It periodically prints out a status line with information about total peers, uptime, and memory usage.
+The second mode is called 'many heads'. Passing the `-nsybils=N` allows you to run N heads (called [sybils](https://en.wikipedia.org/wiki/Sybil_attack)) at a time in the same process. It periodically prints out a status line with information about total peers, uptime, and memory usage.
 
 ```sh
 go run ./main.go -nsybils=5
 ```
 
-ALternatively you can use the `HYDRA_NSYBILS` environment var to specify the number of sybils. Note the `-nsybils` flag takes precedence.
+Alternatively you can use the `HYDRA_NSYBILS` environment var to specify the number of sybils. Note the `-nsybils` flag takes precedence.
 
 ### Best Practices
 
