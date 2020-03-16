@@ -28,7 +28,7 @@ const (
 
 func main() {
 	start := time.Now()
-	many := flag.Int("many", -1, "Instead of running one dht, run many!")
+	nsybils := flag.Int("nsybils", -1, "Specify the number of Hydra sybils to create.")
 	dbpath := flag.String("db", "hydra-belly", "Datastore folder path")
 	inmem := flag.Bool("mem", false, "Use an in-memory database. This overrides the -db option")
 	metricsPort := flag.Int("metrics-port", 8888, "Specify a port to run prometheus metrics and pprof http server on")
@@ -50,15 +50,15 @@ func main() {
 		*dbpath = ""
 	}
 
-	if *many == -1 {
-		if os.Getenv("HYDRA_MANY") != "" {
-			envMany, err := strconv.Atoi(os.Getenv("HYDRA_MANY"))
+	if *nsybils == -1 {
+		if os.Getenv("HYDRA_NSYBILS") != "" {
+			envNSybils, err := strconv.Atoi(os.Getenv("HYDRA_NSYBILS"))
 			if err != nil {
-				log.Fatalln(fmt.Errorf("invalid HYDRA_MANY env value: %w", err))
+				log.Fatalln(fmt.Errorf("invalid HYDRA_NSYBILS env value: %w", err))
 			}
-			*many = envMany
+			*nsybils = envNSybils
 		} else {
-			*many = 1
+			*nsybils = 1
 		}
 	}
 
@@ -74,7 +74,7 @@ func main() {
 		Relay:         *relay,
 		BucketSize:    *bucketSize,
 		GetPort:       utils.PortSelector(*portBegin),
-		NSybils:       *many,
+		NSybils:       *nsybils,
 		BsCon:         *bootstrapConcurency,
 		Stagger:       *stagger,
 	}

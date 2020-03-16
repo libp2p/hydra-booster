@@ -17,4 +17,4 @@ EXPOSE 7779
 EXPOSE 8888
 # Sybils
 EXPOSE 10000-12000
-CMD ["./hydra-booster", "-portBegin=10000"]
+CMD ["./hydra-booster", "-portBegin=10000", "-metrics-port=8888"]
