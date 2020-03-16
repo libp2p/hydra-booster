@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -27,7 +28,7 @@ const (
 
 func main() {
 	start := time.Now()
-	many := flag.Int("many", 1, "Instead of running one dht, run many!")
+	nsybils := flag.Int("nsybils", -1, "Specify the number of Hydra sybils to create.")
 	dbpath := flag.String("db", "hydra-belly", "Datastore folder path")
 	inmem := flag.Bool("mem", false, "Use an in-memory database. This overrides the -db option")
 	metricsPort := flag.Int("metrics-port", 8888, "Specify a port to run prometheus metrics and pprof http server on")
@@ -49,6 +50,18 @@ func main() {
 		*dbpath = ""
 	}
 
+	if *nsybils == -1 {
+		if os.Getenv("HYDRA_NSYBILS") != "" {
+			envNSybils, err := strconv.Atoi(os.Getenv("HYDRA_NSYBILS"))
+			if err != nil {
+				log.Fatalln(fmt.Errorf("invalid HYDRA_NSYBILS env value: %w", err))
+			}
+			*nsybils = envNSybils
+		} else {
+			*nsybils = 1
+		}
+	}
+
 	// Allow short keys. Otherwise, we'll refuse connections from the bootsrappers and break the network.
 	// TODO: Remove this when we shut those bootstrappers down.
 	crypto.MinRsaKeyBits = 1024
@@ -61,7 +74,7 @@ func main() {
 		Relay:         *relay,
 		BucketSize:    *bucketSize,
 		GetPort:       utils.PortSelector(*portBegin),
-		NSybils:       *many,
+		NSybils:       *nsybils,
 		BsCon:         *bootstrapConcurency,
 		Stagger:       *stagger,
 	}

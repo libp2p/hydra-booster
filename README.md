@@ -21,7 +21,7 @@
 
 > A DHT Indexer node & Peer Router
 
-A new type of DHT node designed to accelerate the Content Resolution & Content Providing on the IPFS Network. A (cute) Hydra with one belly full of records and many heads (PeerIds) to tell other nodes about them, charged with rocket boosters to transport other nodes to their destination faster.
+A new type of DHT node designed to accelerate the Content Resolution & Content Providing on the IPFS Network. A (cute) Hydra with one belly full of records and many heads (Peer IDs) to tell other nodes about them, charged with rocket boosters to transport other nodes to their destination faster.
 
 [**Read the RFC**](https://docs.google.com/document/d/1yA2fY5c0WIv3LCtJCPVesHzvCWt14OPv7QlHdV3ghgU).
 Disclaimer: We are at Stage 1 of the RFC. [**Kanban**](https://app.zenhub.com/workspaces/hydra-booster-5e64ef0d1fa19e698b659cec/board?repos=245123455)
@@ -38,24 +38,25 @@ go get -u github.com/libp2p/hydra-booster
 
 ## Usage
 
-`hydra-booster` has two modes. A 'single dht' mode that has a nicer UI, this is intended to be run in a tmux window or something so you can see statistics about your contribution to the network.
+`hydra-booster` has two modes. A 'single head' mode that has a nicer UI, this is intended to be run in a tmux window or something so you can see statistics about your contribution to the network.
 
 ```sh
 go run ./main.go
 ```
 
-The second mode is called 'many mode'. Passing the `-many=N` allows you to run N dhts at a time in the same process. It periodically prints out a status line with information about total peers, uptime, and memory usage.
-
+The second mode is called 'many heads'. Passing the `-nsybils=N` allows you to run N heads (called [sybils](https://en.wikipedia.org/wiki/Sybil_attack)) at a time in the same process. It periodically prints out a status line with information about total peers, uptime, and memory usage.
 
 ```sh
-go run ./main.go -many=5
+go run ./main.go -nsybils=5
 ```
+
+Alternatively you can use the `HYDRA_NSYBILS` environment var to specify the number of sybils. Note the `-nsybils` flag takes precedence.
 
 ### Best Practices
 
-Only run a hydra-booster on machines with public IP addresses. Having more dht nodes behind NATs makes dht queries in general slower, as connecting in generally takes longer and sometimes doesnt even work (resulting in a timeout).
+Only run a `hydra-booster` on machines with public IP addresses. Having more DHT nodes behind NATs makes DHT queries in general slower, as connecting in generally takes longer and sometimes doesnt even work (resulting in a timeout).
 
-When running with `-many`, please make sure to bump the ulimit to something fairly high. Expect ~500 connections per node youre running (so with `-many=10`, try setting `ulimit -n 5000`)
+When running with `-nsybils`, please make sure to bump the ulimit to something fairly high. Expect ~500 connections per node youre running (so with `-nsybils=10`, try setting `ulimit -n 5000`)
 
 ## Developers
 
@@ -86,7 +87,7 @@ prometheus --config.file=promconfig.yaml --storage.tsdb.path=prometheus-data
 Next start the Hydra Booster, specifying the port to run metrics on:
 
 ```console
-go run ./main.go -many=5 -metrics-port=8888
+go run ./main.go -nsybils=5 -metrics-port=8888
 ```
 
 You should now be able to access metrics at http://127.0.0.1:9090.
