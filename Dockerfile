@@ -11,5 +11,10 @@ COPY . .
 
 RUN go build -o hydra-booster .
 
+# HTTP API
+EXPOSE 7779
+# Prometheus /metrics
+EXPOSE 8888
+# Sybils
 EXPOSE 10000-12000
-CMD ["./hydra-booster", "-many=50", "-portBegin=10000"]
+CMD ["./hydra-booster", "-portBegin=10000"]
