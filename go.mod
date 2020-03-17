@@ -7,18 +7,17 @@ require (
 	github.com/dustin/go-humanize v1.0.0
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/ipfs/go-datastore v0.4.4
-	github.com/ipfs/go-ds-leveldb v0.4.0
+	github.com/ipfs/go-ds-leveldb v0.4.2
 	github.com/ipfs/go-ipns v0.0.2
-	github.com/ipfs/go-log v1.0.2 // indirect
-	github.com/libp2p/go-libp2p v0.5.2
+	github.com/libp2p/go-libp2p v0.6.0
 	github.com/libp2p/go-libp2p-circuit v0.1.4
 	github.com/libp2p/go-libp2p-connmgr v0.2.1
-	github.com/libp2p/go-libp2p-core v0.3.1
+	github.com/libp2p/go-libp2p-core v0.5.0
 	github.com/libp2p/go-libp2p-kad-dht v0.5.2
 	github.com/libp2p/go-libp2p-kbucket v0.2.3
 	github.com/libp2p/go-libp2p-record v0.1.2
 	github.com/multiformats/go-multiaddr v0.2.1
-	github.com/prometheus/client_golang v1.2.1
+	github.com/prometheus/client_golang v1.5.1
 	go.opencensus.io v0.22.3
 )
 
