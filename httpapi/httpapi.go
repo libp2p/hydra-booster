@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 
+	cid "github.com/ipfs/go-cid"
 	dsq "github.com/ipfs/go-datastore/query"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/hydra-booster/hydra"
@@ -53,13 +55,26 @@ func sybilsHandler(hy *hydra.Hydra) func(w http.ResponseWriter, r *http.Request)
 // "/records/fetch" Receive a record and fetch it from the network, if available
 func recordFetchHandler(hy *hydra.Hydra) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// TODO needs functionality to be implemented in libp2p
-		// See: https://discuss.libp2p.io/t/does-a-findproviders-replicate-the-provider-records-to-the-node-issuing-the-query/452
+		cidStr := r.URL.Path[len("/records/fetch/"):]
+		cid, err := cid.Decode(cidStr)
+		if err != nil {
+			fmt.Printf("Received invalid CID, got %s\n", cidStr)
 
-		cid := r.URL.Path[len("/records/fetch/"):]
-		fmt.Printf("Got %s\n", cid)
-		httpNotImplemented := 501
-		w.WriteHeader(httpNotImplemented)
+			badRequest := 400
+			w.WriteHeader(badRequest)
+			return
+		}
+
+		ok := 200
+		w.WriteHeader(ok)
+		ctx := context.Background()
+		for peerAddrInfo := range hy.Sybils[0].Routing.FindProvidersAsync(ctx, cid, 1) {
+			fmt.Printf("Got one provider %s\n", peerAddrInfo.String())
+			hy.Sybils[0].Routing.ProviderManager.AddProvider(ctx, cid.Bytes(), peerAddrInfo.ID)
+			fmt.Fprintf(w, peerAddrInfo.String())
+			fmt.Fprintf(w, peerAddrInfo.ID.Pretty())
+		}
+		fmt.Fprintf(w, "\nThanks")
 	}
 }
 
