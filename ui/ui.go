@@ -3,7 +3,6 @@ package ui
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	pmc "github.com/alanshaw/prom-metrics-client"
@@ -39,23 +38,23 @@ func NewUI(theme Theme, opts ...uiopts.Option) (*UI, error) {
 // Render displays and updates a "UI" for the Prometheus /metrics endpoint
 func (ui *UI) Render(ctx context.Context) error {
 	client := pmc.PromMetricsClient{URL: ui.options.MetricsURL}
-	mC := make(chan *pmc.Metrics)
+	mC := make(chan []*pmc.Metric)
 
 	go func() {
-		m, err := client.GetMetrics()
+		ms, err := client.GetMetrics()
 		if err != nil {
 			fmt.Println(err)
 		}
-		mC <- m
+		mC <- ms
 
 		for {
 			select {
 			case <-time.After(ui.options.RefreshPeriod):
-				m, err := client.GetMetrics()
+				ms, err := client.GetMetrics()
 				if err != nil {
 					fmt.Println(err)
 				} else {
-					mC <- m
+					mC <- ms
 				}
 			case <-ctx.Done():
 				return
@@ -67,18 +66,18 @@ func (ui *UI) Render(ctx context.Context) error {
 	case Logey:
 		for {
 			select {
-			case m := <-mC:
+			case ms := <-mC:
 				fmt.Fprintf(
 					ui.options.Writer,
 					"[NumSybils: %v, Uptime: %s, MemoryUsage: %s, PeersConnected: %v, TotalUniquePeersSeen: %v, BootstrapsDone: %v, ProviderRecords: %v, RoutingTableSize: %v]\n",
-					getCounterValue(m, nsName(metrics.Sybils)),
+					sumSamples(findByName(ms, nsName(metrics.Sybils))),
 					time.Second*time.Duration(int(time.Since(ui.options.Start).Seconds())),
-					humanize.Bytes(uint64(getGaugeValue(m, "go_memstats_alloc_bytes"))),
-					getCounterValue(m, nsName(metrics.ConnectedPeers)),
-					getGaugeValue(m, nsName(metrics.UniquePeers)),
-					getCounterValue(m, nsName(metrics.BootstrappedSybils)),
-					getGaugeValue(m, nsName(metrics.ProviderRecords)),
-					getGaugeValue(m, nsName(metrics.RoutingTableSize)),
+					humanize.Bytes(uint64(sumSamples(findByName(ms, "go_memstats_alloc_bytes")))),
+					sumSamples(findByName(ms, nsName(metrics.ConnectedPeers))),
+					sumSamples(findByName(ms, nsName(metrics.UniquePeers))),
+					sumSamples(findByName(ms, nsName(metrics.BootstrappedSybils))),
+					sumSamples(findByName(ms, nsName(metrics.ProviderRecords))),
+					sumSamples(findByName(ms, nsName(metrics.RoutingTableSize))),
 				)
 			case <-ctx.Done():
 				return nil
@@ -102,13 +101,13 @@ func (ui *UI) Render(ctx context.Context) error {
 			// case m := <-messages:
 			// 	ga.Log.Add(m)
 			// 	ga.Log.Print()
-			case m := <-mC:
-				esybs.SetVal(fmt.Sprintf("%v", getCounterTagValues(m, nsName(metrics.Sybils), "peer_id")))
-				emem.SetVal(humanize.Bytes(uint64(getGaugeValue(m, "go_memstats_alloc_bytes"))))
-				econs.SetVal(fmt.Sprintf("%v peers", getCounterValue(m, nsName(metrics.ConnectedPeers))))
-				uniqprs.SetVal(fmt.Sprint(getGaugeValue(m, nsName(metrics.UniquePeers))))
-				eprov.SetVal(fmt.Sprint(getGaugeValue(m, nsName(metrics.ProviderRecords))))
-				erts.SetVal(fmt.Sprint(getGaugeValue(m, nsName(metrics.RoutingTableSize))))
+			case ms := <-mC:
+				esybs.SetVal(fmt.Sprintf("%v", labelValues(findByName(ms, nsName(metrics.Sybils)), "peer_id")))
+				emem.SetVal(humanize.Bytes(uint64(sumSamples(findByName(ms, "go_memstats_alloc_bytes")))))
+				econs.SetVal(fmt.Sprintf("%v peers", sumSamples(findByName(ms, nsName(metrics.ConnectedPeers)))))
+				uniqprs.SetVal(fmt.Sprint(sumSamples(findByName(ms, nsName(metrics.UniquePeers)))))
+				eprov.SetVal(fmt.Sprint(sumSamples(findByName(ms, nsName(metrics.ProviderRecords)))))
+				erts.SetVal(fmt.Sprint(sumSamples(findByName(ms, nsName(metrics.RoutingTableSize)))))
 			case <-seconds.C:
 				t := time.Since(ui.options.Start)
 				h := int(t.Hours())
@@ -129,44 +128,31 @@ func nsName(m stats.Measure) string {
 	return fmt.Sprintf("%s_%s", metrics.PrometheusNamespace, m.Name())
 }
 
-func getGaugeValue(m *pmc.Metrics, name string) int {
-	for _, g := range m.Gauges {
-		if g.Name == name {
-			return int(sum(g.Values))
+func findByName(ms []*pmc.Metric, metricName string) *pmc.Metric {
+	for _, m := range ms {
+		if m.Name == metricName {
+			return m
 		}
 	}
-	return 0
+	return nil
 }
 
-func getCounterTagValues(m *pmc.Metrics, metricName string, tagName string) []string {
+func labelValues(m *pmc.Metric, labelKey string) []string {
 	var vals []string
-	for _, c := range m.Counters {
-		if c.Name == metricName {
-			for _, v := range c.Values {
-				// TODO add tag parsing to prom-metrics-client
-				if strings.Index(v.Name, tagName+"=\"") > -1 {
-					val := strings.Split(v.Name, tagName+"=\"")[1]
-					vals = append(vals, strings.Split(val, "\"")[0])
-				}
-			}
+	if m != nil {
+		for _, s := range m.Samples {
+			vals = append(vals, s.Labels[labelKey])
 		}
 	}
 	return vals
 }
 
-func getCounterValue(m *pmc.Metrics, name string) int {
-	for _, c := range m.Counters {
-		if c.Name == name {
-			return int(sum(c.Values))
-		}
-	}
-	return 0
-}
-
-func sum(values []pmc.Value) float64 {
+func sumSamples(m *pmc.Metric) float64 {
 	var val float64
-	for _, v := range values {
-		val += v.Value
+	if m != nil {
+		for _, s := range m.Samples {
+			val += s.Value
+		}
 	}
 	return val
 }
