@@ -3,8 +3,10 @@ package httpapi
 import (
 	"encoding/json"
 	"fmt"
-	"net"
 	"net/http"
+	"time"
+
+	"github.com/gorilla/mux"
 
 	dsq "github.com/ipfs/go-datastore/query"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -13,19 +15,23 @@ import (
 
 // ListenAndServe instructs a Hydra HTTP API server to listen and serve on the passed address
 func ListenAndServe(hy *hydra.Hydra, addr string) error {
-	listener, err := net.Listen("tcp", addr)
-	if err != nil {
-		return err
+	srv := &http.Server{
+		Addr: addr,
+		// Good practice to set timeouts to avoid Slowloris attacks.
+		WriteTimeout: time.Second * 15,
+		ReadTimeout:  time.Second * 15,
+		IdleTimeout:  time.Second * 60,
+		Handler:      NewRouter(hy),
 	}
-	return http.Serve(listener, NewServeMux(hy))
+	return srv.ListenAndServe()
 }
 
-// NewServeMux creates a new Hydra Booster HTTP API ServeMux
-func NewServeMux(hy *hydra.Hydra) *http.ServeMux {
-	mux := http.NewServeMux()
-
+// NewRouter creates a new Hydra Booster HTTP API Gorilla Mux
+func NewRouter(hy *hydra.Hydra) *mux.Router {
+	// mux := http.NewServeMux()
+	mux := mux.NewRouter()
 	mux.HandleFunc("/sybils", sybilsHandler(hy))
-	mux.HandleFunc("/records/fetch", recordFetchHandler(hy))
+	mux.HandleFunc("/records/fetch/{key}", recordFetchHandler(hy))
 	mux.HandleFunc("/records/list", recordListHandler(hy))
 	return mux
 }
@@ -49,6 +55,9 @@ func recordFetchHandler(hy *hydra.Hydra) func(w http.ResponseWriter, r *http.Req
 	return func(w http.ResponseWriter, r *http.Request) {
 		// TODO needs functionality to be implemented in libp2p
 		// See: https://discuss.libp2p.io/t/does-a-findproviders-replicate-the-provider-records-to-the-node-issuing-the-query/452
+
+		cid := r.URL.Path[len("/records/fetch/"):]
+		fmt.Printf("Got %s\n", cid)
 		httpNotImplemented := 501
 		w.WriteHeader(httpNotImplemented)
 	}

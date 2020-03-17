@@ -28,7 +28,7 @@ func TestHTTPAPISybils(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	go http.Serve(listener, NewServeMux(&hydra.Hydra{Sybils: sybils}))
+	go http.Serve(listener, NewRouter(&hydra.Hydra{Sybils: sybils}))
 	defer listener.Close()
 
 	url := fmt.Sprintf("http://%s/sybils", listener.Addr().String())
@@ -79,7 +79,7 @@ func TestHTTPAPIRecordsListWithoutRecords(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	go http.Serve(listener, NewServeMux(&hydra.Hydra{Sybils: sybils, SharedDatastore: sybils[0].Datastore}))
+	go http.Serve(listener, NewRouter(&hydra.Hydra{Sybils: sybils, SharedDatastore: sybils[0].Datastore}))
 	defer listener.Close()
 
 	url := fmt.Sprintf("http://%s/records/list", listener.Addr().String())
