@@ -22,20 +22,22 @@ import (
 )
 
 const (
-	defaultKValue = 20
-	httpAPIAddr   = "127.0.0.1:7779"
+	defaultBucketSize  = 20
+	defaultMetricsAddr = "0.0.0.0:8888"
+	defaultHTTPAPIAddr = "127.0.0.1:7779"
 )
 
 func main() {
 	start := time.Now()
 	nsybils := flag.Int("nsybils", -1, "Specify the number of Hydra sybils to create.")
 	dbpath := flag.String("db", "hydra-belly", "Datastore folder path")
+	httpAPIAddr := flag.String("httpapi-addr", defaultHTTPAPIAddr, "Specify an IP and port to run prometheus metrics and pprof http server on")
 	inmem := flag.Bool("mem", false, "Use an in-memory database. This overrides the -db option")
-	metricsPort := flag.Int("metrics-port", 8888, "Specify a port to run prometheus metrics and pprof http server on")
+	metricsAddr := flag.String("metrics-addr", defaultMetricsAddr, "Specify an IP and port to run prometheus metrics and pprof http server on")
 	relay := flag.Bool("relay", false, "Enable libp2p circuit relaying for this node")
-	portBegin := flag.Int("portBegin", 0, "If set, begin port allocation here")
-	bucketSize := flag.Int("bucketSize", defaultKValue, "Specify the bucket size")
-	bootstrapConcurency := flag.Int("bootstrapConc", 32, "How many concurrent bootstraps to run")
+	portBegin := flag.Int("port-begin", 0, "If set, begin port allocation here")
+	bucketSize := flag.Int("bucket-size", defaultBucketSize, "Specify the bucket size")
+	bootstrapConcurrency := flag.Int("bootstrap-conc", 32, "How many concurrent bootstraps to run")
 	stagger := flag.Duration("stagger", 0*time.Second, "Duration to stagger nodes starts by")
 	uiTheme := flag.String("ui-theme", "default", "UI theme, \"gooey\", \"logey\" or \"none\" (default \"gooey\" for 1 sybil otherwise \"logey\")")
 	flag.Parse()
@@ -75,19 +77,17 @@ func main() {
 		BucketSize:    *bucketSize,
 		GetPort:       utils.PortSelector(*portBegin),
 		NSybils:       *nsybils,
-		BsCon:         *bootstrapConcurency,
+		BsCon:         *bootstrapConcurrency,
 		Stagger:       *stagger,
 	}
 
-	if *metricsPort > 0 {
-		go func() {
-			err := metrics.ListenAndServe(*metricsPort)
-			if err != nil {
-				log.Fatalln(err)
-			}
-		}()
-		fmt.Printf("Prometheus metrics and pprof server listening on http://0.0.0.0:%d\n", *metricsPort)
-	}
+	go func() {
+		err := metrics.ListenAndServe(*metricsAddr)
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}()
+	fmt.Printf("Prometheus metrics and pprof server listening on http://%v\n", *metricsAddr)
 
 	hy, err := hydra.NewHydra(ctx, opts)
 	if err != nil {
@@ -104,7 +104,7 @@ func main() {
 			theme = hyui.Gooey
 		}
 
-		ui, err = hyui.NewUI(theme, uiopts.Start(start), uiopts.MetricsURL(fmt.Sprintf("http://127.0.0.1:%v/metrics", *metricsPort)))
+		ui, err = hyui.NewUI(theme, uiopts.Start(start), uiopts.MetricsURL(fmt.Sprintf("http://%v/metrics", *metricsAddr)))
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -118,12 +118,12 @@ func main() {
 	}
 
 	go func() {
-		err := httpapi.ListenAndServe(hy, httpAPIAddr)
+		err := httpapi.ListenAndServe(hy, *httpAPIAddr)
 		if err != nil {
 			log.Fatalln(err)
 		}
 	}()
-	fmt.Println(fmt.Sprintf("HTTP API listening on http://%s", httpAPIAddr))
+	fmt.Println(fmt.Sprintf("HTTP API listening on http://%s", *httpAPIAddr))
 
 	termChan := make(chan os.Signal)
 	signal.Notify(termChan, os.Interrupt, syscall.SIGTERM)
