@@ -16,7 +16,7 @@ import (
 var PrometheusNamespace = "hydrabooster"
 
 // ListenAndServe sets up an endpoint to collect process metrics (e.g. pprof).
-func ListenAndServe(port int) error {
+func ListenAndServe(address string) error {
 	// setup Prometheus
 	registry := prom.NewRegistry()
 	goCollector := prom.NewGoCollector()
@@ -46,5 +46,5 @@ func ListenAndServe(port int) error {
 	mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 	mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
 
-	return http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", port), mux)
+	return http.ListenAndServe(address, mux)
 }
