@@ -35,7 +35,7 @@ func main() {
 	inmem := flag.Bool("mem", false, "Use an in-memory database. This overrides the -db option")
 	metricsAddr := flag.String("metrics-addr", defaultMetricsAddr, "Specify an IP and port to run prometheus metrics and pprof http server on")
 	relay := flag.Bool("relay", false, "Enable libp2p circuit relaying for this node")
-	portBegin := flag.Int("port-begin", 0, "If set, begin port allocation here")
+	portBegin := flag.Int("port-begin", -1, "If set, begin port allocation here")
 	bucketSize := flag.Int("bucket-size", defaultBucketSize, "Specify the bucket size")
 	bootstrapConcurrency := flag.Int("bootstrap-conc", 32, "How many concurrent bootstraps to run")
 	stagger := flag.Duration("stagger", 0*time.Second, "Duration to stagger nodes starts by")
@@ -53,15 +53,11 @@ func main() {
 	}
 
 	if *nsybils == -1 {
-		if os.Getenv("HYDRA_NSYBILS") != "" {
-			envNSybils, err := strconv.Atoi(os.Getenv("HYDRA_NSYBILS"))
-			if err != nil {
-				log.Fatalln(fmt.Errorf("invalid HYDRA_NSYBILS env value: %w", err))
-			}
-			*nsybils = envNSybils
-		} else {
-			*nsybils = 1
-		}
+		*nsybils = mustGetEnvInt("HYDRA_NSYBILS", 1)
+	}
+
+	if *portBegin == -1 {
+		*portBegin = mustGetEnvInt("HYDRA_PORT_BEGIN", 0)
 	}
 
 	// Allow short keys. Otherwise, we'll refuse connections from the bootsrappers and break the network.
@@ -129,4 +125,15 @@ func main() {
 	signal.Notify(termChan, os.Interrupt, syscall.SIGTERM)
 	<-termChan // Blocks here until either SIGINT or SIGTERM is received.
 	fmt.Println("Received interrupt signal, shutting down...")
+}
+
+func mustGetEnvInt(key string, def int) int {
+	if os.Getenv(key) == "" {
+		return def
+	}
+	val, err := strconv.Atoi(os.Getenv(key))
+	if err != nil {
+		log.Fatalln(fmt.Errorf("invalid %s env value: %w", key, err))
+	}
+	return val
 }
