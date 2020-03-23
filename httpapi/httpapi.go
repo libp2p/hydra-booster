@@ -1,10 +1,10 @@
 package httpapi
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -65,16 +65,37 @@ func recordFetchHandler(hy *hydra.Hydra) func(w http.ResponseWriter, r *http.Req
 			return
 		}
 
-		ok := 200
-		w.WriteHeader(ok)
-		ctx := context.Background()
-		for peerAddrInfo := range hy.Sybils[0].Routing.FindProvidersAsync(ctx, cid, 1) {
-			fmt.Printf("Got one provider %s\n", peerAddrInfo.String())
-			hy.Sybils[0].Routing.ProviderManager.AddProvider(ctx, cid.Bytes(), peerAddrInfo.ID)
-			fmt.Fprintf(w, peerAddrInfo.String())
-			fmt.Fprintf(w, peerAddrInfo.ID.Pretty())
+		first := true
+		nProviders := 1
+		nProvidersStr := r.FormValue("nProviders")
+		if nProvidersStr != "" {
+			nProviders, err = strconv.Atoi(nProvidersStr)
+			if err != nil {
+				fmt.Printf("Received invalid nProviders, got %s\n", nProvidersStr)
+				badRequest := 400
+				w.WriteHeader(badRequest)
+				return
+			}
 		}
-		fmt.Fprintf(w, "\nThanks")
+		enc := json.NewEncoder(w)
+		ctx := r.Context()
+		for peerAddrInfo := range hy.Sybils[0].Routing.FindProvidersAsync(ctx, cid, nProviders) {
+			// fmt.Printf("Got one provider %s\n", peerAddrInfo.String())
+			// Store the Provider locally
+			hy.Sybils[0].Routing.ProviderManager.AddProvider(ctx, cid.Bytes(), peerAddrInfo.ID)
+
+			if first {
+				ok := 200
+				w.WriteHeader(ok)
+				first = false
+			}
+			enc.Encode(peerAddrInfo)
+		}
+		if first {
+			noContent := 204
+			w.WriteHeader(noContent)
+			return
+		}
 	}
 }
 
