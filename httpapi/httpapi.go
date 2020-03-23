@@ -55,8 +55,8 @@ func sybilsHandler(hy *hydra.Hydra) func(w http.ResponseWriter, r *http.Request)
 // "/records/fetch" Receive a record and fetch it from the network, if available
 func recordFetchHandler(hy *hydra.Hydra) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		cidStr := r.URL.Path[len("/records/fetch/"):]
-		cid, err := cid.Decode(cidStr)
+		vars := mux.Vars(r)
+		cid, err := cid.Decode(vars["key"])
 		if err != nil {
 			fmt.Printf("Received invalid CID, got %s\n", cidStr)
 
