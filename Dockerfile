@@ -16,5 +16,5 @@ EXPOSE 7779
 # Prometheus /metrics
 EXPOSE 8888
 # Sybils
-EXPOSE 10000-12000
-CMD ["./hydra-booster", "-port-begin=10000", "-metrics-addr=0.0.0.0:8888", "-httpapi-addr=0.0.0.0:7779"]
+EXPOSE 30000-32767
+CMD ["./hydra-booster", "-metrics-addr=0.0.0.0:8888", "-httpapi-addr=0.0.0.0:7779"]
