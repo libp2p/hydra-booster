@@ -72,8 +72,7 @@ func recordFetchHandler(hy *hydra.Hydra) func(w http.ResponseWriter, r *http.Req
 			nProviders, err = strconv.Atoi(nProvidersStr)
 			if err != nil {
 				fmt.Printf("Received invalid nProviders, got %s\n", nProvidersStr)
-				badRequest := 400
-				w.WriteHeader(badRequest)
+				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
 		}
