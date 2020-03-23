@@ -89,8 +89,7 @@ func recordFetchHandler(hy *hydra.Hydra) func(w http.ResponseWriter, r *http.Req
 			fmt.Printf("Stored new Provider Record for CID:%s with providers: %s\n", cidStr, res)
 
 			if first {
-				ok := 200
-				w.WriteHeader(ok)
+				w.WriteHeader(http.StatusOK)
 				first = false
 			}
 			enc.Encode(peerAddrInfo)
