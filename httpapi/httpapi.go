@@ -96,8 +96,7 @@ func recordFetchHandler(hy *hydra.Hydra) func(w http.ResponseWriter, r *http.Req
 			enc.Encode(peerAddrInfo)
 		}
 		if first {
-			noContent := 204
-			w.WriteHeader(noContent)
+			w.WriteHeader(http.StatusNotFound)
 			return
 		}
 	}
