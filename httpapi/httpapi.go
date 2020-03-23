@@ -59,9 +59,7 @@ func recordFetchHandler(hy *hydra.Hydra) func(w http.ResponseWriter, r *http.Req
 		cid, err := cid.Decode(vars["key"])
 		if err != nil {
 			fmt.Printf("Received invalid CID, got %s\n", cidStr)
-
-			badRequest := 400
-			w.WriteHeader(badRequest)
+			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
