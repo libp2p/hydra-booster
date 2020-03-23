@@ -83,6 +83,10 @@ func recordFetchHandler(hy *hydra.Hydra) func(w http.ResponseWriter, r *http.Req
 			// fmt.Printf("Got one provider %s\n", peerAddrInfo.String())
 			// Store the Provider locally
 			hy.Sybils[0].Routing.ProviderManager.AddProvider(ctx, cid.Bytes(), peerAddrInfo.ID)
+			// AddProvider doesn't automatically flush it to the datastore.
+			// A GetProviders helps wash it down. Useful for monitoring number of records stored
+			res := hy.Sybils[0].Routing.ProviderManager.GetProviders(ctx, cid.Bytes())
+			fmt.Printf("Stored new Provider Record for CID:%s with providers: %s\n", cidStr, res)
 
 			if first {
 				ok := 200
