@@ -17,4 +17,4 @@ EXPOSE 7779
 EXPOSE 8888
 # Sybils
 EXPOSE 30000-32767
-CMD ["./hydra-booster", "-metrics-addr=0.0.0.0:8888", "-httpapi-addr=0.0.0.0:7779"]
+CMD ["./hydra-booster", "-metrics-addr=0.0.0.0:8888", "-httpapi-addr=0.0.0.0:7779", "-ui-theme=none"]
