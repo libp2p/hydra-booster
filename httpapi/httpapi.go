@@ -56,7 +56,8 @@ func sybilsHandler(hy *hydra.Hydra) func(w http.ResponseWriter, r *http.Request)
 func recordFetchHandler(hy *hydra.Hydra) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		cid, err := cid.Decode(vars["key"])
+		cidStr := vars["key"]
+		cid, err := cid.Decode(cidStr)
 		if err != nil {
 			fmt.Printf("Received invalid CID, got %s\n", cidStr)
 			w.WriteHeader(http.StatusBadRequest)
