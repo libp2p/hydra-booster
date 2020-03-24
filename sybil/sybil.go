@@ -13,7 +13,6 @@ import (
 	connmgr "github.com/libp2p/go-libp2p-connmgr"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/libp2p/go-libp2p-core/routing"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	dhtopts "github.com/libp2p/go-libp2p-kad-dht/opts"
 	kbucket "github.com/libp2p/go-libp2p-kbucket"
@@ -46,7 +45,7 @@ type BootstrapStatus struct {
 type Sybil struct {
 	Host         host.Host
 	Datastore    datastore.Datastore
-	Routing      routing.Routing
+	Routing      *dht.IpfsDHT
 	RoutingTable *kbucket.RoutingTable
 	Bootstrapped bool
 }
