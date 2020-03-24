@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"os/signal"
 	"strconv"
@@ -65,6 +66,9 @@ func main() {
 	// Allow short keys. Otherwise, we'll refuse connections from the bootsrappers and break the network.
 	// TODO: Remove this when we shut those bootstrappers down.
 	crypto.MinRsaKeyBits = 1024
+
+	// Seed the random number generator used by sybils to select a bootstrap peer
+	rand.Seed(time.Now().UTC().UnixNano())
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
