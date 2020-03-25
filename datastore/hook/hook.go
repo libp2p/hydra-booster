@@ -29,11 +29,13 @@ func (hds *Datastore) Put(key datastore.Key, value []byte) error {
 
 // Delete removes the value for given `key`, it calls OnBeforeDelete and OnAfterDelete hooks.
 func (hds *Datastore) Delete(key datastore.Key) error {
+	// TODO
 	return hds.ds.Delete(key)
 }
 
 // Get retrieves the object `value` named by `key`, it calls OnBeforeGet and OnAfterGet hooks.
 func (hds *Datastore) Get(key datastore.Key) ([]byte, error) {
+	// TODO
 	return hds.ds.Get(key)
 }
 
@@ -59,3 +61,5 @@ type Batching struct {
 	hds *Datastore
 	ds  datastore.Batching
 }
+
+// TODO
