@@ -8,7 +8,7 @@ It was setup using the web UI so reproducing or changing it will be _manual_ for
 
 We're using Cloud Build to build the container that will be deployed. It is setup to build one automatically (Github trigger) when a semver tag of the form `v[0-9]+\.[0-9]+\.[0-9]+` is created. Check "Cloud Build" => "History" and then "Build Artifcats" for a given build. See "Cloud Build" => "Triggers" to find the trigger.
 
-Built containers are currently _not_ auto-deployed to the hydra cluster.
+Built containers are currently __not__ auto-deployed to the hydra cluster.
 
 ### Deploying a built image
 
