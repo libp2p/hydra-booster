@@ -24,15 +24,18 @@ func NewPeriodicMetrics(ctx context.Context, hy *Hydra, period time.Duration) *P
 	}
 
 	go func() {
+		timer := time.NewTimer(period)
+		defer timer.Stop()
 		for {
 			select {
 			case <-ctx.Done():
 				return
-			case <-time.After(period):
+			case <-timer.C:
 				err := pm.periodicCollectAndRecord(ctx)
 				if err != nil {
 					fmt.Println(fmt.Errorf("failed to collect and record stats: %w", err))
 				}
+				timer.Reset(period)
 			}
 		}
 	}()

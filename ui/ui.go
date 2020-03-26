@@ -41,21 +41,19 @@ func (ui *UI) Render(ctx context.Context) error {
 	mC := make(chan []*pmc.Metric)
 
 	go func() {
-		ms, err := client.GetMetrics()
-		if err != nil {
-			fmt.Println(err)
-		}
-		mC <- ms
+		timer := time.NewTimer(0)
+		defer timer.Stop()
 
 		for {
 			select {
-			case <-time.After(ui.options.RefreshPeriod):
+			case <-timer.C:
 				ms, err := client.GetMetrics()
 				if err != nil {
 					fmt.Println(err)
 				} else {
 					mC <- ms
 				}
+				timer.Reset(ui.options.RefreshPeriod)
 			case <-ctx.Done():
 				return
 			}
