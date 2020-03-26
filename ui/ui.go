@@ -93,6 +93,7 @@ func (ui *UI) Render(ctx context.Context) error {
 		ga.Print()
 
 		seconds := time.NewTicker(time.Second)
+		defer seconds.Stop()
 
 		for {
 			select {
