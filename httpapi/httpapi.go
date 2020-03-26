@@ -116,6 +116,7 @@ func recordListHandler(hy *hydra.Hydra) func(w http.ResponseWriter, r *http.Requ
 			w.WriteHeader(500)
 			return
 		}
+		defer results.Close()
 
 		enc := json.NewEncoder(w)
 

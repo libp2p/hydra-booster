@@ -54,6 +54,7 @@ func (pm *PeriodicMetrics) periodicCollectAndRecord(ctx context.Context) error {
 		for range prs.Next() {
 			provRecords++
 		}
+		prs.Close()
 		stats.Record(ctx, metrics.ProviderRecords.M(int64(provRecords)))
 	}
 
