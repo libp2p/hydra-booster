@@ -26,7 +26,7 @@ There are currently 2 environment variables that can be tweaked to affect the de
 
 ## Cluster setup
 
-We have one _cluster_  in `us-central1-c` with a _deployment_ for each Hydra. Each deployment has one _pod_ and a `NodePort` service forwards external ports to internal ports on the pod.
+We have one _cluster_  in `us-central1-c` with a _deployment_ for each Hydra. Deployments have a application name `hydra-booster-node-x` and live in the `hydra-booster` namespace. Each deployment has _one pod_ and a `NodePort` service forwards external ports to internal ports on the pod.
 
 We're using a `NodePort` not `LoadBalancer` service to expose sybils externally to avoid associated costs with forwarding many many ports. This [blog post](https://medium.com/google-cloud/kubernetes-nodeport-vs-loadbalancer-vs-ingress-when-should-i-use-what-922f010849e0) has some good info and diagrams on the differences between the different types of "services" that Kubernetes has.
 
@@ -36,9 +36,11 @@ Sybil swarm listening ports are allocated as such:
 
 |         | Port range    |
 | ------- | ------------- |
-| Hydra 1 | `30000-30199` |
-| Hydra 2 | `30200-30399` |
-| Hydra 3 | `30400-30599` |
+| Hydra 0 | `30000-30199` |
+| Hydra 1 | `30200-30399` |
+| Hydra 2 | `30400-30599` |
+| Hydra 3 | `30600-30799` |
+| Hydra 4 | `30800-30999` |
 | ...     | ...           |
 
 This gives us **up to 13 hydras and 2,600 sybils per cluster**. It assumes we can run up to 200 sybils on a single node. We may want to revist these allocations if the hardware is not capable.
@@ -49,9 +51,11 @@ Misc service ports are allocated as such:
 
 |         | HTTP API port | Metrics port | ...     |
 | ------- | ------------- | ------------ | ------- |
-| Hydra 1 | `32600`       | `32601`      | `32602` |
-| Hydra 2 | `32610`       | `32611`      | `32612` |
-| Hydra 3 | `32620`       | `32621`      | `32621` |
+| Hydra 0 | `32600`       | `32601`      | `32602` |
+| Hydra 1 | `32610`       | `32611`      | `32612` |
+| Hydra 2 | `32620`       | `32621`      | `32622` |
+| Hydra 3 | `32630`       | `32631`      | `32632` |
+| Hydra 4 | `32640`       | `32641`      | `32642` |
 | ...     | ...           | ...          | ...     |
 
 This gives us **up to 10 misc service ports per hydra**.
@@ -76,13 +80,13 @@ The configuration `prometheus-grafana-0-prometheus-config` ("Kubernetes Engine" 
 - job_name: 'hydrabooster'
   scrape_interval: 10s
   static_configs:
-    - targets: ['10.8.5.79:8888', '10.8.15.102:8888']
+    - targets: ['10.8.5.79:8888', '10.8.15.102:8888', '10.8.10.98:8888', '10.8.5.238:8888', '10.8.15.157:8888']
 ```
 
 It needs to be serialized yaml in yaml like this:
 
 ```yaml
-- prometheus.yaml: "- \"job_name\": \"hydrabooster\"\n  \"scrape_interval\": \"10s\"\n  \"static_configs\":\n    - \"targets\": [\"10.8.5.79:8888\", \"10.8.15.102:8888\"]"
+- prometheus.yaml: "- \"job_name\": \"hydrabooster\"\n  \"scrape_interval\": \"10s\"\n  \"static_configs\":\n    - \"targets\": [\"10.8.5.79:8888\", \"10.8.15.102:8888\", \"10.8.10.98:8888\", \"10.8.5.238:8888\", \"10.8.15.157:8888\"]"
 ```
 
 ## Misc
