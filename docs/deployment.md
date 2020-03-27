@@ -17,6 +17,13 @@ Built containers are currently __not__ auto-deployed to the hydra cluster.
 1. Click "Actions" => "Rolling update" and paste the new build image name
 1. Repeat for "hydra-booster-node-1" etc.
 
+### Deployment config
+
+There are currently 2 environment variables that can be tweaked to affect the deployment:
+
+* `HYDRA_NSYBILS` - controls the number of sybils that are spawned by a Hydra
+* `HYDRA_PORT_BEGIN` - controls the port that sybils listen on. Each sybil is allocated a port sequentially beginning from the port specified here. See [Cluster Setup](#cluster-setup) below for what this value should be for each Hydra
+
 ## Cluster setup
 
 We have one _cluster_  in `us-central1-c` with a _deployment_ for each Hydra. Each deployment has one _pod_ and a `NodePort` service forwards external ports to internal ports on the pod.
