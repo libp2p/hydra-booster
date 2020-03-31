@@ -48,7 +48,7 @@ var (
 	}
 	ProviderRecordsView = &view.View{
 		Measure:     ProviderRecords,
-		Aggregation: view.LastValue(),
+		Aggregation: view.Sum(),
 	}
 )
 

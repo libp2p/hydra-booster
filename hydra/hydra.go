@@ -11,6 +11,7 @@ import (
 	"github.com/ipfs/go-datastore"
 	levelds "github.com/ipfs/go-ds-leveldb"
 	"github.com/libp2p/go-libp2p-core/network"
+	hyds "github.com/libp2p/hydra-booster/datastore"
 	"github.com/libp2p/hydra-booster/metrics"
 	"github.com/libp2p/hydra-booster/sybil"
 	"github.com/libp2p/hydra-booster/sybil/opts"
@@ -44,7 +45,7 @@ type Options struct {
 
 // NewHydra creates a new Hydra with the passed options.
 func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
-	datastore, err := levelds.NewDatastore(options.DatastorePath, nil)
+	datastore, err := hyds.NewDatastore(levelds.NewDatastore(options.DatastorePath, nil))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create datastore: %w", err)
 	}
