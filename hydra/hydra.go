@@ -32,6 +32,7 @@ type Hydra struct {
 
 // Options are configuration for a new hydra
 type Options struct {
+	Name          string
 	DatastorePath string
 	GetPort       func() int
 	NSybils       int
@@ -47,6 +48,13 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	datastore, err := levelds.NewDatastore(options.DatastorePath, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create datastore: %w", err)
+	}
+
+	if options.Name != "" {
+		ctx, err = tag.New(ctx, tag.Insert(metrics.KeyName, options.Name))
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	var sybils []*sybil.Sybil
