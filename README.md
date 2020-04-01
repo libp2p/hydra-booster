@@ -15,7 +15,7 @@
   <a href="https://codecov.io/gh/libp2p/hydra-booster"><img src="https://img.shields.io/codecov/c/github/libp2p/hydra-booster?style=flat-square"></a>
   <a href="https://github.com/RichardLitt/standard-readme"><img src="https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square" /></a>
   <a href="https://godoc.org/github.com/libp2p/hydra-booster"><img src="http://img.shields.io/badge/godoc-reference-5272B4.svg?style=flat-square" /></a>
-  <a href=""><img src="https://img.shields.io/badge/golang-%3E%3D1.14.0-orange.svg?style=flat-square" /></a>
+  <a href=""><img src="https://img.shields.io/badge/golang-%3E%3D1.13.8-orange.svg?style=flat-square" /></a>
   <br>
 </p>
 
