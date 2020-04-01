@@ -1,4 +1,4 @@
-FROM golang:1.14-stretch
+FROM golang:1.13.8-buster
 
 WORKDIR /hydra-booster
 
