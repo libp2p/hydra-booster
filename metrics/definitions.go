@@ -8,6 +8,7 @@ import (
 
 // Keys
 var (
+	KeyName, _   = tag.NewKey("name")
 	KeyPeerID, _ = tag.NewKey("peer_id")
 )
 
@@ -25,29 +26,32 @@ var (
 var (
 	SybilsView = &view.View{
 		Measure:     Sybils,
-		TagKeys:     []tag.Key{KeyPeerID},
+		TagKeys:     []tag.Key{KeyName, KeyPeerID},
 		Aggregation: view.Sum(),
 	}
 	BootstrappedSybilsView = &view.View{
 		Measure:     BootstrappedSybils,
-		TagKeys:     []tag.Key{KeyPeerID},
+		TagKeys:     []tag.Key{KeyName, KeyPeerID},
 		Aggregation: view.Sum(),
 	}
 	ConnectedPeersView = &view.View{
 		Measure:     ConnectedPeers,
-		TagKeys:     []tag.Key{KeyPeerID},
+		TagKeys:     []tag.Key{KeyName, KeyPeerID},
 		Aggregation: view.Sum(),
 	}
 	UniquePeersView = &view.View{
 		Measure:     UniquePeers,
+		TagKeys:     []tag.Key{KeyName},
 		Aggregation: view.LastValue(),
 	}
 	RoutingTableSizeView = &view.View{
 		Measure:     RoutingTableSize,
+		TagKeys:     []tag.Key{KeyName},
 		Aggregation: view.LastValue(),
 	}
 	ProviderRecordsView = &view.View{
 		Measure:     ProviderRecords,
+		TagKeys:     []tag.Key{KeyName},
 		Aggregation: view.LastValue(),
 	}
 )

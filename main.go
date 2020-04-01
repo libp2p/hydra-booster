@@ -41,6 +41,7 @@ func main() {
 	bootstrapConcurrency := flag.Int("bootstrap-conc", 32, "How many concurrent bootstraps to run")
 	stagger := flag.Duration("stagger", 0*time.Second, "Duration to stagger nodes starts by")
 	uiTheme := flag.String("ui-theme", "default", "UI theme, \"gooey\", \"logey\" or \"none\" (default \"gooey\" for 1 sybil otherwise \"logey\")")
+	name := flag.String("name", "", "A name for the Hydra (for use in metrics)")
 	flag.Parse()
 	// Set the protocol for Identify to report on handshake
 	id.ClientVersion = "hydra-booster/1"
@@ -61,6 +62,10 @@ func main() {
 		*portBegin = mustGetEnvInt("HYDRA_PORT_BEGIN", 0)
 	}
 
+	if *name == "" {
+		*name = os.Getenv("HYDRA_NAME")
+	}
+
 	// Allow short keys. Otherwise, we'll refuse connections from the bootsrappers and break the network.
 	// TODO: Remove this when we shut those bootstrappers down.
 	crypto.MinRsaKeyBits = 1024
@@ -72,6 +77,7 @@ func main() {
 	defer cancel()
 
 	opts := hydra.Options{
+		Name:          *name,
 		DatastorePath: *dbpath,
 		Relay:         *relay,
 		BucketSize:    *bucketSize,
