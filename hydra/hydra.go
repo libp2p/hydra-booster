@@ -12,6 +12,7 @@ import (
 	levelds "github.com/ipfs/go-ds-leveldb"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/hydra-booster/metrics"
+	"github.com/libp2p/hydra-booster/periodictasks"
 	"github.com/libp2p/hydra-booster/sybil"
 	"github.com/libp2p/hydra-booster/sybil/opts"
 	"github.com/multiformats/go-multiaddr"
@@ -25,9 +26,8 @@ type Hydra struct {
 	SharedDatastore datastore.Datastore
 	// SharedRoutingTable *kbucket.RoutingTable
 
-	hyperLock       *sync.Mutex
-	hyperlog        *hyperloglog.Sketch
-	periodicMetrics *PeriodicMetrics
+	hyperLock *sync.Mutex
+	hyperlog  *hyperloglog.Sketch
 }
 
 // Options are configuration for a new hydra
@@ -40,7 +40,6 @@ type Options struct {
 	BsCon         int
 	Relay         bool
 	Stagger       time.Duration
-	MetricsPeriod time.Duration
 }
 
 // NewHydra creates a new Hydra with the passed options.
@@ -116,7 +115,11 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		hyperlog:        hyperlog,
 	}
 
-	hydra.periodicMetrics = NewPeriodicMetrics(ctx, &hydra, options.MetricsPeriod)
+	periodictasks.RunTasks(ctx, []periodictasks.PeriodicTask{
+		newProviderRecordsTask(&hydra, time.Minute),
+		newRoutingTableSizeTask(&hydra, time.Second*5),
+		newUniquePeersTask(&hydra, time.Second*5),
+	})
 
 	return &hydra, nil
 }
