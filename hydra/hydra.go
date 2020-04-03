@@ -20,6 +20,14 @@ import (
 	"go.opencensus.io/tag"
 )
 
+// Default intervals between periodic task runs, more cpu/memory intensive tasks are run less frequently
+// TODO: expose these as command line options?
+const (
+	providerRecordsTaskInterval  = time.Minute
+	routingTableSizeTaskInterval = time.Second * 5
+	uniquePeersTaskInterval      = time.Second * 5
+)
+
 // Hydra is a container for heads (sybils) and their shared belly bits.
 type Hydra struct {
 	Sybils          []*sybil.Sybil
@@ -30,7 +38,7 @@ type Hydra struct {
 	hyperlog  *hyperloglog.Sketch
 }
 
-// Options are configuration for a new hydra
+// Options are configuration for a new hydra.
 type Options struct {
 	Name          string
 	DatastorePath string
@@ -116,9 +124,9 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	}
 
 	periodictasks.RunTasks(ctx, []periodictasks.PeriodicTask{
-		newProviderRecordsTask(&hydra, time.Minute),
-		newRoutingTableSizeTask(&hydra, time.Second*5),
-		newUniquePeersTask(&hydra, time.Second*5),
+		newProviderRecordsTask(&hydra, providerRecordsTaskInterval),
+		newRoutingTableSizeTask(&hydra, routingTableSizeTaskInterval),
+		newUniquePeersTask(&hydra, uniquePeersTaskInterval),
 	})
 
 	return &hydra, nil
