@@ -12,11 +12,20 @@ import (
 	levelds "github.com/ipfs/go-ds-leveldb"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/hydra-booster/metrics"
+	"github.com/libp2p/hydra-booster/periodictasks"
 	"github.com/libp2p/hydra-booster/sybil"
 	"github.com/libp2p/hydra-booster/sybil/opts"
 	"github.com/multiformats/go-multiaddr"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
+)
+
+// Default intervals between periodic task runs, more cpu/memory intensive tasks are run less frequently
+// TODO: expose these as command line options?
+const (
+	providerRecordsTaskInterval  = time.Minute
+	routingTableSizeTaskInterval = time.Second * 5
+	uniquePeersTaskInterval      = time.Second * 5
 )
 
 // Hydra is a container for heads (sybils) and their shared belly bits.
@@ -25,12 +34,11 @@ type Hydra struct {
 	SharedDatastore datastore.Datastore
 	// SharedRoutingTable *kbucket.RoutingTable
 
-	hyperLock       *sync.Mutex
-	hyperlog        *hyperloglog.Sketch
-	periodicMetrics *PeriodicMetrics
+	hyperLock *sync.Mutex
+	hyperlog  *hyperloglog.Sketch
 }
 
-// Options are configuration for a new hydra
+// Options are configuration for a new hydra.
 type Options struct {
 	Name          string
 	DatastorePath string
@@ -40,7 +48,6 @@ type Options struct {
 	BsCon         int
 	Relay         bool
 	Stagger       time.Duration
-	MetricsPeriod time.Duration
 }
 
 // NewHydra creates a new Hydra with the passed options.
@@ -116,7 +123,11 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		hyperlog:        hyperlog,
 	}
 
-	hydra.periodicMetrics = NewPeriodicMetrics(ctx, &hydra, options.MetricsPeriod)
+	periodictasks.RunTasks(ctx, []periodictasks.PeriodicTask{
+		newProviderRecordsTask(&hydra, providerRecordsTaskInterval),
+		newRoutingTableSizeTask(&hydra, routingTableSizeTaskInterval),
+		newUniquePeersTask(&hydra, uniquePeersTaskInterval),
+	})
 
 	return &hydra, nil
 }
