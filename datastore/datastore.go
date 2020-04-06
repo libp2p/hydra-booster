@@ -3,6 +3,7 @@ package datastore
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	hook "github.com/alanshaw/ipfs-hookds"
@@ -62,11 +63,28 @@ func NewDatastore(ctx context.Context, path string, getRouting GetRouting, opts 
 }
 
 func newOnAfterQueryHook(ctx context.Context, getRouting GetRouting, opts Options) func(query.Query, query.Results, error) (query.Results, error) {
-	findProvsC := make(chan datastore.Key, opts.FindProvidersQueueSize)
+	findC := make(chan datastore.Key, opts.FindProvidersQueueSize)
+	foundC := make(chan datastore.Key)
+
+	pending := make(map[string]bool)
+	var pendingLock sync.Mutex
 
 	for i := 0; i < opts.FindProvidersConcurrency; i++ {
-		go findProviders(ctx, findProvsC, getRouting, opts)
+		go findProviders(ctx, findC, foundC, getRouting, opts)
 	}
+
+	go func() {
+		for {
+			select {
+			case k := <-foundC:
+				pendingLock.Lock()
+				delete(pending, k.String())
+				pendingLock.Unlock()
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
 
 	return func(q query.Query, res query.Results, err error) (query.Results, error) {
 		if err != nil {
@@ -84,15 +102,18 @@ func newOnAfterQueryHook(ctx context.Context, getRouting GetRouting, opts Option
 		res = hres.NewResults(res, hropts.OnAfterNextSync(func(r query.Result, ok bool) (query.Result, bool) {
 			if ok {
 				count++
-			} else {
-				fmt.Printf("query for %v finished with count %d\n", k, count)
-				if count == 0 {
+			} else if count == 0 {
+				pendingLock.Lock()
+				isPending, _ := pending[k.String()]
+				if !isPending {
+					pending[k.String()] = true
 					// send to the find provs queue, if channel is full then discard...
 					select {
-					case findProvsC <- k:
+					case findC <- k:
 					default:
 					}
 				}
+				pendingLock.Unlock()
 			}
 			return r, ok
 		}))
@@ -101,10 +122,10 @@ func newOnAfterQueryHook(ctx context.Context, getRouting GetRouting, opts Option
 	}
 }
 
-func findProviders(ctx context.Context, findProvsC chan datastore.Key, getRouting GetRouting, opts Options) {
+func findProviders(ctx context.Context, findC chan datastore.Key, foundC chan datastore.Key, getRouting GetRouting, opts Options) {
 	for {
 		select {
-		case k := <-findProvsC:
+		case k := <-findC:
 			cid, err := providerKeyToCID(k)
 			if err != nil {
 				fmt.Println(fmt.Errorf("failed to create CID from provider record key: %w", err))
@@ -117,11 +138,23 @@ func findProviders(ctx context.Context, findProvsC chan datastore.Key, getRoutin
 				continue
 			}
 
-			fmt.Printf("finding providers for %s\n", cid)
+			count := 0
 			start := time.Now()
+
 			for ai := range routing.FindProvidersAsync(ctx, cid, opts.FindProvidersCount) {
 				routing.ProviderManager.AddProvider(ctx, cid.Bytes(), ai.ID)
 				fmt.Printf("added provider for %s -> %s (%v)\n", cid, ai.ID, time.Since(start))
+				count++
+			}
+
+			if count == 0 {
+				fmt.Printf("no providers found for %s (%v)\n", cid, time.Since(start))
+			}
+
+			select {
+			case foundC <- k:
+			case <-ctx.Done():
+				return
 			}
 		case <-ctx.Done():
 			return
