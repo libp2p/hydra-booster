@@ -94,11 +94,16 @@ func findProviders(ctx context.Context, findProvsC chan datastore.Key, getRoutin
 				continue
 			}
 
+			fmt.Printf("finding providers for %s\n", cid)
+			ctx, cancel := context.WithTimeout(ctx, time.Minute)
 			start := time.Now()
+
 			for ai := range routing.FindProvidersAsync(ctx, cid, opts.FindProvidersCount) {
 				routing.ProviderManager.AddProvider(ctx, cid.Bytes(), ai.ID)
 				fmt.Printf("added provider for %s -> %s (%v)\n", cid, ai.ID, time.Since(start))
 			}
+
+			cancel()
 		case <-ctx.Done():
 			return
 		}
