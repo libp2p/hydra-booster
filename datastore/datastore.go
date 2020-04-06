@@ -15,26 +15,94 @@ import (
 	"github.com/multiformats/go-base32"
 )
 
-const (
-	// total number of find provider queries we should queue
-	findProvidersQueueSize = 1000
-	// number of providers to find when a provider record does not exist in the store
-	findProvidersCount = 1
-)
-
 // root namespace of provider keys
 var providersRoot = datastore.NewKey(providers.ProvidersKeyPrefix)
 
 // GetRouting is a function that returns an appropriate routing module given a CID
-type GetRouting = func(cid.Cid) (*dht.IpfsDHT, error)
+type GetRouting func(cid.Cid) (*dht.IpfsDHT, error)
+
+// Options are options for the Hydra datastore
+type Options struct {
+	// total number of find provider queries we should queue
+	FindProvidersQueueSize int
+	// number of providers to find when a provider record does not exist in the store
+	FindProvidersCount int
+	// number of find provider requests we will concurrently process
+	FindProvidersConcurrency int
+}
+
+// option defaults
+const (
+	findProvidersQueueSize   = 1000
+	findProvidersCount       = 1
+	findProvidersConcurrency = 1
+)
 
 // NewDatastore creates a new datastore that adds hooks to perform hydra things
-func NewDatastore(ctx context.Context, path string, getRouting GetRouting) (datastore.Batching, error) {
+func NewDatastore(ctx context.Context, path string, getRouting GetRouting, opts Options) (datastore.Batching, error) {
+	if opts.FindProvidersConcurrency == 0 {
+		opts.FindProvidersConcurrency = findProvidersConcurrency
+	}
+	if opts.FindProvidersCount == 0 {
+		opts.FindProvidersCount = findProvidersCount
+	}
+	if opts.FindProvidersQueueSize == 0 {
+		opts.FindProvidersQueueSize = findProvidersQueueSize
+	}
+
 	ds, err := levelds.NewDatastore(path, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create datastore: %w", err)
 	}
-	return hook.NewBatching(ds, hopts.OnAfterGet(newOnAfterGetHook(ctx, getRouting))), nil
+
+	return hook.NewBatching(ds, hopts.OnAfterGet(newOnAfterGetHook(ctx, getRouting, opts))), nil
+}
+
+func newOnAfterGetHook(ctx context.Context, getRouting GetRouting, opts Options) func(datastore.Key, []byte, error) ([]byte, error) {
+	findProvsC := make(chan datastore.Key, opts.FindProvidersQueueSize)
+
+	for i := 0; i < opts.FindProvidersConcurrency; i++ {
+		go findProviders(ctx, findProvsC, getRouting, opts)
+	}
+
+	return func(k datastore.Key, v []byte, err error) ([]byte, error) {
+		// if key was not found and the key is for a provider record...
+		if err == datastore.ErrNotFound && providersRoot.IsAncestorOf(k) {
+			// Send to the find provs queue, if channel is full then discard...
+			select {
+			case findProvsC <- k:
+			default:
+			}
+		}
+		return v, err
+	}
+}
+
+func findProviders(ctx context.Context, findProvsC chan datastore.Key, getRouting GetRouting, opts Options) {
+	for {
+		select {
+		case k := <-findProvsC:
+			cid, err := providerKeyToCID(k)
+			if err != nil {
+				fmt.Println(fmt.Errorf("failed to create CID from provider record key: %w", err))
+				continue
+			}
+
+			routing, err := getRouting(cid)
+			if err != nil {
+				fmt.Println(fmt.Errorf("failed to get routing for CID: %w", err))
+				continue
+			}
+
+			start := time.Now()
+			for ai := range routing.FindProvidersAsync(ctx, cid, opts.FindProvidersCount) {
+				routing.ProviderManager.AddProvider(ctx, cid.Bytes(), ai.ID)
+				fmt.Printf("added provider for %s -> %s (%v)\n", cid, ai.ID, time.Since(start))
+			}
+		case <-ctx.Done():
+			return
+		}
+	}
 }
 
 func providerKeyToCID(k datastore.Key) (cid.Cid, error) {
@@ -54,53 +122,4 @@ func providerKeyToCID(k datastore.Key) (cid.Cid, error) {
 	}
 
 	return c, nil
-}
-
-func newOnAfterGetHook(ctx context.Context, getRouting GetRouting) func(datastore.Key, []byte, error) ([]byte, error) {
-	findProvsC := make(chan datastore.Key, findProvidersQueueSize)
-
-	// TODO: maybe we can process more than one at a time?
-	go func() {
-		for {
-			select {
-			case k := <-findProvsC:
-				cid, err := providerKeyToCID(k)
-				if err != nil {
-					fmt.Println(fmt.Errorf("failed to create CID from provider record key: %w", err))
-					continue
-				}
-
-				routing, err := getRouting(cid)
-				if err != nil {
-					fmt.Println(fmt.Errorf("failed to get routing for CID: %w", err))
-					continue
-				}
-
-				start := time.Now()
-				for ai := range routing.FindProvidersAsync(ctx, cid, findProvidersCount) {
-					routing.ProviderManager.AddProvider(ctx, cid.Bytes(), ai.ID)
-					fmt.Printf("added provider for %s -> %s (%v)\n", cid, ai.ID, time.Since(start))
-				}
-			case <-ctx.Done():
-				return
-			}
-		}
-	}()
-
-	return func(k datastore.Key, v []byte, err error) ([]byte, error) {
-		if err != nil && err != datastore.ErrNotFound {
-			return nil, err
-		}
-		if !providersRoot.IsAncestorOf(k) {
-			return v, nil
-		}
-
-		// Send to the find provs queue, if channel is full then discard...
-		select {
-		case findProvsC <- k:
-		default:
-		}
-
-		return v, nil
-	}
 }
