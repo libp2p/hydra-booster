@@ -7,6 +7,10 @@ github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03
 github.com/Kubuxu/go-os-helper v0.0.1/go.mod h1:N8B+I7vPCT80IcP58r50u4+gEEcsZETFUpAzWW2ep1Y=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/aead/siphash v1.0.1/go.mod h1:Nywa3cDsYNNK3gaciGTWPwHt0wlpNV15vwmswBAUSII=
+github.com/alanshaw/ipfs-hookds v0.1.0 h1:XUrlXrTDuXo4aE1k0SE9/tuj/2qNproCIfo2dlpmWnw=
+github.com/alanshaw/ipfs-hookds v0.1.0/go.mod h1:940MpXi7889R3f0WtkG7+QIJ+WlQr1bxiui+23dNF9o=
+github.com/alanshaw/ipfs-hookds v0.1.1 h1:eBgyTYAI7xc5nWrkZrApVRPZnLUKWFYq2BDpGJbjq2M=
+github.com/alanshaw/ipfs-hookds v0.1.1/go.mod h1:940MpXi7889R3f0WtkG7+QIJ+WlQr1bxiui+23dNF9o=
 github.com/alanshaw/prom-metrics-client v0.0.0-20200311213430-21bfb210276a h1:0n2kQvpVGFfvH5KgdSRI8lMOaDQjModm1uSz3OWNjF8=
 github.com/alanshaw/prom-metrics-client v0.0.0-20200311213430-21bfb210276a/go.mod h1:PAIsdFNQd5vGDP+AEa+KmYqGfZTXd951YE4AP2xP7gM=
 github.com/alanshaw/prom-metrics-client v0.2.0 h1:bQVECOMIuHabVA3/aLY9Ahh2hLYFbyRdmJFsC1/xusU=
