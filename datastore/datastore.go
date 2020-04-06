@@ -84,11 +84,14 @@ func newOnAfterQueryHook(ctx context.Context, getRouting GetRouting, opts Option
 		res = hres.NewResults(res, hropts.OnAfterNextSync(func(r query.Result, ok bool) (query.Result, bool) {
 			if ok {
 				count++
-			} else if count == 0 {
-				// Send to the find provs queue, if channel is full then discard...
-				select {
-				case findProvsC <- k:
-				default:
+			} else {
+				fmt.Printf("query for %v finished with count %d\n", k, count)
+				if count == 0 {
+					// send to the find provs queue, if channel is full then discard...
+					select {
+					case findProvsC <- k:
+					default:
+					}
 				}
 			}
 			return r, ok
@@ -114,6 +117,7 @@ func findProviders(ctx context.Context, findProvsC chan datastore.Key, getRoutin
 				continue
 			}
 
+			fmt.Printf("finding providers for %s\n", cid)
 			start := time.Now()
 			for ai := range routing.FindProvidersAsync(ctx, cid, opts.FindProvidersCount) {
 				routing.ProviderManager.AddProvider(ctx, cid.Bytes(), ai.ID)
