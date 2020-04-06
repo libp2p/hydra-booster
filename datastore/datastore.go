@@ -7,8 +7,11 @@ import (
 
 	hook "github.com/alanshaw/ipfs-hookds"
 	hopts "github.com/alanshaw/ipfs-hookds/opts"
+	hres "github.com/alanshaw/ipfs-hookds/query/results"
+	hropts "github.com/alanshaw/ipfs-hookds/query/results/opts"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
+	"github.com/ipfs/go-datastore/query"
 	levelds "github.com/ipfs/go-ds-leveldb"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p-kad-dht/providers"
@@ -55,26 +58,43 @@ func NewDatastore(ctx context.Context, path string, getRouting GetRouting, opts 
 		return nil, fmt.Errorf("failed to create datastore: %w", err)
 	}
 
-	return hook.NewBatching(ds, hopts.OnAfterGet(newOnAfterGetHook(ctx, getRouting, opts))), nil
+	return hook.NewBatching(ds, hopts.OnAfterQuery(newOnAfterQueryHook(ctx, getRouting, opts))), nil
 }
 
-func newOnAfterGetHook(ctx context.Context, getRouting GetRouting, opts Options) func(datastore.Key, []byte, error) ([]byte, error) {
+func newOnAfterQueryHook(ctx context.Context, getRouting GetRouting, opts Options) func(query.Query, query.Results, error) (query.Results, error) {
 	findProvsC := make(chan datastore.Key, opts.FindProvidersQueueSize)
 
 	for i := 0; i < opts.FindProvidersConcurrency; i++ {
 		go findProviders(ctx, findProvsC, getRouting, opts)
 	}
 
-	return func(k datastore.Key, v []byte, err error) ([]byte, error) {
-		// if key was not found and the key is for a provider record...
-		if err == datastore.ErrNotFound && providersRoot.IsAncestorOf(k) {
-			// Send to the find provs queue, if channel is full then discard...
-			select {
-			case findProvsC <- k:
-			default:
-			}
+	return func(q query.Query, res query.Results, err error) (query.Results, error) {
+		if err != nil {
+			return res, err
 		}
-		return v, err
+
+		k := datastore.NewKey(q.Prefix)
+
+		// not interested if this is not a query for providers
+		if !providersRoot.IsAncestorOf(k) {
+			return res, err
+		}
+
+		var count int
+		res = hres.NewResults(res, hropts.OnAfterNextSync(func(r query.Result, ok bool) (query.Result, bool) {
+			if ok {
+				count++
+			} else if count == 0 {
+				// Send to the find provs queue, if channel is full then discard...
+				select {
+				case findProvsC <- k:
+				default:
+				}
+			}
+			return r, ok
+		}))
+
+		return res, nil
 	}
 }
 
@@ -94,16 +114,11 @@ func findProviders(ctx context.Context, findProvsC chan datastore.Key, getRoutin
 				continue
 			}
 
-			fmt.Printf("finding providers for %s\n", cid)
-			ctx, cancel := context.WithTimeout(ctx, time.Minute)
 			start := time.Now()
-
 			for ai := range routing.FindProvidersAsync(ctx, cid, opts.FindProvidersCount) {
 				routing.ProviderManager.AddProvider(ctx, cid.Bytes(), ai.ID)
 				fmt.Printf("added provider for %s -> %s (%v)\n", cid, ai.ID, time.Since(start))
 			}
-
-			cancel()
 		case <-ctx.Done():
 			return
 		}

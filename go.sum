@@ -11,6 +11,8 @@ github.com/alanshaw/ipfs-hookds v0.1.0 h1:XUrlXrTDuXo4aE1k0SE9/tuj/2qNproCIfo2dl
 github.com/alanshaw/ipfs-hookds v0.1.0/go.mod h1:940MpXi7889R3f0WtkG7+QIJ+WlQr1bxiui+23dNF9o=
 github.com/alanshaw/ipfs-hookds v0.1.1 h1:eBgyTYAI7xc5nWrkZrApVRPZnLUKWFYq2BDpGJbjq2M=
 github.com/alanshaw/ipfs-hookds v0.1.1/go.mod h1:940MpXi7889R3f0WtkG7+QIJ+WlQr1bxiui+23dNF9o=
+github.com/alanshaw/ipfs-hookds v0.1.2-0.20200406153833-d5b6d8ef762a h1:FMaLceJiGKZvJKgQzhoLEJw+N8AT68rj1bnOLx8JYM4=
+github.com/alanshaw/ipfs-hookds v0.1.2-0.20200406153833-d5b6d8ef762a/go.mod h1:cnRH5J+8w/VpM+D+BD//zxtAKeLI5wMj1zo9krt85fU=
 github.com/alanshaw/prom-metrics-client v0.0.0-20200311213430-21bfb210276a h1:0n2kQvpVGFfvH5KgdSRI8lMOaDQjModm1uSz3OWNjF8=
 github.com/alanshaw/prom-metrics-client v0.0.0-20200311213430-21bfb210276a/go.mod h1:PAIsdFNQd5vGDP+AEa+KmYqGfZTXd951YE4AP2xP7gM=
 github.com/alanshaw/prom-metrics-client v0.2.0 h1:bQVECOMIuHabVA3/aLY9Ahh2hLYFbyRdmJFsC1/xusU=
@@ -463,6 +465,8 @@ github.com/multiformats/go-varint v0.0.1/go.mod h1:3Ls8CIEsrijN6+B7PbrXRPxHRPuXS
 github.com/multiformats/go-varint v0.0.2/go.mod h1:3Ls8CIEsrijN6+B7PbrXRPxHRPuXSrVKRY101jdMZYE=
 github.com/multiformats/go-varint v0.0.5 h1:XVZwSo04Cs3j/jS0uAEPpT3JY6DzMcVLLoWOSnCxOjg=
 github.com/multiformats/go-varint v0.0.5/go.mod h1:3Ls8CIEsrijN6+B7PbrXRPxHRPuXSrVKRY101jdMZYE=
+github.com/multiformats/multihash v0.0.0-20200117210452-4950f3172282 h1:i0+WN2Y9B59DZ+Bpd0aZj/APzk82rgr/gPpR74BHQuw=
+github.com/multiformats/multihash v0.0.0-20200117210452-4950f3172282/go.mod h1:glUVwNT9lFjQhEpjvdzVkhFVA+MBOJgx9Za7poX5zZY=
 github.com/mwitkow/go-conntrack v0.0.0-20161129095857-cc309e4a2223/go.mod h1:qRWi+5nqEBWmkhHvq77mSJWrCKwh8bxhgT7d/eI7P4U=
 github.com/onsi/ginkgo v1.6.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/ginkgo v1.7.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
