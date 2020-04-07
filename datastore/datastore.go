@@ -50,6 +50,16 @@ const (
 
 // NewDatastore creates a new datastore that adds hooks to perform hydra things
 func NewDatastore(ctx context.Context, path string, getRouting GetRouting, opts Options) (datastore.Batching, error) {
+	opts = setOptionDefaults(opts)
+	ds, err := levelds.NewDatastore(path, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create datastore: %w", err)
+	}
+
+	return hook.NewBatching(ds, hopts.OnAfterQuery(newOnAfterQueryHook(ctx, getRouting, opts))), nil
+}
+
+func setOptionDefaults(opts Options) Options {
 	if opts.FindProvidersConcurrency == 0 {
 		opts.FindProvidersConcurrency = findProvidersConcurrency
 	}
@@ -62,13 +72,7 @@ func NewDatastore(ctx context.Context, path string, getRouting GetRouting, opts 
 	if opts.FindProvidersTimeout == 0 {
 		opts.FindProvidersTimeout = findProvidersTimeout
 	}
-
-	ds, err := levelds.NewDatastore(path, nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create datastore: %w", err)
-	}
-
-	return hook.NewBatching(ds, hopts.OnAfterQuery(newOnAfterQueryHook(ctx, getRouting, opts))), nil
+	return opts
 }
 
 func newOnAfterQueryHook(ctx context.Context, getRouting GetRouting, opts Options) hopts.OnAfterQueryFunc {
@@ -116,11 +120,11 @@ func newOnAfterQueryHook(ctx context.Context, getRouting GetRouting, opts Option
 				pendingLock.Lock()
 				isPending, _ := pending[k.String()]
 				if !isPending {
-					pending[k.String()] = true
-					stats.Record(ctx, metrics.FindProvsQueueSize.M(int64(len(pending))))
 					// send to the find provs queue, if channel is full then discard...
 					select {
 					case findC <- k:
+						pending[k.String()] = true
+						stats.Record(ctx, metrics.FindProvsQueueSize.M(int64(len(pending))))
 					default:
 						stats.RecordWithTags(
 							ctx,
