@@ -21,6 +21,7 @@ require (
 	github.com/libp2p/go-libp2p-record v0.1.2
 	github.com/multiformats/go-base32 v0.0.3
 	github.com/multiformats/go-multiaddr v0.2.1
+	github.com/multiformats/go-multihash v0.0.13
 	github.com/prometheus/client_golang v1.5.1
 	go.opencensus.io v0.22.3
 )

@@ -14,7 +14,8 @@ import (
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
 	levelds "github.com/ipfs/go-ds-leveldb"
-	dht "github.com/libp2p/go-libp2p-kad-dht"
+	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p-core/routing"
 	"github.com/libp2p/go-libp2p-kad-dht/providers"
 	"github.com/libp2p/hydra-booster/metrics"
 	"github.com/multiformats/go-base32"
@@ -25,8 +26,11 @@ import (
 // root namespace of provider keys
 var providersRoot = datastore.NewKey(providers.ProvidersKeyPrefix)
 
-// GetRouting is a function that returns an appropriate routing module given a CID
-type GetRouting func(cid.Cid) (*dht.IpfsDHT, error)
+// AddProviderFunc adds a provider for a given CID to the datastore
+type AddProviderFunc func(ctx context.Context, c cid.Cid, id peer.ID)
+
+// GetRoutingFunc is a function that returns an appropriate routing module given a CID
+type GetRoutingFunc func(cid.Cid) (routing.Routing, AddProviderFunc, error)
 
 // Options are options for the Hydra datastore
 type Options struct {
@@ -49,7 +53,7 @@ const (
 )
 
 // NewDatastore creates a new datastore that adds hooks to perform hydra things
-func NewDatastore(ctx context.Context, path string, getRouting GetRouting, opts Options) (datastore.Batching, error) {
+func NewDatastore(ctx context.Context, path string, getRouting GetRoutingFunc, opts Options) (datastore.Batching, error) {
 	opts = setOptionDefaults(opts)
 	ds, err := levelds.NewDatastore(path, nil)
 	if err != nil {
@@ -75,7 +79,7 @@ func setOptionDefaults(opts Options) Options {
 	return opts
 }
 
-func newOnAfterQueryHook(ctx context.Context, getRouting GetRouting, opts Options) hopts.OnAfterQueryFunc {
+func newOnAfterQueryHook(ctx context.Context, getRouting GetRoutingFunc, opts Options) hopts.OnAfterQueryFunc {
 	findC := make(chan datastore.Key, opts.FindProvidersQueueSize)
 	foundC := make(chan datastore.Key)
 
@@ -113,37 +117,42 @@ func newOnAfterQueryHook(ctx context.Context, getRouting GetRouting, opts Option
 		}
 
 		var count int
-		res = hres.NewResults(res, hropts.OnAfterNextSync(func(r query.Result, ok bool) (query.Result, bool) {
+		onAfterNextSync := func(r query.Result, ok bool) (query.Result, bool) {
 			if ok {
 				count++
-			} else if count == 0 {
-				pendingLock.Lock()
-				isPending, _ := pending[k.String()]
-				if !isPending {
-					// send to the find provs queue, if channel is full then discard...
-					select {
-					case findC <- k:
-						pending[k.String()] = true
-						stats.Record(ctx, metrics.FindProvsQueueSize.M(1))
-					case <-ctx.Done():
-					default:
-						stats.RecordWithTags(
-							ctx,
-							[]tag.Mutator{tag.Upsert(metrics.KeyStatus, "discarded")},
-							metrics.FindProvs.M(1),
-						)
-					}
-				}
-				pendingLock.Unlock()
+				return r, ok
 			}
-			return r, ok
-		}))
+			if count > 0 { // query has ended and there were found records
+				return r, ok
+			}
 
-		return res, nil
+			pendingLock.Lock()
+			isPending, _ := pending[k.String()]
+			if !isPending {
+				// send to the find provs queue, if channel is full then discard...
+				select {
+				case findC <- k:
+					pending[k.String()] = true
+					stats.Record(ctx, metrics.FindProvsQueueSize.M(1))
+				case <-ctx.Done():
+				default:
+					stats.RecordWithTags(
+						ctx,
+						[]tag.Mutator{tag.Upsert(metrics.KeyStatus, "discarded")},
+						metrics.FindProvs.M(1),
+					)
+				}
+			}
+			pendingLock.Unlock()
+
+			return r, ok
+		}
+
+		return hres.NewResults(res, hropts.OnAfterNextSync(onAfterNextSync)), nil
 	}
 }
 
-func findProviders(ctx context.Context, findC chan datastore.Key, foundC chan datastore.Key, getRouting GetRouting, opts Options) {
+func findProviders(ctx context.Context, findC chan datastore.Key, foundC chan datastore.Key, getRouting GetRoutingFunc, opts Options) {
 	done := func(k datastore.Key) {
 		select {
 		case foundC <- k:
@@ -161,7 +170,7 @@ func findProviders(ctx context.Context, findC chan datastore.Key, foundC chan da
 				continue
 			}
 
-			routing, err := getRouting(cid)
+			routing, addProvider, err := getRouting(cid)
 			if err != nil {
 				fmt.Println(fmt.Errorf("failed to get routing for CID: %w", err))
 				done(k)
@@ -173,15 +182,13 @@ func findProviders(ctx context.Context, findC chan datastore.Key, foundC chan da
 			fctx, cancel := context.WithTimeout(ctx, opts.FindProvidersTimeout)
 
 			for ai := range routing.FindProvidersAsync(fctx, cid, opts.FindProvidersCount) {
-				routing.ProviderManager.AddProvider(ctx, cid.Bytes(), ai.ID)
-				// fmt.Printf("added provider for %s -> %s (%v)\n", cid, ai.ID, time.Since(start))
+				addProvider(ctx, cid, ai.ID)
 				count++
 			}
 
 			cancel()
 
 			if count == 0 {
-				// fmt.Printf("no providers found for %s (%v)\n", cid, time.Since(start))
 				stats.RecordWithTags(
 					ctx,
 					[]tag.Mutator{tag.Upsert(metrics.KeyStatus, "failed")},
@@ -204,10 +211,12 @@ func findProviders(ctx context.Context, findC chan datastore.Key, foundC chan da
 	}
 }
 
+var errInvalidKeyNamespaces = fmt.Errorf("not enough namespaces in provider record key")
+
 func providerKeyToCID(k datastore.Key) (cid.Cid, error) {
 	nss := k.Namespaces()
 	if len(nss) < 2 {
-		return cid.Undef, fmt.Errorf("not enough namespaces in provider record key")
+		return cid.Undef, errInvalidKeyNamespaces
 	}
 
 	b, err := base32.RawStdEncoding.DecodeString(nss[1])

@@ -37,7 +37,7 @@ func newRoutingTableSizeTask(hy *Hydra, d time.Duration) periodictasks.PeriodicT
 		Run: func(ctx context.Context) error {
 			var rts int
 			for i := range hy.Sybils {
-				rts += hy.Sybils[i].RoutingTable.Size()
+				rts += hy.Sybils[i].RoutingTable().Size()
 			}
 			stats.Record(ctx, metrics.RoutingTableSize.M(int64(rts)))
 			return nil

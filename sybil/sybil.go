@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-ipns"
 	"github.com/libp2p/go-libp2p"
@@ -13,6 +14,7 @@ import (
 	connmgr "github.com/libp2p/go-libp2p-connmgr"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p-core/routing"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	dhtopts "github.com/libp2p/go-libp2p-kad-dht/opts"
 	kbucket "github.com/libp2p/go-libp2p-kbucket"
@@ -43,11 +45,9 @@ type BootstrapStatus struct {
 
 // Sybil is a container for ipfs/libp2p components used by a Hydra Booster sybil.
 type Sybil struct {
-	Host         host.Host
-	Datastore    datastore.Datastore
-	Routing      *dht.IpfsDHT
-	RoutingTable *kbucket.RoutingTable
-	Bootstrapped bool
+	Host      host.Host
+	Datastore datastore.Datastore
+	Routing   routing.Routing
 }
 
 // NewSybil constructs a new Hydra Booster sybil node
@@ -88,10 +88,9 @@ func NewSybil(ctx context.Context, options ...opts.Option) (*Sybil, chan Bootstr
 
 	bsCh := make(chan BootstrapStatus)
 	sybil := Sybil{
-		Host:         node,
-		Datastore:    cfg.Datastore,
-		Routing:      dhtNode,
-		RoutingTable: dhtNode.RoutingTable(),
+		Host:      node,
+		Datastore: cfg.Datastore,
+		Routing:   dhtNode,
 	}
 
 	go func() {
@@ -113,7 +112,6 @@ func NewSybil(ctx context.Context, options ...opts.Option) (*Sybil, chan Bootstr
 				}
 				break
 			}
-			sybil.Bootstrapped = true
 			bsCh <- BootstrapStatus{Done: true}
 		}
 
@@ -125,4 +123,16 @@ func NewSybil(ctx context.Context, options ...opts.Option) (*Sybil, chan Bootstr
 	}()
 
 	return &sybil, bsCh, nil
+}
+
+// RoutingTable returns the underlying RoutingTable for this sybil
+func (s *Sybil) RoutingTable() *kbucket.RoutingTable {
+	dht, _ := s.Routing.(*dht.IpfsDHT)
+	return dht.RoutingTable()
+}
+
+// AddProvider adds the given provider to the datastore
+func (s *Sybil) AddProvider(ctx context.Context, c cid.Cid, id peer.ID) {
+	dht, _ := s.Routing.(*dht.IpfsDHT)
+	dht.ProviderManager.AddProvider(ctx, c.Bytes(), id)
 }

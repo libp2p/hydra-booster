@@ -12,7 +12,7 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	"github.com/libp2p/go-libp2p-core/network"
-	dht "github.com/libp2p/go-libp2p-kad-dht"
+	"github.com/libp2p/go-libp2p-core/routing"
 	hyds "github.com/libp2p/hydra-booster/datastore"
 	"github.com/libp2p/hydra-booster/metrics"
 	"github.com/libp2p/hydra-booster/periodictasks"
@@ -65,12 +65,13 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 
 	var sybils []*sybil.Sybil
 
-	ds, err := hyds.NewDatastore(ctx, options.DatastorePath, func(_ cid.Cid) (*dht.IpfsDHT, error) {
+	ds, err := hyds.NewDatastore(ctx, options.DatastorePath, func(_ cid.Cid) (routing.Routing, hyds.AddProviderFunc, error) {
 		if len(sybils) == 0 {
-			return nil, fmt.Errorf("no sybils available")
+			return nil, nil, fmt.Errorf("no sybils available")
 		}
+		s := sybils[rand.Intn(len(sybils))]
 		// we should ask the closest sybil, but later they'll all share the same routing table so it won't matter which one we pick
-		return sybils[rand.Intn(len(sybils))].Routing, nil
+		return s.Routing, s.AddProvider, nil
 	}, hyds.Options{
 		FindProvidersConcurrency: options.NSybils,
 		FindProvidersCount:       1,
