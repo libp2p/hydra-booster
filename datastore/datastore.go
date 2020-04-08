@@ -45,7 +45,7 @@ const (
 	findProvidersQueueSize   = 1000
 	findProvidersCount       = 1
 	findProvidersConcurrency = 1
-	findProvidersTimeout     = time.Minute
+	findProvidersTimeout     = time.Second * 10
 )
 
 // NewDatastore creates a new datastore that adds hooks to perform hydra things
@@ -92,7 +92,7 @@ func newOnAfterQueryHook(ctx context.Context, getRouting GetRouting, opts Option
 			case k := <-foundC:
 				pendingLock.Lock()
 				delete(pending, k.String())
-				stats.Record(ctx, metrics.FindProvsQueueSize.M(int64(len(pending))))
+				stats.Record(ctx, metrics.FindProvsQueueSize.M(-1))
 				pendingLock.Unlock()
 			case <-ctx.Done():
 				return
@@ -124,7 +124,8 @@ func newOnAfterQueryHook(ctx context.Context, getRouting GetRouting, opts Option
 					select {
 					case findC <- k:
 						pending[k.String()] = true
-						stats.Record(ctx, metrics.FindProvsQueueSize.M(int64(len(pending))))
+						stats.Record(ctx, metrics.FindProvsQueueSize.M(1))
+					case <-ctx.Done():
 					default:
 						stats.RecordWithTags(
 							ctx,
@@ -143,18 +144,27 @@ func newOnAfterQueryHook(ctx context.Context, getRouting GetRouting, opts Option
 }
 
 func findProviders(ctx context.Context, findC chan datastore.Key, foundC chan datastore.Key, getRouting GetRouting, opts Options) {
+	done := func(k datastore.Key) {
+		select {
+		case foundC <- k:
+		case <-ctx.Done():
+		}
+	}
+
 	for {
 		select {
 		case k := <-findC:
 			cid, err := providerKeyToCID(k)
 			if err != nil {
 				fmt.Println(fmt.Errorf("failed to create CID from provider record key: %w", err))
+				done(k)
 				continue
 			}
 
 			routing, err := getRouting(cid)
 			if err != nil {
 				fmt.Println(fmt.Errorf("failed to get routing for CID: %w", err))
+				done(k)
 				continue
 			}
 
@@ -187,11 +197,7 @@ func findProviders(ctx context.Context, findC chan datastore.Key, foundC chan da
 				)
 			}
 
-			select {
-			case foundC <- k:
-			case <-ctx.Done():
-				return
-			}
+			done(k)
 		case <-ctx.Done():
 			return
 		}

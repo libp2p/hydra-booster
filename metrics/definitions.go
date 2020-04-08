@@ -73,7 +73,7 @@ var (
 	FindProvsQueueSizeView = &view.View{
 		Measure:     FindProvsQueueSize,
 		TagKeys:     []tag.Key{KeyName},
-		Aggregation: view.LastValue(),
+		Aggregation: view.Sum(),
 	}
 )
 
