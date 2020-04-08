@@ -4,18 +4,18 @@
 <h1 align="center">Hydra Booster</h1>
 
 <p align="center">
-  <a href="http://protocol.ai"><img src="https://img.shields.io/badge/made%20by-Protocol%20Labs-blue.svg?style=flat-square" /></a>
-  <a href="http://libp2p.io/"><img src="https://img.shields.io/badge/project-libp2p-yellow.svg?style=flat-square" /></a>
-  <a href="http://webchat.freenode.net/?channels=%23libp2p"><img src="https://img.shields.io/badge/freenode-%23libp2p-yellow.svg?style=flat-square" /></a>
-  <a href="https://discuss.libp2p.io"><img src="https://img.shields.io/discourse/https/discuss.libp2p.io/posts.svg?style=flat-square"/></a>
+  <a href="http://protocol.ai"><img src="https://img.shields.io/badge/made%20by-Protocol%20Labs-blue.svg" /></a>
+  <a href="http://libp2p.io/"><img src="https://img.shields.io/badge/project-libp2p-yellow.svg" /></a>
+  <a href="http://webchat.freenode.net/?channels=%23libp2p"><img src="https://img.shields.io/badge/freenode-%23libp2p-yellow.svg" /></a>
+  <a href="https://discuss.libp2p.io"><img src="https://img.shields.io/discourse/https/discuss.libp2p.io/posts.svg"/></a>
 </p>
 
 <p align="center">
-  <a href="https://travis-ci.com/libp2p/hydra-booster"><img src="https://img.shields.io/travis/com/libp2p/hydra-booster/master?style=flat-square"></a>
-  <a href="https://codecov.io/gh/libp2p/hydra-booster"><img src="https://img.shields.io/codecov/c/github/libp2p/hydra-booster?style=flat-square"></a>
-  <a href="https://github.com/RichardLitt/standard-readme"><img src="https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square" /></a>
-  <a href="https://godoc.org/github.com/libp2p/hydra-booster"><img src="http://img.shields.io/badge/godoc-reference-5272B4.svg?style=flat-square" /></a>
-  <a href=""><img src="https://img.shields.io/badge/golang-%3E%3D1.13.8-orange.svg?style=flat-square" /></a>
+  <a href="https://travis-ci.com/libp2p/hydra-booster"><img src="https://travis-ci.com/libp2p/hydra-booster.svg?branch=master"></a>
+  <a href="https://codecov.io/gh/libp2p/hydra-booster"><img src="https://codecov.io/gh/libp2p/hydra-booster/branch/master/graph/badge.svg"></a>
+  <a href="https://github.com/RichardLitt/standard-readme"><img src="https://img.shields.io/badge/readme%20style-standard-brightgreen.svg" /></a>
+  <a href="https://godoc.org/github.com/libp2p/hydra-booster"><img src="http://img.shields.io/badge/godoc-reference-5272B4.svg" /></a>
+  <a href=""><img src="https://img.shields.io/badge/golang-%3E%3D1.13.8-orange.svg" /></a>
   <br>
 </p>
 
