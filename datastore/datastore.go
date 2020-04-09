@@ -111,8 +111,9 @@ func newOnAfterQueryHook(ctx context.Context, getRouting GetRoutingFunc, opts Op
 
 		k := datastore.NewKey(q.Prefix)
 
-		// not interested if this is not a query for providers
-		if !providersRoot.IsAncestorOf(k) {
+		// not interested if this is not a query for providers of a particular peer
+		// we're looking for /providers/cid, not /providers (currently used in GC)
+		if !providersRoot.IsAncestorOf(k) || len(k.Namespaces()) < 2 {
 			return res, err
 		}
 
@@ -122,7 +123,8 @@ func newOnAfterQueryHook(ctx context.Context, getRouting GetRoutingFunc, opts Op
 				count++
 				return r, ok
 			}
-			if count > 0 { // query has ended and there were found records
+			if count > 0 { // query has ended and there were locally found records
+				recordFindProvsComplete(ctx, "local")
 				return r, ok
 			}
 
@@ -136,11 +138,7 @@ func newOnAfterQueryHook(ctx context.Context, getRouting GetRoutingFunc, opts Op
 					stats.Record(ctx, metrics.FindProvsQueueSize.M(1))
 				case <-ctx.Done():
 				default:
-					stats.RecordWithTags(
-						ctx,
-						[]tag.Mutator{tag.Upsert(metrics.KeyStatus, "discarded")},
-						metrics.FindProvs.M(1),
-					)
+					recordFindProvsComplete(ctx, "discarded")
 				}
 			}
 			pendingLock.Unlock()
@@ -189,19 +187,9 @@ func findProviders(ctx context.Context, findC chan datastore.Key, foundC chan da
 			cancel()
 
 			if count == 0 {
-				stats.RecordWithTags(
-					ctx,
-					[]tag.Mutator{tag.Upsert(metrics.KeyStatus, "failed")},
-					metrics.FindProvs.M(1),
-					metrics.FindProvsDuration.M(float64(time.Since(start)/1e+9)),
-				)
+				recordFindProvsComplete(ctx, "failed", metrics.FindProvsDuration.M(float64(time.Since(start)/1e+9)))
 			} else {
-				stats.RecordWithTags(
-					ctx,
-					[]tag.Mutator{tag.Upsert(metrics.KeyStatus, "succeeded")},
-					metrics.FindProvs.M(1),
-					metrics.FindProvsDuration.M(float64(time.Since(start)/1e+9)),
-				)
+				recordFindProvsComplete(ctx, "succeeded", metrics.FindProvsDuration.M(float64(time.Since(start)/1e+9)))
 			}
 
 			done(k)
@@ -230,4 +218,12 @@ func providerKeyToCID(k datastore.Key) (cid.Cid, error) {
 	}
 
 	return c, nil
+}
+
+func recordFindProvsComplete(ctx context.Context, status string, extraMeasures ...stats.Measurement) {
+	stats.RecordWithTags(
+		ctx,
+		[]tag.Mutator{tag.Upsert(metrics.KeyStatus, status)},
+		append([]stats.Measurement{metrics.FindProvs.M(1)}, extraMeasures...)...,
+	)
 }
