@@ -143,7 +143,7 @@ func newOnAfterQueryHook(ctx context.Context, getRouting GetRoutingFunc, opts Op
 
 		k := datastore.NewKey(q.Prefix)
 
-		// not interested if this is not a query for providers of a particular peer
+		// not interested if this is not a query for providers of a particular cid
 		// we're looking for /providers/cid, not /providers (currently used in GC)
 		if !providersRoot.IsAncestorOf(k) || len(k.Namespaces()) < 2 {
 			return res, err
