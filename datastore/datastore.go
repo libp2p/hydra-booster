@@ -19,6 +19,7 @@ import (
 	"github.com/libp2p/go-libp2p-kad-dht/providers"
 	"github.com/libp2p/hydra-booster/metrics"
 	"github.com/multiformats/go-base32"
+	"github.com/whyrusleeping/timecache"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 )
@@ -42,6 +43,8 @@ type Options struct {
 	FindProvidersConcurrency int
 	// maximum time a find providers call is allowed to take
 	FindProvidersTimeout time.Duration
+	// period after a find failure that another find request for the same key will be discarded
+	FindProvidersFailureBackoff time.Duration
 }
 
 // option defaults
@@ -51,6 +54,13 @@ const (
 	findProvidersConcurrency = 1
 	findProvidersTimeout     = time.Second * 10
 )
+
+type findResult struct {
+	key      datastore.Key
+	status   string
+	duration time.Duration
+	err      error
+}
 
 // NewDatastore creates a new datastore that adds hooks to perform hydra things
 func NewDatastore(ctx context.Context, path string, getRouting GetRoutingFunc, opts Options) (datastore.Batching, error) {
@@ -76,15 +86,21 @@ func setOptionDefaults(opts Options) Options {
 	if opts.FindProvidersTimeout == 0 {
 		opts.FindProvidersTimeout = findProvidersTimeout
 	}
+	if opts.FindProvidersFailureBackoff == 0 {
+		opts.FindProvidersFailureBackoff = time.Minute
+	}
 	return opts
 }
 
 func newOnAfterQueryHook(ctx context.Context, getRouting GetRoutingFunc, opts Options) hopts.OnAfterQueryFunc {
 	findC := make(chan datastore.Key, opts.FindProvidersQueueSize)
-	foundC := make(chan datastore.Key)
+	foundC := make(chan findResult)
 
 	pending := make(map[string]bool)
 	var pendingLock sync.Mutex
+
+	failed := timecache.NewTimeCache(opts.FindProvidersFailureBackoff)
+	var failedLock sync.Mutex
 
 	for i := 0; i < opts.FindProvidersConcurrency; i++ {
 		go findProviders(ctx, findC, foundC, getRouting, opts)
@@ -93,11 +109,27 @@ func newOnAfterQueryHook(ctx context.Context, getRouting GetRoutingFunc, opts Op
 	go func() {
 		for {
 			select {
-			case k := <-foundC:
+			case r := <-foundC:
 				pendingLock.Lock()
-				delete(pending, k.String())
+				delete(pending, r.key.String())
 				stats.Record(ctx, metrics.FindProvsQueueSize.M(-1))
 				pendingLock.Unlock()
+
+				if r.err != nil {
+					fmt.Println(r.err)
+					continue
+				}
+
+				recordFindProvsComplete(ctx, r.status, metrics.FindProvsDuration.M(float64(r.duration)))
+
+				// if we failed to find this key, add to the failure cache so we don't try again for a bit
+				if r.status == "failed" {
+					failedLock.Lock()
+					if !failed.Has(r.key.String()) {
+						failed.Add(r.key.String())
+					}
+					failedLock.Unlock()
+				}
 			case <-ctx.Done():
 				return
 			}
@@ -116,6 +148,14 @@ func newOnAfterQueryHook(ctx context.Context, getRouting GetRoutingFunc, opts Op
 		if !providersRoot.IsAncestorOf(k) || len(k.Namespaces()) < 2 {
 			return res, err
 		}
+
+		failedLock.Lock()
+		if failed.Has(k.String()) {
+			failedLock.Unlock()
+			recordFindProvsComplete(ctx, "discarded")
+			return res, err
+		}
+		failedLock.Unlock()
 
 		var count int
 		onAfterNextSync := func(r query.Result, ok bool) (query.Result, bool) {
@@ -150,10 +190,10 @@ func newOnAfterQueryHook(ctx context.Context, getRouting GetRoutingFunc, opts Op
 	}
 }
 
-func findProviders(ctx context.Context, findC chan datastore.Key, foundC chan datastore.Key, getRouting GetRoutingFunc, opts Options) {
-	done := func(k datastore.Key) {
+func findProviders(ctx context.Context, findC chan datastore.Key, foundC chan findResult, getRouting GetRoutingFunc, opts Options) {
+	done := func(r findResult) {
 		select {
-		case foundC <- k:
+		case foundC <- r:
 		case <-ctx.Done():
 		}
 	}
@@ -163,36 +203,27 @@ func findProviders(ctx context.Context, findC chan datastore.Key, foundC chan da
 		case k := <-findC:
 			cid, err := providerKeyToCID(k)
 			if err != nil {
-				fmt.Println(fmt.Errorf("failed to create CID from provider record key: %w", err))
-				done(k)
+				done(findResult{key: k, err: fmt.Errorf("failed to create CID from provider record key: %w", err)})
 				continue
 			}
 
 			routing, addProvider, err := getRouting(cid)
 			if err != nil {
-				fmt.Println(fmt.Errorf("failed to get routing for CID: %w", err))
-				done(k)
+				done(findResult{key: k, err: fmt.Errorf("failed to get routing for CID: %w", err)})
 				continue
 			}
 
-			count := 0
+			status := "failed"
 			start := time.Now()
 			fctx, cancel := context.WithTimeout(ctx, opts.FindProvidersTimeout)
 
 			for ai := range routing.FindProvidersAsync(fctx, cid, opts.FindProvidersCount) {
 				addProvider(ctx, cid, ai.ID)
-				count++
+				status = "succeeded"
 			}
 
 			cancel()
-
-			if count == 0 {
-				recordFindProvsComplete(ctx, "failed", metrics.FindProvsDuration.M(float64(time.Since(start)/1e+9)))
-			} else {
-				recordFindProvsComplete(ctx, "succeeded", metrics.FindProvsDuration.M(float64(time.Since(start)/1e+9)))
-			}
-
-			done(k)
+			done(findResult{key: k, status: status, duration: time.Since(start) / 1e+9})
 		case <-ctx.Done():
 			return
 		}

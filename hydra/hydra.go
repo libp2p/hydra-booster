@@ -73,10 +73,11 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		// we should ask the closest sybil, but later they'll all share the same routing table so it won't matter which one we pick
 		return s.Routing, s.AddProvider, nil
 	}, hyds.Options{
-		FindProvidersConcurrency: options.NSybils,
-		FindProvidersCount:       1,
-		FindProvidersQueueSize:   options.NSybils * 12,
-		FindProvidersTimeout:     time.Second * 20,
+		FindProvidersConcurrency:    options.NSybils,
+		FindProvidersCount:          1,
+		FindProvidersQueueSize:      options.NSybils * 12,
+		FindProvidersTimeout:        time.Second * 20,
+		FindProvidersFailureBackoff: time.Hour,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create datastore: %w", err)
