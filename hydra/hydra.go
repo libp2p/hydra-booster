@@ -75,7 +75,8 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	}, hyds.Options{
 		FindProvidersConcurrency: options.NSybils,
 		FindProvidersCount:       1,
-		FindProvidersQueueSize:   options.NSybils * 10,
+		FindProvidersQueueSize:   options.NSybils * 12,
+		FindProvidersTimeout:     time.Second * 20,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create datastore: %w", err)
