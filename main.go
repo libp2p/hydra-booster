@@ -16,6 +16,7 @@ import (
 	id "github.com/libp2p/go-libp2p/p2p/protocol/identify"
 	"github.com/libp2p/hydra-booster/httpapi"
 	"github.com/libp2p/hydra-booster/hydra"
+	"github.com/libp2p/hydra-booster/idgen"
 	"github.com/libp2p/hydra-booster/metrics"
 	hyui "github.com/libp2p/hydra-booster/ui"
 	uiopts "github.com/libp2p/hydra-booster/ui/opts"
@@ -42,6 +43,7 @@ func main() {
 	stagger := flag.Duration("stagger", 0*time.Second, "Duration to stagger nodes starts by")
 	uiTheme := flag.String("ui-theme", "default", "UI theme, \"gooey\", \"logey\" or \"none\" (default \"gooey\" for 1 sybil otherwise \"logey\")")
 	name := flag.String("name", "", "A name for the Hydra (for use in metrics)")
+	idgenAddr := flag.String("idgen-addr", "", "Address of an idgen HTTP API endpoint to use for generating private keys for sybils")
 	flag.Parse()
 	// Set the protocol for Identify to report on handshake
 	id.ClientVersion = "hydra-booster/1"
@@ -66,6 +68,10 @@ func main() {
 		*name = os.Getenv("HYDRA_NAME")
 	}
 
+	if *idgenAddr == "" {
+		*idgenAddr = os.Getenv("HYDRA_IDGEN_ADDR")
+	}
+
 	// Allow short keys. Otherwise, we'll refuse connections from the bootsrappers and break the network.
 	// TODO: Remove this when we shut those bootstrappers down.
 	crypto.MinRsaKeyBits = 1024
@@ -76,6 +82,12 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	var idGenerator idgen.IdentityGenerator
+	if *idgenAddr != "" {
+		// TODO: remove all generated keys from delegate when this process terminates
+		idGenerator = idgen.NewDelegatedIdentityGenerator(*idgenAddr)
+	}
+
 	opts := hydra.Options{
 		Name:          *name,
 		DatastorePath: *dbpath,
@@ -85,6 +97,7 @@ func main() {
 		NSybils:       *nsybils,
 		BsCon:         *bootstrapConcurrency,
 		Stagger:       *stagger,
+		IDGenerator:   idGenerator,
 	}
 
 	go func() {

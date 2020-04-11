@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/ipfs/go-cid"
 	dsq "github.com/ipfs/go-datastore/query"
+	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/hydra-booster/hydra"
 	hytesting "github.com/libp2p/hydra-booster/testing"
@@ -235,5 +237,40 @@ func TestHTTPAPIRecordsFetchErrorStates(t *testing.T) {
 	}
 	if res.StatusCode != 400 {
 		t.Fatal(fmt.Errorf("Should have got a 400, got %d: %s", res.StatusCode, url))
+	}
+}
+
+func TestIDGenerator(t *testing.T) {
+	listener, err := net.Listen("tcp", ":0")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	go http.Serve(listener, NewRouter(nil))
+	defer listener.Close()
+
+	url := fmt.Sprintf("http://%s/idgen", listener.Addr().String())
+	res, err := http.Post(url, "application/json", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.StatusCode != 200 {
+		t.Fatal(fmt.Errorf("unexpected status %d", res.StatusCode))
+	}
+
+	dec := json.NewDecoder(res.Body)
+	var b64 string
+	if err := dec.Decode(&b64); err != nil {
+		t.Fatal(err)
+	}
+
+	bytes, err := base64.StdEncoding.DecodeString(b64)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = crypto.UnmarshalPrivateKey(bytes)
+	if err != nil {
+		t.Fatal(err)
 	}
 }

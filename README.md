@@ -116,6 +116,14 @@ Returns an ndjson list of records stored by the Hydra Booster node.
 
 Fetches a record available on the network by CID. `NOT IMPLEMENTED YET`
 
+#### `POST /idgen/add`
+
+Generate a balanced Peer ID for use by another Hydra Booster peer. Example output:
+
+```json
+"CAESQNcYNr0ENfml2IaiE97Kf3hGTqfB5k5W+C2/dW0o0sJ7b7zsvxWMedz64vKpS2USpXFBKKM9tWDmcc22n3FBnow="
+```
+
 ## License
 
 The hydra-booster project is dual-licensed under Apache 2.0 and MIT terms:

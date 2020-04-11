@@ -7,6 +7,7 @@ import (
 	dssync "github.com/ipfs/go-datastore/sync"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	kbucket "github.com/libp2p/go-libp2p-kbucket"
+	"github.com/libp2p/hydra-booster/idgen"
 	"github.com/multiformats/go-multiaddr"
 )
 
@@ -19,6 +20,7 @@ type Options struct {
 	BucketSize     int
 	Limiter        chan struct{}
 	BootstrapPeers []multiaddr.Multiaddr
+	IDGenerator    idgen.IdentityGenerator
 }
 
 // Option is the Hydra option type.
@@ -42,6 +44,7 @@ var Defaults = func(o *Options) error {
 	o.Addr, _ = multiaddr.NewMultiaddr("/ip4/0.0.0.0/tcp/0")
 	o.BucketSize = 20
 	o.BootstrapPeers = dht.DefaultBootstrapPeers
+	o.IDGenerator = idgen.HydraIdentityGenerator
 	return nil
 }
 
@@ -104,6 +107,15 @@ func Limiter(l chan struct{}) Option {
 func BootstrapPeers(addrs []multiaddr.Multiaddr) Option {
 	return func(o *Options) error {
 		o.BootstrapPeers = addrs
+		return nil
+	}
+}
+
+// IDGenerator configures the identity generator.
+// The default value is `idgen.HydraIdentityGenerator`.
+func IDGenerator(g idgen.IdentityGenerator) Option {
+	return func(o *Options) error {
+		o.IDGenerator = g
 		return nil
 	}
 }

@@ -13,6 +13,11 @@ import (
 // HydraIdentityGenerator is a shared balanced ID generator.
 var HydraIdentityGenerator = NewBalancedIdentityGenerator()
 
+// IdentityGenerator describes a facility that can generate IPFS private keys.
+type IdentityGenerator interface {
+	AddBalanced() (crypto.PrivKey, error)
+}
+
 // BalancedIdentityGenerator is a facility for generating IPFS identities (i.e. IPFS private keys),
 // whose corresponding DHT keys are highly balanced, compared to just generating random keys.
 // Balancing is accomplished using "the power of two choices" paradigm:

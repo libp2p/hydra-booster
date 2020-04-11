@@ -19,7 +19,6 @@ import (
 	dhtopts "github.com/libp2p/go-libp2p-kad-dht/opts"
 	kbucket "github.com/libp2p/go-libp2p-kbucket"
 	record "github.com/libp2p/go-libp2p-record"
-	"github.com/libp2p/hydra-booster/idgen"
 	"github.com/libp2p/hydra-booster/sybil/opts"
 	"github.com/multiformats/go-multiaddr"
 )
@@ -57,7 +56,7 @@ func NewSybil(ctx context.Context, options ...opts.Option) (*Sybil, chan Bootstr
 
 	cmgr := connmgr.NewConnManager(lowWater, highWater, gracePeriod)
 
-	priv, err := idgen.HydraIdentityGenerator.AddBalanced()
+	priv, err := cfg.IDGenerator.AddBalanced()
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to generate balanced private key: %w", err)
 	}
