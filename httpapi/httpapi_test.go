@@ -240,7 +240,7 @@ func TestHTTPAPIRecordsFetchErrorStates(t *testing.T) {
 	}
 }
 
-func TestIDGenerator(t *testing.T) {
+func TestIDGeneratorAdd(t *testing.T) {
 	listener, err := net.Listen("tcp", ":0")
 	if err != nil {
 		t.Fatal(err)
@@ -249,7 +249,7 @@ func TestIDGenerator(t *testing.T) {
 	go http.Serve(listener, NewRouter(nil))
 	defer listener.Close()
 
-	url := fmt.Sprintf("http://%s/idgen", listener.Addr().String())
+	url := fmt.Sprintf("http://%s/idgen/add", listener.Addr().String())
 	res, err := http.Post(url, "application/json", nil)
 	if err != nil {
 		t.Fatal(err)
