@@ -15,6 +15,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/routing"
 	hyds "github.com/libp2p/hydra-booster/datastore"
+	"github.com/libp2p/hydra-booster/idgen"
 	"github.com/libp2p/hydra-booster/metrics"
 	"github.com/libp2p/hydra-booster/periodictasks"
 	"github.com/libp2p/hydra-booster/sybil"
@@ -52,6 +53,7 @@ type Options struct {
 	BsCon         int
 	Relay         bool
 	Stagger       time.Duration
+	IDGenerator   idgen.IdentityGenerator
 }
 
 // NewHydra creates a new Hydra with the passed options.
@@ -109,6 +111,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 			opts.Relay(options.Relay),
 			opts.BucketSize(options.BucketSize),
 			opts.Limiter(limiter),
+			opts.IDGenerator(options.IDGenerator),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to spawn node with swarm address %v: %w", addr, err)

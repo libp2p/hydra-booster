@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -12,7 +13,9 @@ import (
 	cid "github.com/ipfs/go-cid"
 	dsq "github.com/ipfs/go-datastore/query"
 	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p-kad-dht/providers"
 	"github.com/libp2p/hydra-booster/hydra"
+	"github.com/libp2p/hydra-booster/idgen"
 )
 
 // ListenAndServe instructs a Hydra HTTP API server to listen and serve on the passed address
@@ -30,16 +33,16 @@ func ListenAndServe(hy *hydra.Hydra, addr string) error {
 
 // NewRouter creates a new Hydra Booster HTTP API Gorilla Mux
 func NewRouter(hy *hydra.Hydra) *mux.Router {
-	// mux := http.NewServeMux()
 	mux := mux.NewRouter()
 	mux.HandleFunc("/sybils", sybilsHandler(hy))
 	mux.HandleFunc("/records/fetch/{key}", recordFetchHandler(hy))
 	mux.HandleFunc("/records/list", recordListHandler(hy))
+	mux.HandleFunc("/idgen/add", idgenHandler()).Methods("POST")
 	return mux
 }
 
 // "/sybils" Get the peers created by hydra booster (ndjson)
-func sybilsHandler(hy *hydra.Hydra) func(w http.ResponseWriter, r *http.Request) {
+func sybilsHandler(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		enc := json.NewEncoder(w)
 
@@ -53,7 +56,7 @@ func sybilsHandler(hy *hydra.Hydra) func(w http.ResponseWriter, r *http.Request)
 }
 
 // "/records/fetch" Receive a record and fetch it from the network, if available
-func recordFetchHandler(hy *hydra.Hydra) func(w http.ResponseWriter, r *http.Request) {
+func recordFetchHandler(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		cidStr := vars["key"]
@@ -94,17 +97,14 @@ func recordFetchHandler(hy *hydra.Hydra) func(w http.ResponseWriter, r *http.Req
 }
 
 // "/records/list" Receive a record and fetch it from the network, if available
-func recordListHandler(hy *hydra.Hydra) func(w http.ResponseWriter, r *http.Request) {
+func recordListHandler(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// TODO Improve this handler once ProvideManager gets exposed
 		// https://discuss.libp2p.io/t/list-provider-records/450
 		// for now, enumerate the Provider Records in the datastore
 
-		providersKeyPrefix := "/providers/" // https://github.com/libp2p/go-libp2p-kad-dht/blob/master/providers/providers.go#L76
 		ds := hy.SharedDatastore
-		results, err := ds.Query(dsq.Query{
-			Prefix: providersKeyPrefix,
-		})
+		results, err := ds.Query(dsq.Query{Prefix: providers.ProvidersKeyPrefix})
 		if err != nil {
 			fmt.Printf("Error on retrieving provider records: %s\n", err)
 			w.WriteHeader(500)
@@ -116,5 +116,26 @@ func recordListHandler(hy *hydra.Hydra) func(w http.ResponseWriter, r *http.Requ
 		for result := range results.Next() {
 			enc.Encode(result.Entry)
 		}
+	}
+}
+
+func idgenHandler() func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		pk, err := idgen.HydraIdentityGenerator.AddBalanced()
+		if err != nil {
+			fmt.Println(fmt.Errorf("Failed to generate Peer ID: %w", err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		b, err := pk.Bytes()
+		if err != nil {
+			fmt.Println(fmt.Errorf("Failed to extract private key bytes: %w", err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		enc := json.NewEncoder(w)
+		enc.Encode(base64.StdEncoding.EncodeToString(b))
 	}
 }
