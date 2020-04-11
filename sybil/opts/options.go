@@ -115,7 +115,9 @@ func BootstrapPeers(addrs []multiaddr.Multiaddr) Option {
 // The default value is `idgen.HydraIdentityGenerator`.
 func IDGenerator(g idgen.IdentityGenerator) Option {
 	return func(o *Options) error {
-		o.IDGenerator = g
+		if g != nil {
+			o.IDGenerator = g
+		}
 		return nil
 	}
 }
