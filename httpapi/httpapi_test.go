@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -14,6 +15,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/hydra-booster/hydra"
+	"github.com/libp2p/hydra-booster/idgen"
 	hytesting "github.com/libp2p/hydra-booster/testing"
 )
 
@@ -272,5 +274,101 @@ func TestIDGeneratorAdd(t *testing.T) {
 	_, err = crypto.UnmarshalPrivateKey(bytes)
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestIDGeneratorRemove(t *testing.T) {
+	listener, err := net.Listen("tcp", ":0")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	go http.Serve(listener, NewRouter(nil))
+	defer listener.Close()
+
+	pk, err := idgen.HydraIdentityGenerator.AddBalanced()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	b, err := pk.Bytes()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	data, err := json.Marshal(base64.StdEncoding.EncodeToString(b))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	url := fmt.Sprintf("http://%s/idgen/remove", listener.Addr().String())
+	res, err := http.Post(url, "application/json", bytes.NewReader(data))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.StatusCode != 204 {
+		t.Fatal(fmt.Errorf("unexpected status %d", res.StatusCode))
+	}
+}
+
+func TestIDGeneratorRemoveInvalidJSON(t *testing.T) {
+	listener, err := net.Listen("tcp", ":0")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	go http.Serve(listener, NewRouter(nil))
+	defer listener.Close()
+
+	url := fmt.Sprintf("http://%s/idgen/remove", listener.Addr().String())
+	res, err := http.Post(url, "application/json", bytes.NewReader([]byte("{{")))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.StatusCode != 400 {
+		t.Fatal(fmt.Errorf("unexpected status %d", res.StatusCode))
+	}
+}
+
+func TestIDGeneratorRemoveInvalidBase64(t *testing.T) {
+	listener, err := net.Listen("tcp", ":0")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	go http.Serve(listener, NewRouter(nil))
+	defer listener.Close()
+
+	url := fmt.Sprintf("http://%s/idgen/remove", listener.Addr().String())
+	res, err := http.Post(url, "application/json", bytes.NewReader([]byte("\"! invalid b64 !\"")))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.StatusCode != 400 {
+		t.Fatal(fmt.Errorf("unexpected status %d", res.StatusCode))
+	}
+}
+
+func TestIDGeneratorRemoveInvalidPrivateKey(t *testing.T) {
+	listener, err := net.Listen("tcp", ":0")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	go http.Serve(listener, NewRouter(nil))
+	defer listener.Close()
+
+	data, err := json.Marshal(base64.StdEncoding.EncodeToString([]byte("invalid private key")))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	url := fmt.Sprintf("http://%s/idgen/remove", listener.Addr().String())
+	res, err := http.Post(url, "application/json", bytes.NewReader(data))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.StatusCode != 400 {
+		t.Fatal(fmt.Errorf("unexpected status %d", res.StatusCode))
 	}
 }
