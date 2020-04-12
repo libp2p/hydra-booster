@@ -85,7 +85,8 @@ func main() {
 	var idGenerator idgen.IdentityGenerator
 	if *idgenAddr != "" {
 		// TODO: remove all generated keys from delegate when this process terminates
-		idGenerator = idgen.NewDelegatedIdentityGenerator(*idgenAddr)
+		dg := idgen.NewDelegatedIdentityGenerator(*idgenAddr)
+		idGenerator = dg
 	}
 
 	opts := hydra.Options{

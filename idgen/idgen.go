@@ -16,6 +16,7 @@ var HydraIdentityGenerator = NewBalancedIdentityGenerator()
 // IdentityGenerator describes a facility that can generate IPFS private keys.
 type IdentityGenerator interface {
 	AddBalanced() (crypto.PrivKey, error)
+	Remove(privKey crypto.PrivKey) error
 }
 
 // BalancedIdentityGenerator is a facility for generating IPFS identities (i.e. IPFS private keys),

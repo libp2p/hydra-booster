@@ -13,6 +13,7 @@ import (
 	cid "github.com/ipfs/go-cid"
 	dsq "github.com/ipfs/go-datastore/query"
 	"github.com/libp2p/go-libp2p-core/peer"
+	crypto "github.com/libp2p/go-libp2p-crypto"
 	"github.com/libp2p/go-libp2p-kad-dht/providers"
 	"github.com/libp2p/hydra-booster/hydra"
 	"github.com/libp2p/hydra-booster/idgen"
@@ -37,7 +38,8 @@ func NewRouter(hy *hydra.Hydra) *mux.Router {
 	mux.HandleFunc("/sybils", sybilsHandler(hy))
 	mux.HandleFunc("/records/fetch/{key}", recordFetchHandler(hy))
 	mux.HandleFunc("/records/list", recordListHandler(hy))
-	mux.HandleFunc("/idgen/add", idgenHandler()).Methods("POST")
+	mux.HandleFunc("/idgen/add", idgenAddHandler()).Methods("POST")
+	mux.HandleFunc("/idgen/remove", idgenRemoveHandler()).Methods("POST")
 	return mux
 }
 
@@ -119,7 +121,7 @@ func recordListHandler(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request)
 	}
 }
 
-func idgenHandler() func(http.ResponseWriter, *http.Request) {
+func idgenAddHandler() func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		pk, err := idgen.HydraIdentityGenerator.AddBalanced()
 		if err != nil {
@@ -137,5 +139,37 @@ func idgenHandler() func(http.ResponseWriter, *http.Request) {
 
 		enc := json.NewEncoder(w)
 		enc.Encode(base64.StdEncoding.EncodeToString(b))
+	}
+}
+
+func idgenRemoveHandler() func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		dec := json.NewDecoder(r.Body)
+		var b64 string
+		if err := dec.Decode(&b64); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		bytes, err := base64.StdEncoding.DecodeString(b64)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		pk, err := crypto.UnmarshalPrivateKey(bytes)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		err = idgen.HydraIdentityGenerator.Remove(pk)
+		if err != nil {
+			fmt.Println(fmt.Errorf("Failed to remove private key: %w", err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusNoContent)
 	}
 }
