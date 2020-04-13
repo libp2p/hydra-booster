@@ -19,7 +19,11 @@ type DelegatedIDGenerator struct {
 }
 
 // NewDelegatedIDGenerator creates a new delegated identiy generator whose
-// work is delegated to another worker.
+// work is delegated to another worker. The delegate must be reachable on the
+// passed HTTP address and respond to HTTP POST messages to the following
+// endpoints:
+// `/idgen/add` - returns a JSON string, a base64 encoded private key.
+// `/idgen/remove` - accepts a JSON string, a base64 encoded private key.
 func NewDelegatedIDGenerator(addr string) *DelegatedIDGenerator {
 	return &DelegatedIDGenerator{addr: addr}
 }
