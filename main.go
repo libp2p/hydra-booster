@@ -84,7 +84,7 @@ func main() {
 
 	var idGenerator idgen.IdentityGenerator
 	if *idgenAddr != "" {
-		dg := idgen.NewDelegatedIDGeneratorCleaner(*idgenAddr)
+		dg := idgen.NewCleaningIDGenerator(idgen.NewDelegatedIDGenerator(*idgenAddr))
 		defer func() {
 			err := dg.Clean()
 			if err != nil {
