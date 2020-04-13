@@ -118,11 +118,15 @@ Fetches a record available on the network by CID. `NOT IMPLEMENTED YET`
 
 #### `POST /idgen/add`
 
-Generate a balanced Peer ID for use by another Hydra Booster peer. Example output:
+Generate and add a balanced Peer ID to the server's xor trie and return it for use by another Hydra Booster peer. Returns a base64 encoded JSON string. Example output:
 
 ```json
 "CAESQNcYNr0ENfml2IaiE97Kf3hGTqfB5k5W+C2/dW0o0sJ7b7zsvxWMedz64vKpS2USpXFBKKM9tWDmcc22n3FBnow="
 ```
+
+#### `POST /idgen/remove`
+
+Remove a balanced Peer ID from the server's xor trie. Accepts a base64 encoded JSON string.
 
 ## License
 
