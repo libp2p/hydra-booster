@@ -8,6 +8,7 @@ require (
 	github.com/dustin/go-humanize v1.0.0
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/gorilla/mux v1.7.4
+	github.com/hashicorp/go-multierror v1.1.0
 	github.com/ipfs/go-cid v0.0.5
 	github.com/ipfs/go-datastore v0.4.4
 	github.com/ipfs/go-ds-leveldb v0.4.2
