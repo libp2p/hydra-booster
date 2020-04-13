@@ -84,8 +84,13 @@ func main() {
 
 	var idGenerator idgen.IdentityGenerator
 	if *idgenAddr != "" {
-		// TODO: remove all generated keys from delegate when this process terminates
-		dg := idgen.NewDelegatedIdentityGenerator(*idgenAddr)
+		dg := idgen.NewDelegatedIDGeneratorCleaner(*idgenAddr)
+		defer func() {
+			err := dg.Clean()
+			if err != nil {
+				fmt.Println(err)
+			}
+		}()
 		idGenerator = dg
 	}
 

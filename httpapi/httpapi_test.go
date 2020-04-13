@@ -291,7 +291,7 @@ func TestIDGeneratorRemove(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	b, err := pk.Bytes()
+	b, err := crypto.MarshalPrivateKey(pk)
 	if err != nil {
 		t.Fatal(err)
 	}

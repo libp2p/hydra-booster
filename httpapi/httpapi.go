@@ -130,7 +130,7 @@ func idgenAddHandler() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		b, err := pk.Bytes()
+		b, err := crypto.MarshalPrivateKey(pk)
 		if err != nil {
 			fmt.Println(fmt.Errorf("Failed to extract private key bytes: %w", err))
 			w.WriteHeader(http.StatusInternalServerError)
