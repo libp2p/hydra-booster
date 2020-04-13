@@ -87,13 +87,14 @@ func TestNotFoundProvidersNetwork(t *testing.T) {
 		return dht, addProvider, nil
 	}
 
-	ds, err := NewDatastore(ctx, "", getRouting, Options{})
-	if err != nil {
-		t.Fatal(err)
-	}
+	ds := NewProxy(ctx, datastore.NewMapDatastore(), getRouting, Options{})
 	defer ds.Close()
 
 	res, err := ds.Query(query.Query{Prefix: pfx})
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	_, ok := res.NextSync()
 	if ok {
 		t.Fatal("unexpectedly found a result")
@@ -147,13 +148,14 @@ func TestFoundProvidersNetwork(t *testing.T) {
 		return dht, addProvider, nil
 	}
 
-	ds, err := NewDatastore(ctx, "", getRouting, Options{})
-	if err != nil {
-		t.Fatal(err)
-	}
+	ds := NewProxy(ctx, datastore.NewMapDatastore(), getRouting, Options{})
 	defer ds.Close()
 
 	res, err := ds.Query(query.Query{Prefix: pfx})
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	_, ok := res.NextSync()
 	if ok {
 		t.Fatal("unexpectedly found a result")
@@ -177,15 +179,16 @@ func TestIgnoresNonProviderKeys(t *testing.T) {
 		return nil, nil, nil
 	}
 
-	ds, err := NewDatastore(ctx, "", getRouting, Options{})
-	if err != nil {
-		t.Fatal(err)
-	}
+	ds := NewProxy(ctx, datastore.NewMapDatastore(), getRouting, Options{})
 	defer ds.Close()
 
 	ds.Put(datastore.NewKey(pfx+"test"), []byte("test"))
 
 	res, err := ds.Query(query.Query{Prefix: pfx})
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	_, ok := res.NextSync()
 	if !ok {
 		t.Fatal("did not find result")
@@ -210,15 +213,16 @@ func TestFoundProvidersLocal(t *testing.T) {
 		return nil, nil, nil
 	}
 
-	ds, err := NewDatastore(ctx, "", getRouting, Options{})
-	if err != nil {
-		t.Fatal(err)
-	}
+	ds := NewProxy(ctx, datastore.NewMapDatastore(), getRouting, Options{})
 	defer ds.Close()
 
 	ds.Put(datastore.NewKey(pfx+"/test"), []byte("test"))
 
 	res, err := ds.Query(query.Query{Prefix: pfx})
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	_, ok := res.NextSync()
 	if !ok {
 		t.Fatal("did not find result")

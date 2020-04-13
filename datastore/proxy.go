@@ -13,7 +13,6 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
-	levelds "github.com/ipfs/go-ds-leveldb"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/routing"
 	"github.com/libp2p/go-libp2p-kad-dht/providers"
@@ -62,18 +61,8 @@ type findResult struct {
 	err      error
 }
 
-// NewDatastore creates a new datastore that adds hooks to perform hydra things
-func NewDatastore(ctx context.Context, path string, getRouting GetRoutingFunc, opts Options) (datastore.Batching, error) {
-	opts = setOptionDefaults(opts)
-	ds, err := levelds.NewDatastore(path, nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create datastore: %w", err)
-	}
-
-	return hook.NewBatching(ds, hopts.OnAfterQuery(newOnAfterQueryHook(ctx, getRouting, opts))), nil
-}
-
-func setOptionDefaults(opts Options) Options {
+// NewProxy returns a new proxy to a datastore that adds hooks to perform hydra things
+func NewProxy(ctx context.Context, ds datastore.Batching, getRouting GetRoutingFunc, opts Options) datastore.Batching {
 	if opts.FindProvidersConcurrency == 0 {
 		opts.FindProvidersConcurrency = findProvidersConcurrency
 	}
@@ -89,7 +78,7 @@ func setOptionDefaults(opts Options) Options {
 	if opts.FindProvidersFailureBackoff == 0 {
 		opts.FindProvidersFailureBackoff = time.Minute
 	}
-	return opts
+	return hook.NewBatching(ds, hopts.OnAfterQuery(newOnAfterQueryHook(ctx, getRouting, opts)))
 }
 
 func newOnAfterQueryHook(ctx context.Context, getRouting GetRoutingFunc, opts Options) hopts.OnAfterQueryFunc {

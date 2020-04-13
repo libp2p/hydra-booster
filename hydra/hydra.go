@@ -11,6 +11,7 @@ import (
 	"github.com/axiomhq/hyperloglog"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
+	leveldb "github.com/ipfs/go-ds-leveldb"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/routing"
 	hyds "github.com/libp2p/hydra-booster/datastore"
@@ -63,9 +64,14 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		ctx = nctx
 	}
 
+	lds, err := leveldb.NewDatastore(options.DatastorePath, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create datastore: %w", err)
+	}
+
 	var sybils []*sybil.Sybil
 
-	ds, err := hyds.NewDatastore(ctx, options.DatastorePath, func(_ cid.Cid) (routing.Routing, hyds.AddProviderFunc, error) {
+	ds := hyds.NewProxy(ctx, lds, func(_ cid.Cid) (routing.Routing, hyds.AddProviderFunc, error) {
 		if len(sybils) == 0 {
 			return nil, nil, fmt.Errorf("no sybils available")
 		}
