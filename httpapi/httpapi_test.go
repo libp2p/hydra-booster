@@ -134,7 +134,7 @@ func TestHTTPAPIRecordsFetch(t *testing.T) {
 	// Add the provider as itself for the test
 	// In an ideal testing scenario, we would spawn multiple nodes and see that they can indeed
 	// fetch from each other
-	sybils[0].Routing.ProviderManager.AddProvider(ctx, cid.Bytes(), sybils[0].Host.ID())
+	sybils[0].AddProvider(ctx, cid, sybils[0].Host.ID())
 
 	// Valid CID
 	url := fmt.Sprintf("http://%s/records/fetch/%s", listener.Addr().String(), cidStr)

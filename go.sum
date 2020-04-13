@@ -7,6 +7,14 @@ github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03
 github.com/Kubuxu/go-os-helper v0.0.1/go.mod h1:N8B+I7vPCT80IcP58r50u4+gEEcsZETFUpAzWW2ep1Y=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/aead/siphash v1.0.1/go.mod h1:Nywa3cDsYNNK3gaciGTWPwHt0wlpNV15vwmswBAUSII=
+github.com/alanshaw/ipfs-hookds v0.1.0 h1:XUrlXrTDuXo4aE1k0SE9/tuj/2qNproCIfo2dlpmWnw=
+github.com/alanshaw/ipfs-hookds v0.1.0/go.mod h1:940MpXi7889R3f0WtkG7+QIJ+WlQr1bxiui+23dNF9o=
+github.com/alanshaw/ipfs-hookds v0.1.1 h1:eBgyTYAI7xc5nWrkZrApVRPZnLUKWFYq2BDpGJbjq2M=
+github.com/alanshaw/ipfs-hookds v0.1.1/go.mod h1:940MpXi7889R3f0WtkG7+QIJ+WlQr1bxiui+23dNF9o=
+github.com/alanshaw/ipfs-hookds v0.1.2-0.20200406153833-d5b6d8ef762a h1:FMaLceJiGKZvJKgQzhoLEJw+N8AT68rj1bnOLx8JYM4=
+github.com/alanshaw/ipfs-hookds v0.1.2-0.20200406153833-d5b6d8ef762a/go.mod h1:cnRH5J+8w/VpM+D+BD//zxtAKeLI5wMj1zo9krt85fU=
+github.com/alanshaw/ipfs-hookds v0.2.0 h1:QNjTOEEDrHV/7Tp02DWXbDvBKLgPgSRjY4gpif7hLio=
+github.com/alanshaw/ipfs-hookds v0.2.0/go.mod h1:cnRH5J+8w/VpM+D+BD//zxtAKeLI5wMj1zo9krt85fU=
 github.com/alanshaw/prom-metrics-client v0.0.0-20200311213430-21bfb210276a h1:0n2kQvpVGFfvH5KgdSRI8lMOaDQjModm1uSz3OWNjF8=
 github.com/alanshaw/prom-metrics-client v0.0.0-20200311213430-21bfb210276a/go.mod h1:PAIsdFNQd5vGDP+AEa+KmYqGfZTXd951YE4AP2xP7gM=
 github.com/alanshaw/prom-metrics-client v0.2.0 h1:bQVECOMIuHabVA3/aLY9Ahh2hLYFbyRdmJFsC1/xusU=
@@ -459,6 +467,8 @@ github.com/multiformats/go-varint v0.0.1/go.mod h1:3Ls8CIEsrijN6+B7PbrXRPxHRPuXS
 github.com/multiformats/go-varint v0.0.2/go.mod h1:3Ls8CIEsrijN6+B7PbrXRPxHRPuXSrVKRY101jdMZYE=
 github.com/multiformats/go-varint v0.0.5 h1:XVZwSo04Cs3j/jS0uAEPpT3JY6DzMcVLLoWOSnCxOjg=
 github.com/multiformats/go-varint v0.0.5/go.mod h1:3Ls8CIEsrijN6+B7PbrXRPxHRPuXSrVKRY101jdMZYE=
+github.com/multiformats/multihash v0.0.0-20200117210452-4950f3172282 h1:i0+WN2Y9B59DZ+Bpd0aZj/APzk82rgr/gPpR74BHQuw=
+github.com/multiformats/multihash v0.0.0-20200117210452-4950f3172282/go.mod h1:glUVwNT9lFjQhEpjvdzVkhFVA+MBOJgx9Za7poX5zZY=
 github.com/mwitkow/go-conntrack v0.0.0-20161129095857-cc309e4a2223/go.mod h1:qRWi+5nqEBWmkhHvq77mSJWrCKwh8bxhgT7d/eI7P4U=
 github.com/onsi/ginkgo v1.6.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/ginkgo v1.7.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
@@ -548,6 +558,8 @@ github.com/whyrusleeping/mafmt v1.2.8/go.mod h1:faQJFPbLSxzD9xpA02ttW/tS9vZykNvX
 github.com/whyrusleeping/mdns v0.0.0-20190826153040-b9b60ed33aa9/go.mod h1:j4l84WPFclQPj320J9gp0XwNKBb3U0zt5CBqjPp22G4=
 github.com/whyrusleeping/multiaddr-filter v0.0.0-20160516205228-e903e4adabd7 h1:E9S12nwJwEOXe2d6gT6qxdvqMnNq+VnSsKPgm2ZZNds=
 github.com/whyrusleeping/multiaddr-filter v0.0.0-20160516205228-e903e4adabd7/go.mod h1:X2c0RVCI1eSUFI8eLcY3c0423ykwiUdxLJtkDvruhjI=
+github.com/whyrusleeping/timecache v0.0.0-20160911033111-cfcb2f1abfee h1:lYbXeSvJi5zk5GLKVuid9TVjS9a0OmLIDKTfoZBL6Ow=
+github.com/whyrusleeping/timecache v0.0.0-20160911033111-cfcb2f1abfee/go.mod h1:m2aV4LZI4Aez7dP5PMyVKEHhUyEJ/RjmPEDOpDvudHg=
 github.com/x-cray/logrus-prefixed-formatter v0.5.2/go.mod h1:2duySbKsL6M18s5GU7VPsoEPHyzalCE06qoARUCeBBE=
 github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77/go.mod h1:aYKd//L2LvnjZzWKhF00oedf4jCCReLcmhLdhm1A27Q=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=

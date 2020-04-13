@@ -3,14 +3,18 @@ package hydra
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"os"
 	"sync"
 	"time"
 
 	"github.com/axiomhq/hyperloglog"
+	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
-	levelds "github.com/ipfs/go-ds-leveldb"
+	leveldb "github.com/ipfs/go-ds-leveldb"
 	"github.com/libp2p/go-libp2p-core/network"
+	"github.com/libp2p/go-libp2p-core/routing"
+	hyds "github.com/libp2p/hydra-booster/datastore"
 	"github.com/libp2p/hydra-booster/metrics"
 	"github.com/libp2p/hydra-booster/periodictasks"
 	"github.com/libp2p/hydra-booster/sybil"
@@ -52,19 +56,38 @@ type Options struct {
 
 // NewHydra creates a new Hydra with the passed options.
 func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
-	datastore, err := levelds.NewDatastore(options.DatastorePath, nil)
+	if options.Name != "" {
+		nctx, err := tag.New(ctx, tag.Insert(metrics.KeyName, options.Name))
+		if err != nil {
+			return nil, err
+		}
+		ctx = nctx
+	}
+
+	lds, err := leveldb.NewDatastore(options.DatastorePath, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create datastore: %w", err)
 	}
 
-	if options.Name != "" {
-		ctx, err = tag.New(ctx, tag.Insert(metrics.KeyName, options.Name))
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	var sybils []*sybil.Sybil
+
+	ds := hyds.NewProxy(ctx, lds, func(_ cid.Cid) (routing.Routing, hyds.AddProviderFunc, error) {
+		if len(sybils) == 0 {
+			return nil, nil, fmt.Errorf("no sybils available")
+		}
+		s := sybils[rand.Intn(len(sybils))]
+		// we should ask the closest sybil, but later they'll all share the same routing table so it won't matter which one we pick
+		return s.Routing, s.AddProvider, nil
+	}, hyds.Options{
+		FindProvidersConcurrency:    options.NSybils,
+		FindProvidersCount:          1,
+		FindProvidersQueueSize:      options.NSybils * 12,
+		FindProvidersTimeout:        time.Second * 20,
+		FindProvidersFailureBackoff: time.Hour,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create datastore: %w", err)
+	}
 
 	fmt.Fprintf(os.Stderr, "Running %d DHT Sybils:\n", options.NSybils)
 
@@ -81,7 +104,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		addr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", options.GetPort()))
 		syb, bsCh, err := sybil.NewSybil(
 			ctx,
-			opts.Datastore(datastore),
+			opts.Datastore(ds),
 			opts.Addr(addr),
 			opts.Relay(options.Relay),
 			opts.BucketSize(options.BucketSize),
@@ -118,7 +141,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 
 	hydra := Hydra{
 		Sybils:          sybils,
-		SharedDatastore: datastore,
+		SharedDatastore: ds,
 		hyperLock:       &hyperLock,
 		hyperlog:        hyperlog,
 	}
