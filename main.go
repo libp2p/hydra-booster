@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/libp2p/go-libp2p-core/crypto"
-	id "github.com/libp2p/go-libp2p/p2p/protocol/identify"
 	"github.com/libp2p/hydra-booster/httpapi"
 	"github.com/libp2p/hydra-booster/hydra"
 	"github.com/libp2p/hydra-booster/idgen"
@@ -45,12 +44,6 @@ func main() {
 	name := flag.String("name", "", "A name for the Hydra (for use in metrics)")
 	idgenAddr := flag.String("idgen-addr", "", "Address of an idgen HTTP API endpoint to use for generating private keys for heads")
 	flag.Parse()
-	// Set the protocol for Identify to report on handshake
-	id.ClientVersion = "hydra-booster/1"
-
-	if *relay {
-		id.ClientVersion += "+relay"
-	}
 
 	if *inmem {
 		*dbpath = ""

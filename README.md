@@ -60,6 +60,12 @@ When running with `-nheads`, please make sure to bump the ulimit to something fa
 
 ## Developers
 
+### Release a new version
+
+1. Update version number in [`version.go`](version/version.go).
+2. Create a semver tag with "v" prefix e.g. `git tag v0.1.7`.
+3. See [`deployment.md#continuous-deployment`](docs/deployment.md#continuous-deployment) for what happens next.
+
 ### Publish a new image
 
 ```console
