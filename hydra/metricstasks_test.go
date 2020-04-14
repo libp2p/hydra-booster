@@ -10,9 +10,9 @@ import (
 
 	"github.com/axiomhq/hyperloglog"
 	"github.com/ipfs/go-datastore"
+	"github.com/libp2p/hydra-booster/head"
+	"github.com/libp2p/hydra-booster/head/opts"
 	"github.com/libp2p/hydra-booster/metrics"
-	"github.com/libp2p/hydra-booster/sybil"
-	"github.com/libp2p/hydra-booster/sybil/opts"
 	"github.com/multiformats/go-multiaddr"
 	"go.opencensus.io/stats/view"
 )
@@ -75,12 +75,12 @@ func TestNewRoutingTableSizeTask(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	syb, _, err := sybil.NewSybil(ctx, opts.Datastore(datastore.NewMapDatastore()), opts.BootstrapPeers([]multiaddr.Multiaddr{}))
+	hd, _, err := head.NewHead(ctx, opts.Datastore(datastore.NewMapDatastore()), opts.BootstrapPeers([]multiaddr.Multiaddr{}))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	hy := Hydra{Sybils: []*sybil.Sybil{syb}}
+	hy := Hydra{Heads: []*head.Head{hd}}
 
 	rt := newRoutingTableSizeTask(&hy, time.Second)
 

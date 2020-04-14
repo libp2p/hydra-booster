@@ -15,12 +15,12 @@ var (
 
 // Measures
 var (
-	Sybils             = stats.Int64("sybils", "Sybil nodes launched by Hydra", stats.UnitDimensionless)
-	BootstrappedSybils = stats.Int64("bootstrapped_sybils", "Bootstrapped sybil nodes", stats.UnitDimensionless)
-	ConnectedPeers     = stats.Int64("connected_peers", "Peers connected to all sybils", stats.UnitDimensionless)
-	UniquePeers        = stats.Int64("unique_peers_total", "Total unique peers seen across all sybils", stats.UnitDimensionless)
-	RoutingTableSize   = stats.Int64("routing_table_size", "Number of peers in the routing table", stats.UnitDimensionless)
-	ProviderRecords    = stats.Int64("provider_records", "Number of provider records in the datastore shared by all sybils", stats.UnitDimensionless)
+	Heads             = stats.Int64("heads", "Heads launched by Hydra", stats.UnitDimensionless)
+	BootstrappedHeads = stats.Int64("bootstrapped_heads", "Bootstrapped heads", stats.UnitDimensionless)
+	ConnectedPeers    = stats.Int64("connected_peers", "Peers connected to all heads", stats.UnitDimensionless)
+	UniquePeers       = stats.Int64("unique_peers_total", "Total unique peers seen across all heads", stats.UnitDimensionless)
+	RoutingTableSize  = stats.Int64("routing_table_size", "Number of peers in the routing table", stats.UnitDimensionless)
+	ProviderRecords   = stats.Int64("provider_records", "Number of provider records in the datastore shared by all heads", stats.UnitDimensionless)
 	// Augmented with "status" label:
 	// "local" (found locally)
 	// "succeeded" (found at least 1 provider on the network)
@@ -36,13 +36,13 @@ var (
 
 // Views
 var (
-	SybilsView = &view.View{
-		Measure:     Sybils,
+	HeadsView = &view.View{
+		Measure:     Heads,
 		TagKeys:     []tag.Key{KeyName, KeyPeerID},
 		Aggregation: view.Sum(),
 	}
-	BootstrappedSybilsView = &view.View{
-		Measure:     BootstrappedSybils,
+	BootstrappedHeadsView = &view.View{
+		Measure:     BootstrappedHeads,
 		TagKeys:     []tag.Key{KeyName, KeyPeerID},
 		Aggregation: view.Sum(),
 	}
@@ -85,8 +85,8 @@ var (
 
 // DefaultViews with all views in it.
 var DefaultViews = []*view.View{
-	SybilsView,
-	BootstrappedSybilsView,
+	HeadsView,
+	BootstrappedHeadsView,
 	ConnectedPeersView,
 	UniquePeersView,
 	RoutingTableSizeView,

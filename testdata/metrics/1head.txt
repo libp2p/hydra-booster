@@ -88,21 +88,21 @@ go_memstats_sys_bytes 7.4531072e+07
 # HELP go_threads Number of OS threads created.
 # TYPE go_threads gauge
 go_threads 15
-# HELP hydrabooster_bootstrapped_sybils Bootstrapped sybil nodes
-# TYPE hydrabooster_bootstrapped_sybils counter
-hydrabooster_bootstrapped_sybils{peer_id="12D3KooWETMx8cDb7JtmpUjPrhXv27mRi7rLmENoK5JT2FYogZvo"} 1
-# HELP hydrabooster_connected_peers Peers connected to all sybils
+# HELP hydrabooster_bootstrapped_heads Bootstrapped heads
+# TYPE hydrabooster_bootstrapped_heads counter
+hydrabooster_bootstrapped_heads{peer_id="12D3KooWETMx8cDb7JtmpUjPrhXv27mRi7rLmENoK5JT2FYogZvo"} 1
+# HELP hydrabooster_connected_peers Peers connected to all heads
 # TYPE hydrabooster_connected_peers counter
 hydrabooster_connected_peers{peer_id="12D3KooWETMx8cDb7JtmpUjPrhXv27mRi7rLmENoK5JT2FYogZvo"} 4
-# HELP hydrabooster_provider_records Number of provider records in the datastore shared by all sybils
+# HELP hydrabooster_provider_records Number of provider records in the datastore shared by all heads
 # TYPE hydrabooster_provider_records gauge
 hydrabooster_provider_records 0
 # HELP hydrabooster_routing_table_size Number of peers in the routing table
 # TYPE hydrabooster_routing_table_size gauge
 hydrabooster_routing_table_size 4
-# HELP hydrabooster_sybils Sybil nodes launched by Hydra
-# TYPE hydrabooster_sybils counter
-hydrabooster_sybils{peer_id="12D3KooWETMx8cDb7JtmpUjPrhXv27mRi7rLmENoK5JT2FYogZvo"} 1
-# HELP hydrabooster_unique_peers_total Total unique peers seen across all sybils
+# HELP hydrabooster_heads Heads launched by Hydra
+# TYPE hydrabooster_heads counter
+hydrabooster_heads{peer_id="12D3KooWETMx8cDb7JtmpUjPrhXv27mRi7rLmENoK5JT2FYogZvo"} 1
+# HELP hydrabooster_unique_peers_total Total unique peers seen across all heads
 # TYPE hydrabooster_unique_peers_total gauge
 hydrabooster_unique_peers_total 5

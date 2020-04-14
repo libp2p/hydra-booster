@@ -31,7 +31,7 @@ const (
 
 func main() {
 	start := time.Now()
-	nsybils := flag.Int("nsybils", -1, "Specify the number of Hydra sybils to create.")
+	nheads := flag.Int("nheads", -1, "Specify the number of Hydra heads to create.")
 	dbpath := flag.String("db", "hydra-belly", "Datastore folder path")
 	httpAPIAddr := flag.String("httpapi-addr", defaultHTTPAPIAddr, "Specify an IP and port to run prometheus metrics and pprof http server on")
 	inmem := flag.Bool("mem", false, "Use an in-memory database. This overrides the -db option")
@@ -41,9 +41,9 @@ func main() {
 	bucketSize := flag.Int("bucket-size", defaultBucketSize, "Specify the bucket size")
 	bootstrapConcurrency := flag.Int("bootstrap-conc", 32, "How many concurrent bootstraps to run")
 	stagger := flag.Duration("stagger", 0*time.Second, "Duration to stagger nodes starts by")
-	uiTheme := flag.String("ui-theme", "default", "UI theme, \"gooey\", \"logey\" or \"none\" (default \"gooey\" for 1 sybil otherwise \"logey\")")
+	uiTheme := flag.String("ui-theme", "default", "UI theme, \"gooey\", \"logey\" or \"none\" (default \"gooey\" for 1 head otherwise \"logey\")")
 	name := flag.String("name", "", "A name for the Hydra (for use in metrics)")
-	idgenAddr := flag.String("idgen-addr", "", "Address of an idgen HTTP API endpoint to use for generating private keys for sybils")
+	idgenAddr := flag.String("idgen-addr", "", "Address of an idgen HTTP API endpoint to use for generating private keys for heads")
 	flag.Parse()
 	// Set the protocol for Identify to report on handshake
 	id.ClientVersion = "hydra-booster/1"
@@ -56,8 +56,8 @@ func main() {
 		*dbpath = ""
 	}
 
-	if *nsybils == -1 {
-		*nsybils = mustGetEnvInt("HYDRA_NSYBILS", 1)
+	if *nheads == -1 {
+		*nheads = mustGetEnvInt("HYDRA_NHEADS", 1)
 	}
 
 	if *portBegin == -1 {
@@ -76,7 +76,7 @@ func main() {
 	// TODO: Remove this when we shut those bootstrappers down.
 	crypto.MinRsaKeyBits = 1024
 
-	// Seed the random number generator used by sybils to select a bootstrap peer
+	// Seed the random number generator used by Hydra heads to select a bootstrap peer
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -100,7 +100,7 @@ func main() {
 		Relay:         *relay,
 		BucketSize:    *bucketSize,
 		GetPort:       utils.PortSelector(*portBegin),
-		NSybils:       *nsybils,
+		NHeads:        *nheads,
 		BsCon:         *bootstrapConcurrency,
 		Stagger:       *stagger,
 		IDGenerator:   idGenerator,
@@ -121,7 +121,7 @@ func main() {
 
 	var ui *hyui.UI
 	if *uiTheme != "none" {
-		if *uiTheme == "default" && len(hy.Sybils) == 1 {
+		if *uiTheme == "default" && len(hy.Heads) == 1 {
 			*uiTheme = "gooey"
 		}
 		var theme hyui.Theme

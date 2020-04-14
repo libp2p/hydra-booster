@@ -15,6 +15,6 @@ RUN go build -o hydra-booster .
 EXPOSE 7779
 # Prometheus /metrics
 EXPOSE 8888
-# Sybils
+# Heads
 EXPOSE 30000-32767
 CMD ["./hydra-booster", "-metrics-addr=0.0.0.0:8888", "-httpapi-addr=0.0.0.0:7779", "-ui-theme=none"]

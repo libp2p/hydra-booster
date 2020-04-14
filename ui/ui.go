@@ -67,13 +67,13 @@ func (ui *UI) Render(ctx context.Context) error {
 			case ms := <-mC:
 				fmt.Fprintf(
 					ui.options.Writer,
-					"[NumSybils: %v, Uptime: %s, MemoryUsage: %s, PeersConnected: %v, TotalUniquePeersSeen: %v, BootstrapsDone: %v, ProviderRecords: %v, RoutingTableSize: %v]\n",
-					sumSamples(findByName(ms, nsName(metrics.Sybils))),
+					"[NumHeads: %v, Uptime: %s, MemoryUsage: %s, PeersConnected: %v, TotalUniquePeersSeen: %v, BootstrapsDone: %v, ProviderRecords: %v, RoutingTableSize: %v]\n",
+					sumSamples(findByName(ms, nsName(metrics.Heads))),
 					time.Second*time.Duration(int(time.Since(ui.options.Start).Seconds())),
 					humanize.Bytes(uint64(sumSamples(findByName(ms, "go_memstats_alloc_bytes")))),
 					sumSamples(findByName(ms, nsName(metrics.ConnectedPeers))),
 					sumSamples(findByName(ms, nsName(metrics.UniquePeers))),
-					sumSamples(findByName(ms, nsName(metrics.BootstrappedSybils))),
+					sumSamples(findByName(ms, nsName(metrics.BootstrappedHeads))),
 					sumSamples(findByName(ms, nsName(metrics.ProviderRecords))),
 					sumSamples(findByName(ms, nsName(metrics.RoutingTableSize))),
 				)
@@ -83,7 +83,7 @@ func (ui *UI) Render(ctx context.Context) error {
 		}
 	case Gooey:
 		ga := &GooeyApp{Title: "Hydra Booster", Log: NewLog(ui.options.Writer, 15, 15), writer: ui.options.Writer}
-		esybs := ga.NewDataLine(3, "Sybil ID(s)", "")
+		ehds := ga.NewDataLine(3, "Head ID(s)", "")
 		econs := ga.NewDataLine(4, "Connections", "0")
 		uniqprs := ga.NewDataLine(5, "Unique Peers Seen", "0")
 		emem := ga.NewDataLine(6, "Memory Allocated", "0MB")
@@ -101,7 +101,7 @@ func (ui *UI) Render(ctx context.Context) error {
 			// 	ga.Log.Add(m)
 			// 	ga.Log.Print()
 			case ms := <-mC:
-				esybs.SetVal(fmt.Sprintf("%v", labelValues(findByName(ms, nsName(metrics.Sybils)), "peer_id")))
+				ehds.SetVal(fmt.Sprintf("%v", labelValues(findByName(ms, nsName(metrics.Heads)), "peer_id")))
 				emem.SetVal(humanize.Bytes(uint64(sumSamples(findByName(ms, "go_memstats_alloc_bytes")))))
 				econs.SetVal(fmt.Sprintf("%v peers", sumSamples(findByName(ms, nsName(metrics.ConnectedPeers)))))
 				uniqprs.SetVal(fmt.Sprint(sumSamples(findByName(ms, nsName(metrics.UniquePeers)))))

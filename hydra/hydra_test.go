@@ -15,15 +15,15 @@ func TestSpawnHydra(t *testing.T) {
 	defer cancel()
 
 	hy, err := NewHydra(ctx, Options{
-		NSybils: 2,
+		NHeads:  2,
 		GetPort: utils.PortSelector(3000),
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if len(hy.Sybils) != 2 {
-		t.Fatal("expected hydra to spawn 2 sybils")
+	if len(hy.Heads) != 2 {
+		t.Fatal("expected hydra to spawn 2 heads")
 	}
 }
 
@@ -32,25 +32,25 @@ func TestGetUniquePeersCount(t *testing.T) {
 	defer cancel()
 
 	hy, err := NewHydra(ctx, Options{
-		NSybils: 2,
+		NHeads:  2,
 		GetPort: utils.PortSelector(3000),
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	syb0Addr := hy.Sybils[0].Host.Addrs()[0]
-	syb0ID := hy.Sybils[0].Host.ID()
-	syb0p2pAddr, err := multiaddr.NewMultiaddr(fmt.Sprintf("%s/p2p/%s", syb0Addr, syb0ID))
+	hd0Addr := hy.Heads[0].Host.Addrs()[0]
+	hd0ID := hy.Heads[0].Host.ID()
+	hd0p2pAddr, err := multiaddr.NewMultiaddr(fmt.Sprintf("%s/p2p/%s", hd0Addr, hd0ID))
 	if err != nil {
 		t.Fatal(err)
 	}
-	syb0AddrInfo, err := peer.AddrInfoFromP2pAddr(syb0p2pAddr)
+	hd0AddrInfo, err := peer.AddrInfoFromP2pAddr(hd0p2pAddr)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = hy.Sybils[1].Host.Connect(ctx, *syb0AddrInfo)
+	err = hy.Heads[1].Host.Connect(ctx, *hd0AddrInfo)
 	if err != nil {
 		t.Fatal(err)
 	}

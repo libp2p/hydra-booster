@@ -19,11 +19,11 @@ import (
 	hytesting "github.com/libp2p/hydra-booster/testing"
 )
 
-func TestHTTPAPISybils(t *testing.T) {
+func TestHTTPAPIHeads(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	sybils, err := hytesting.SpawnSybils(ctx, 2)
+	hds, err := hytesting.SpawnHeads(ctx, 2)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,10 +33,10 @@ func TestHTTPAPISybils(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	go http.Serve(listener, NewRouter(&hydra.Hydra{Sybils: sybils}))
+	go http.Serve(listener, NewRouter(&hydra.Hydra{Heads: hds}))
 	defer listener.Close()
 
-	url := fmt.Sprintf("http://%s/sybils", listener.Addr().String())
+	url := fmt.Sprintf("http://%s/heads", listener.Addr().String())
 	res, err := http.Get(url)
 	if err != nil {
 		t.Fatal(err)
@@ -58,8 +58,8 @@ func TestHTTPAPISybils(t *testing.T) {
 
 	for _, ai := range ais {
 		found := false
-		for _, syb := range sybils {
-			if ai.ID == syb.Host.ID() {
+		for _, hd := range hds {
+			if ai.ID == hd.Host.ID() {
 				found = true
 				break
 			}
@@ -74,7 +74,7 @@ func TestHTTPAPIRecordsListWithoutRecords(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	sybils, err := hytesting.SpawnSybils(ctx, 1)
+	hds, err := hytesting.SpawnHeads(ctx, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -84,7 +84,7 @@ func TestHTTPAPIRecordsListWithoutRecords(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	go http.Serve(listener, NewRouter(&hydra.Hydra{Sybils: sybils, SharedDatastore: sybils[0].Datastore}))
+	go http.Serve(listener, NewRouter(&hydra.Hydra{Heads: hds, SharedDatastore: hds[0].Datastore}))
 	defer listener.Close()
 
 	url := fmt.Sprintf("http://%s/records/list", listener.Addr().String())
@@ -116,7 +116,7 @@ func TestHTTPAPIRecordsFetch(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	sybils, err := hytesting.SpawnSybils(ctx, 1)
+	hds, err := hytesting.SpawnHeads(ctx, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -126,7 +126,7 @@ func TestHTTPAPIRecordsFetch(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	go http.Serve(listener, NewRouter(&hydra.Hydra{Sybils: sybils, SharedDatastore: sybils[0].Datastore}))
+	go http.Serve(listener, NewRouter(&hydra.Hydra{Heads: hds, SharedDatastore: hds[0].Datastore}))
 	defer listener.Close()
 
 	cidStr := "QmVBEq6nnXQR2Ueb6etMFMUVhGM5vu34Y2KfHW5FVdGFok"
@@ -138,7 +138,7 @@ func TestHTTPAPIRecordsFetch(t *testing.T) {
 	// Add the provider as itself for the test
 	// In an ideal testing scenario, we would spawn multiple nodes and see that they can indeed
 	// fetch from each other
-	sybils[0].AddProvider(ctx, cid, sybils[0].Host.ID())
+	hds[0].AddProvider(ctx, cid, hds[0].Host.ID())
 
 	// Valid CID
 	url := fmt.Sprintf("http://%s/records/fetch/%s", listener.Addr().String(), cidStr)
@@ -198,7 +198,7 @@ func TestHTTPAPIRecordsFetchErrorStates(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	sybils, err := hytesting.SpawnSybils(ctx, 1)
+	hds, err := hytesting.SpawnHeads(ctx, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -208,7 +208,7 @@ func TestHTTPAPIRecordsFetchErrorStates(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	go http.Serve(listener, NewRouter(&hydra.Hydra{Sybils: sybils, SharedDatastore: sybils[0].Datastore}))
+	go http.Serve(listener, NewRouter(&hydra.Hydra{Heads: hds, SharedDatastore: hds[0].Datastore}))
 	defer listener.Close()
 
 	// Missing CID
