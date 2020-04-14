@@ -20,6 +20,7 @@ import (
 	kbucket "github.com/libp2p/go-libp2p-kbucket"
 	record "github.com/libp2p/go-libp2p-record"
 	"github.com/libp2p/hydra-booster/head/opts"
+	"github.com/libp2p/hydra-booster/version"
 	"github.com/multiformats/go-multiaddr"
 )
 
@@ -61,7 +62,17 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		return nil, nil, fmt.Errorf("failed to generate balanced private key: %w", err)
 	}
 
-	libp2pOpts := []libp2p.Option{libp2p.ListenAddrs(cfg.Addr), libp2p.ConnectionManager(cmgr), libp2p.Identity(priv)}
+	ua := version.UserAgent
+	if cfg.Relay {
+		ua += "+relay"
+	}
+
+	libp2pOpts := []libp2p.Option{
+		libp2p.UserAgent(version.UserAgent),
+		libp2p.ListenAddrs(cfg.Addr),
+		libp2p.ConnectionManager(cmgr),
+		libp2p.Identity(priv),
+	}
 
 	if cfg.Relay {
 		libp2pOpts = append(libp2pOpts, libp2p.EnableRelay(circuit.OptHop))
