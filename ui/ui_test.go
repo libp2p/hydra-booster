@@ -32,7 +32,7 @@ func TestGooeyUI(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	listener, mux := newMockMetricsServeMux(t, "../testdata/metrics/1sybil.txt")
+	listener, mux := newMockMetricsServeMux(t, "../testdata/metrics/1head.txt")
 	go http.Serve(listener, mux)
 	defer listener.Close()
 
@@ -62,7 +62,7 @@ func TestGooeyUI(t *testing.T) {
 func TestCancelByContext(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	listener, mux := newMockMetricsServeMux(t, "../testdata/metrics/1sybil.txt")
+	listener, mux := newMockMetricsServeMux(t, "../testdata/metrics/1head.txt")
 	go http.Serve(listener, mux)
 	defer listener.Close()
 
@@ -88,7 +88,7 @@ func TestLogeyUI(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	listener, mux := newMockMetricsServeMux(t, "../testdata/metrics/2sybils.txt")
+	listener, mux := newMockMetricsServeMux(t, "../testdata/metrics/2heads.txt")
 	go http.Serve(listener, mux)
 	defer listener.Close()
 
@@ -105,7 +105,7 @@ func TestLogeyUI(t *testing.T) {
 	time.Sleep(time.Millisecond * 100)
 
 	expects := []string{
-		"NumSybils: 2",
+		"NumHeads: 2",
 		"BootstrapsDone: 2",
 		"PeersConnected: 11",
 		"TotalUniquePeersSeen: 9",
@@ -130,7 +130,7 @@ func TestRefreshPeriod(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	listener, mux := newMockMetricsServeMux(t, "../testdata/metrics/1sybil.txt")
+	listener, mux := newMockMetricsServeMux(t, "../testdata/metrics/1head.txt")
 	go http.Serve(listener, mux)
 	defer listener.Close()
 

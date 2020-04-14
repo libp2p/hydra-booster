@@ -15,11 +15,11 @@ import (
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/routing"
 	hyds "github.com/libp2p/hydra-booster/datastore"
+	"github.com/libp2p/hydra-booster/head"
+	"github.com/libp2p/hydra-booster/head/opts"
 	"github.com/libp2p/hydra-booster/idgen"
 	"github.com/libp2p/hydra-booster/metrics"
 	"github.com/libp2p/hydra-booster/periodictasks"
-	"github.com/libp2p/hydra-booster/sybil"
-	"github.com/libp2p/hydra-booster/sybil/opts"
 	"github.com/multiformats/go-multiaddr"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
@@ -33,9 +33,9 @@ const (
 	uniquePeersTaskInterval      = time.Second * 5
 )
 
-// Hydra is a container for heads (sybils) and their shared belly bits.
+// Hydra is a container for heads and their shared belly bits.
 type Hydra struct {
-	Sybils          []*sybil.Sybil
+	Heads           []*head.Head
 	SharedDatastore datastore.Datastore
 	// SharedRoutingTable *kbucket.RoutingTable
 
@@ -48,7 +48,7 @@ type Options struct {
 	Name          string
 	DatastorePath string
 	GetPort       func() int
-	NSybils       int
+	NHeads        int
 	BucketSize    int
 	BsCon         int
 	Relay         bool
@@ -71,19 +71,19 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		return nil, fmt.Errorf("failed to create datastore: %w", err)
 	}
 
-	var sybils []*sybil.Sybil
+	var hds []*head.Head
 
 	ds := hyds.NewProxy(ctx, lds, func(_ cid.Cid) (routing.Routing, hyds.AddProviderFunc, error) {
-		if len(sybils) == 0 {
-			return nil, nil, fmt.Errorf("no sybils available")
+		if len(hds) == 0 {
+			return nil, nil, fmt.Errorf("no heads available")
 		}
-		s := sybils[rand.Intn(len(sybils))]
-		// we should ask the closest sybil, but later they'll all share the same routing table so it won't matter which one we pick
+		s := hds[rand.Intn(len(hds))]
+		// we should ask the closest head, but later they'll all share the same routing table so it won't matter which one we pick
 		return s.Routing, s.AddProvider, nil
 	}, hyds.Options{
-		FindProvidersConcurrency:    options.NSybils,
+		FindProvidersConcurrency:    options.NHeads,
 		FindProvidersCount:          1,
-		FindProvidersQueueSize:      options.NSybils * 12,
+		FindProvidersQueueSize:      options.NHeads * 10,
 		FindProvidersTimeout:        time.Second * 20,
 		FindProvidersFailureBackoff: time.Hour,
 	})
@@ -91,7 +91,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		return nil, fmt.Errorf("failed to create datastore: %w", err)
 	}
 
-	fmt.Fprintf(os.Stderr, "Running %d DHT Sybils:\n", options.NSybils)
+	fmt.Fprintf(os.Stderr, "Running Hydra with %d heads:\n", options.NHeads)
 
 	var hyperLock sync.Mutex
 	hyperlog := hyperloglog.New()
@@ -99,12 +99,12 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	// What is a limiter?
 	limiter := make(chan struct{}, options.BsCon)
 
-	for i := 0; i < options.NSybils; i++ {
+	for i := 0; i < options.NHeads; i++ {
 		time.Sleep(options.Stagger)
 		fmt.Fprintf(os.Stderr, ".")
 
 		addr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", options.GetPort()))
-		syb, bsCh, err := sybil.NewSybil(
+		hd, bsCh, err := head.NewHead(
 			ctx,
 			opts.Datastore(ds),
 			opts.Addr(addr),
@@ -117,33 +117,33 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 			return nil, fmt.Errorf("failed to spawn node with swarm address %v: %w", addr, err)
 		}
 
-		sybCtx, err := tag.New(ctx, tag.Insert(metrics.KeyPeerID, syb.Host.ID().String()))
+		hdCtx, err := tag.New(ctx, tag.Insert(metrics.KeyPeerID, hd.Host.ID().String()))
 		if err != nil {
 			return nil, err
 		}
 
-		stats.Record(sybCtx, metrics.Sybils.M(1))
+		stats.Record(hdCtx, metrics.Heads.M(1))
 
-		syb.Host.Network().Notify(&network.NotifyBundle{
+		hd.Host.Network().Notify(&network.NotifyBundle{
 			ConnectedF: func(n network.Network, v network.Conn) {
 				hyperLock.Lock()
 				hyperlog.Insert([]byte(v.RemotePeer()))
 				hyperLock.Unlock()
-				stats.Record(sybCtx, metrics.ConnectedPeers.M(1))
+				stats.Record(hdCtx, metrics.ConnectedPeers.M(1))
 			},
 			DisconnectedF: func(n network.Network, v network.Conn) {
-				stats.Record(sybCtx, metrics.ConnectedPeers.M(-1))
+				stats.Record(hdCtx, metrics.ConnectedPeers.M(-1))
 			},
 		})
 
-		go handleBootstrapStatus(sybCtx, bsCh)
+		go handleBootstrapStatus(hdCtx, bsCh)
 
-		sybils = append(sybils, syb)
+		hds = append(hds, hd)
 	}
 	fmt.Fprintf(os.Stderr, "\n")
 
 	hydra := Hydra{
-		Sybils:          sybils,
+		Heads:           hds,
 		SharedDatastore: ds,
 		hyperLock:       &hyperLock,
 		hyperlog:        hyperlog,
@@ -158,13 +158,13 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	return &hydra, nil
 }
 
-func handleBootstrapStatus(ctx context.Context, ch chan sybil.BootstrapStatus) {
+func handleBootstrapStatus(ctx context.Context, ch chan head.BootstrapStatus) {
 	for status := range ch {
 		if status.Err != nil {
 			fmt.Println(status.Err)
 		}
 		if status.Done {
-			stats.Record(ctx, metrics.BootstrappedSybils.M(1))
+			stats.Record(ctx, metrics.BootstrappedHeads.M(1))
 		}
 	}
 }

@@ -21,18 +21,18 @@ Built containers are currently __not__ auto-deployed to the hydra cluster.
 
 There are currently 2 environment variables that can be tweaked to affect the deployment:
 
-* `HYDRA_NSYBILS` - controls the number of sybils that are spawned by a Hydra
-* `HYDRA_PORT_BEGIN` - controls the port that sybils listen on. Each sybil is allocated a port sequentially beginning from the port specified here. See [Cluster Setup](#cluster-setup) below for what this value should be for each Hydra
+* `HYDRA_NHEADS` - controls the number of heads that are spawned by a Hydra
+* `HYDRA_PORT_BEGIN` - controls the port that Hydra heads listen on. Each head is allocated a port sequentially beginning from the port specified here. See [Cluster Setup](#cluster-setup) below for what this value should be for each Hydra
 
 ## Cluster setup
 
 We have one _cluster_  in `us-central1-c` with a _deployment_ for each Hydra. Deployments have a application name `hydra-booster-node-x` and live in the `hydra-booster` namespace. Each deployment has _one pod_ and a `NodePort` service forwards external ports to internal ports on the pod.
 
-We're using a `NodePort` not `LoadBalancer` service to expose sybils externally to avoid associated costs with forwarding many many ports. This [blog post](https://medium.com/google-cloud/kubernetes-nodeport-vs-loadbalancer-vs-ingress-when-should-i-use-what-922f010849e0) has some good info and diagrams on the differences between the different types of "services" that Kubernetes has.
+We're using a `NodePort` not `LoadBalancer` service to expose Hydra heads externally to avoid associated costs with forwarding many many ports. This [blog post](https://medium.com/google-cloud/kubernetes-nodeport-vs-loadbalancer-vs-ingress-when-should-i-use-what-922f010849e0) has some good info and diagrams on the differences between the different types of "services" that Kubernetes has.
 
 TLDR; `NodePort` restricts you to exposing public services on ports in the range `30000-32767`. For people wanting to expose HTTP services on port `80` this is problematic but we don't care. We also do not need any actual load balancing to happen, we just need ports exposed publically.
 
-Sybil swarm listening ports are allocated as such:
+Hydra head swarm listening ports are allocated as such:
 
 |         | Port range    |
 | ------- | ------------- |
@@ -43,7 +43,7 @@ Sybil swarm listening ports are allocated as such:
 | Hydra 4 | `30800-30999` |
 | ...     | ...           |
 
-This gives us **up to 13 hydras and 2,600 sybils per cluster**. It assumes we can run up to 200 sybils on a single node. We may want to revist these allocations if the hardware is not capable.
+This gives us **up to 13 hydras and 2,600 heads per cluster**. It assumes we can run up to 200 heads on a single node. We may want to revist these allocations if the hardware is not capable.
 
 Ports `32600-32767` are reserved for misc other services. We currently have 2 per hydra (httpapi and metrics).
 
@@ -62,19 +62,24 @@ This gives us **up to 10 misc service ports per hydra**.
 
 There is one firewall rule ("VPC Network" => "Firewall rules") that opens up ports `30000-32767` (the ports that `NodePort` allows us to bind to).
 
-We're currently running **2 Hydras** with **2 sybils** per Hydra.
+We're currently running **5 Hydras** with the following head counts:
+
+|         | Heads | 
+| ------- | ----- | 
+| Hydra 0 | `25`  |
+| Hydra 1 | `50`  |
+| Hydra 2 | `100` |
+| Hydra 3 | `150` |
+| Hydra 4 | `200` |
+| ...     | ...   |
 
 ## Metrics and reporting
 
-Prometheus/Grafana server was deployed using a pre-bundled "application" from the "Applications" menu in GKE.
+Metrics are available at the [PL Grafana](https://protocollabs.grafana.net).
 
-The service `prometheus-grafana-0-grafana` ("Kubernetes Engine" => "Services & Ingress") was switched from "ClusterIP" to "LoadBalancer" so that it can be accessed publically.
+### Grafana Prometheus config
 
-Grafana can be accessed at: http://35.184.172.3
-
-### Prometheus config
-
-The configuration `prometheus-grafana-0-prometheus-config` ("Kubernetes Engine" => "Configuration") has been updated to add the following hydra metrics endpoints:
+The Grafana Prometheus config you need is:
 
 ```yaml
 - job_name: 'hydrabooster'
@@ -83,20 +88,14 @@ The configuration `prometheus-grafana-0-prometheus-config` ("Kubernetes Engine" 
     - targets: ['10.8.5.79:8888', '10.8.15.102:8888', '10.8.10.98:8888', '10.8.5.238:8888', '10.8.15.157:8888']
 ```
 
-It needs to be serialized yaml in yaml like this:
-
-```yaml
-- prometheus.yaml: "- \"job_name\": \"hydrabooster\"\n  \"scrape_interval\": \"10s\"\n  \"static_configs\":\n    - \"targets\": [\"10.8.5.79:8888\", \"10.8.15.102:8888\", \"10.8.10.98:8888\", \"10.8.5.238:8888\", \"10.8.15.157:8888\"]"
-```
-
 ## Misc
 
-I used the following script to generate the YAML config for the sybil ports:
+I used the following script to generate the YAML config for the head ports:
 
 ```js
 const begin = 30200
 for (let i = 0; i < 200; i++) {
-  console.log(`  - name: sybil-${i.toString().padStart(3, '0')}
+  console.log(`  - name: head-${i.toString().padStart(3, '0')}
     port: ${begin + i}
     nodePort: ${begin + i}
     protocol: TCP

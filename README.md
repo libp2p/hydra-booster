@@ -44,19 +44,19 @@ go get -u github.com/libp2p/hydra-booster
 go run ./main.go
 ```
 
-The second mode is called 'many heads'. Passing the `-nsybils=N` allows you to run N heads (called [sybils](https://en.wikipedia.org/wiki/Sybil_attack)) at a time in the same process. It periodically prints out a status line with information about total peers, uptime, and memory usage.
+The second mode is called 'many heads'. Passing the `-nheads=N` allows you to run N heads at a time in the same process. It periodically prints out a status line with information about total peers, uptime, and memory usage.
 
 ```sh
-go run ./main.go -nsybils=5
+go run ./main.go -nheads=5
 ```
 
-Alternatively you can use the `HYDRA_NSYBILS` environment var to specify the number of sybils. Note the `-nsybils` flag takes precedence.
+Alternatively you can use the `HYDRA_NHEADS` environment var to specify the number of heads. Note the `-nheads` flag takes precedence.
 
 ### Best Practices
 
 Only run a `hydra-booster` on machines with public IP addresses. Having more DHT nodes behind NATs makes DHT queries in general slower, as connecting in generally takes longer and sometimes doesnt even work (resulting in a timeout).
 
-When running with `-nsybils`, please make sure to bump the ulimit to something fairly high. Expect ~500 connections per node youre running (so with `-nsybils=10`, try setting `ulimit -n 5000`)
+When running with `-nheads`, please make sure to bump the ulimit to something fairly high. Expect ~500 connections per node youre running (so with `-nheads=10`, try setting `ulimit -n 5000`)
 
 ## Developers
 
@@ -87,7 +87,7 @@ prometheus --config.file=promconfig.yaml --storage.tsdb.path=prometheus-data
 Next start the Hydra Booster, specifying the port to run metrics on:
 
 ```console
-go run ./main.go -nsybils=5 -metrics-port=8888
+go run ./main.go -nheads=5 -metrics-port=8888
 ```
 
 You should now be able to access metrics at http://127.0.0.1:9090.
@@ -98,7 +98,7 @@ You should now be able to access metrics at http://127.0.0.1:9090.
 
 By default the HTTP API is available at http://127.0.0.1:7779.
 
-#### `GET /sybils`
+#### `GET /heads`
 
 Returns an ndjson list of peers created by the Hydra: their IDs and mulitaddrs. Example output:
 

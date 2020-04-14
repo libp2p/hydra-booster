@@ -35,7 +35,7 @@ func ListenAndServe(hy *hydra.Hydra, addr string) error {
 // NewRouter creates a new Hydra Booster HTTP API Gorilla Mux
 func NewRouter(hy *hydra.Hydra) *mux.Router {
 	mux := mux.NewRouter()
-	mux.HandleFunc("/sybils", sybilsHandler(hy))
+	mux.HandleFunc("/heads", headsHandler(hy))
 	mux.HandleFunc("/records/fetch/{key}", recordFetchHandler(hy))
 	mux.HandleFunc("/records/list", recordListHandler(hy))
 	mux.HandleFunc("/idgen/add", idgenAddHandler()).Methods("POST")
@@ -43,15 +43,15 @@ func NewRouter(hy *hydra.Hydra) *mux.Router {
 	return mux
 }
 
-// "/sybils" Get the peers created by hydra booster (ndjson)
-func sybilsHandler(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request) {
+// "/heads" Get the peers created by hydra booster (ndjson)
+func headsHandler(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		enc := json.NewEncoder(w)
 
-		for _, syb := range hy.Sybils {
+		for _, hd := range hy.Heads {
 			enc.Encode(peer.AddrInfo{
-				ID:    syb.Host.ID(),
-				Addrs: syb.Host.Addrs(),
+				ID:    hd.Host.ID(),
+				Addrs: hd.Host.Addrs(),
 			})
 		}
 	}
@@ -82,10 +82,10 @@ func recordFetchHandler(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request
 		}
 		enc := json.NewEncoder(w)
 		ctx := r.Context()
-		for peerAddrInfo := range hy.Sybils[0].Routing.FindProvidersAsync(ctx, cid, nProviders) {
+		for peerAddrInfo := range hy.Heads[0].Routing.FindProvidersAsync(ctx, cid, nProviders) {
 			// fmt.Printf("Got one provider %s\n", peerAddrInfo.String())
 			// Store the Provider locally
-			hy.Sybils[0].AddProvider(ctx, cid, peerAddrInfo.ID)
+			hy.Heads[0].AddProvider(ctx, cid, peerAddrInfo.ID)
 			if first {
 				first = false
 			}

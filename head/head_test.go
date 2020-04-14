@@ -1,4 +1,4 @@
-package sybil
+package head
 
 import (
 	"context"
@@ -6,14 +6,14 @@ import (
 	"testing"
 
 	"github.com/ipfs/go-datastore"
-	"github.com/libp2p/hydra-booster/sybil/opts"
+	"github.com/libp2p/hydra-booster/head/opts"
 )
 
-func TestSpawnSybil(t *testing.T) { // TODO spawn a node to bootstrap from so we don't hit the public bootstrappers
+func TestSpawnHead(t *testing.T) { // TODO spawn a node to bootstrap from so we don't hit the public bootstrappers
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	_, bsCh, err := NewSybil(ctx, opts.Datastore(datastore.NewMapDatastore()))
+	_, bsCh, err := NewHead(ctx, opts.Datastore(datastore.NewMapDatastore()))
 	if err != nil {
 		t.Fatal(err)
 	}

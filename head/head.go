@@ -1,4 +1,4 @@
-package sybil
+package head
 
 import (
 	"context"
@@ -19,7 +19,7 @@ import (
 	dhtopts "github.com/libp2p/go-libp2p-kad-dht/opts"
 	kbucket "github.com/libp2p/go-libp2p-kbucket"
 	record "github.com/libp2p/go-libp2p-record"
-	"github.com/libp2p/hydra-booster/sybil/opts"
+	"github.com/libp2p/hydra-booster/head/opts"
 	"github.com/multiformats/go-multiaddr"
 )
 
@@ -42,15 +42,15 @@ type BootstrapStatus struct {
 	Err  error
 }
 
-// Sybil is a container for ipfs/libp2p components used by a Hydra Booster sybil.
-type Sybil struct {
+// Head is a container for ipfs/libp2p components used by a Hydra head.
+type Head struct {
 	Host      host.Host
 	Datastore datastore.Datastore
 	Routing   routing.Routing
 }
 
-// NewSybil constructs a new Hydra Booster sybil node
-func NewSybil(ctx context.Context, options ...opts.Option) (*Sybil, chan BootstrapStatus, error) {
+// NewHead constructs a new Hydra Booster head node
+func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan BootstrapStatus, error) {
 	cfg := opts.Options{}
 	cfg.Apply(append([]opts.Option{opts.Defaults}, options...)...)
 
@@ -86,7 +86,7 @@ func NewSybil(ctx context.Context, options ...opts.Option) (*Sybil, chan Bootstr
 	dhtNode.Bootstrap(ctx)
 
 	bsCh := make(chan BootstrapStatus)
-	sybil := Sybil{
+	hd := Head{
 		Host:      node,
 		Datastore: cfg.Datastore,
 		Routing:   dhtNode,
@@ -121,17 +121,17 @@ func NewSybil(ctx context.Context, options ...opts.Option) (*Sybil, chan Bootstr
 		close(bsCh)
 	}()
 
-	return &sybil, bsCh, nil
+	return &hd, bsCh, nil
 }
 
-// RoutingTable returns the underlying RoutingTable for this sybil
-func (s *Sybil) RoutingTable() *kbucket.RoutingTable {
+// RoutingTable returns the underlying RoutingTable for this head
+func (s *Head) RoutingTable() *kbucket.RoutingTable {
 	dht, _ := s.Routing.(*dht.IpfsDHT)
 	return dht.RoutingTable()
 }
 
 // AddProvider adds the given provider to the datastore
-func (s *Sybil) AddProvider(ctx context.Context, c cid.Cid, id peer.ID) {
+func (s *Head) AddProvider(ctx context.Context, c cid.Cid, id peer.ID) {
 	dht, _ := s.Routing.(*dht.IpfsDHT)
 	dht.ProviderManager.AddProvider(ctx, c.Bytes(), id)
 }

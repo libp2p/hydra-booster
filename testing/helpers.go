@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/ipfs/go-datastore"
-	"github.com/libp2p/hydra-booster/sybil"
-	"github.com/libp2p/hydra-booster/sybil/opts"
+	"github.com/libp2p/hydra-booster/head"
+	"github.com/libp2p/hydra-booster/head/opts"
 )
 
 // Defaults are the SpawnNode defaults
@@ -15,10 +15,10 @@ var defaults = []opts.Option{
 	opts.BootstrapPeers(nil),
 }
 
-// SpawnSybil creates a new Hydra sybil with an in memory datastore and 0 bootstrap peers by default.
+// SpawnHead creates a new Hydra head with an in memory datastore and 0 bootstrap peers by default.
 // It also waits for bootstrapping to complete.
-func SpawnSybil(ctx context.Context, options ...opts.Option) (*sybil.Sybil, error) {
-	nd, bsCh, err := sybil.NewSybil(ctx, append(defaults, options...)...)
+func SpawnHead(ctx context.Context, options ...opts.Option) (*head.Head, error) {
+	hd, bsCh, err := head.NewHead(ctx, append(defaults, options...)...)
 	if err != nil {
 		return nil, err
 	}
@@ -33,24 +33,24 @@ func SpawnSybil(ctx context.Context, options ...opts.Option) (*sybil.Sybil, erro
 		}
 	}
 
-	return nd, nil
+	return hd, nil
 }
 
-// SpawnSybils creates n new Hydra nodes with an in memory datastore and 0 bootstrap peers by default
-func SpawnSybils(ctx context.Context, n int, options ...opts.Option) ([]*sybil.Sybil, error) {
-	var sybils []*sybil.Sybil
+// SpawnHeads creates n new Hydra nodes with an in memory datastore and 0 bootstrap peers by default
+func SpawnHeads(ctx context.Context, n int, options ...opts.Option) ([]*head.Head, error) {
+	var hds []*head.Head
 	for i := 0; i < n; i++ {
-		syb, err := SpawnSybil(ctx, options...)
+		hd, err := SpawnHead(ctx, options...)
 		if err != nil {
-			for _, nd := range sybils {
+			for _, nd := range hds {
 				nd.Host.Close()
 			}
 			return nil, err
 		}
-		sybils = append(sybils, syb)
+		hds = append(hds, hd)
 	}
 
-	return sybils, nil
+	return hds, nil
 }
 
 // ChanWriter is a writer that writes to a channel
