@@ -88,7 +88,9 @@ func Addr(addr multiaddr.Multiaddr) Option {
 // The default value is 20.
 func BucketSize(bucketSize int) Option {
 	return func(o *Options) error {
-		o.BucketSize = bucketSize
+		if bucketSize != 0 {
+			o.BucketSize = bucketSize
+		}
 		return nil
 	}
 }

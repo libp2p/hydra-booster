@@ -18,7 +18,7 @@ func TestRunSingleTask(t *testing.T) {
 	wg.Add(1)
 
 	ts := []PeriodicTask{
-		PeriodicTask{
+		{
 			Interval: time.Millisecond,
 			Run: func(ctx context.Context) error {
 				n--
@@ -48,7 +48,7 @@ func TestRunMultiTask(t *testing.T) {
 	wg1.Add(1)
 
 	ts := []PeriodicTask{
-		PeriodicTask{
+		{
 			Interval: time.Millisecond,
 			Run: func(ctx context.Context) error {
 				n0--
@@ -58,7 +58,7 @@ func TestRunMultiTask(t *testing.T) {
 				return nil
 			},
 		},
-		PeriodicTask{
+		{
 			Interval: time.Millisecond + 1,
 			Run: func(ctx context.Context) error {
 				n1--

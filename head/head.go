@@ -16,7 +16,6 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/routing"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
-	dhtopts "github.com/libp2p/go-libp2p-kad-dht/opts"
 	kbucket "github.com/libp2p/go-libp2p-kbucket"
 	record "github.com/libp2p/go-libp2p-record"
 	"github.com/libp2p/hydra-booster/head/opts"
@@ -83,10 +82,19 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		return nil, nil, fmt.Errorf("failed to spawn libp2p node: %w", err)
 	}
 
-	dhtNode, err := dht.New(ctx, node, dhtopts.BucketSize(cfg.BucketSize), dhtopts.Datastore(cfg.Datastore), dhtopts.Validator(record.NamespacedValidator{
-		"pk":   record.PublicKeyValidator{},
-		"ipns": ipns.Validator{KeyBook: node.Peerstore()},
-	}))
+	dhtNode, err := dht.New(
+		ctx,
+		node,
+		dht.Mode(dht.ModeServer),
+		dht.BucketSize(cfg.BucketSize),
+		dht.Datastore(cfg.Datastore),
+		dht.Validator(record.NamespacedValidator{
+			"pk":   record.PublicKeyValidator{},
+			"ipns": ipns.Validator{KeyBook: node.Peerstore()},
+		}),
+		dht.QueryFilter(dht.PublicQueryFilter),
+		dht.RoutingTableFilter(dht.PublicRoutingTableFilter),
+	)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to instantiate DHT: %w", err)
 	}
