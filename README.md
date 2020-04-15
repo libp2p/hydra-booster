@@ -58,6 +58,13 @@ Only run a `hydra-booster` on machines with public IP addresses. Having more DHT
 
 When running with `-nheads`, please make sure to bump the ulimit to something fairly high. Expect ~500 connections per node youre running (so with `-nheads=10`, try setting `ulimit -n 5000`)
 
+### Running Multiple Hydras
+
+The total number of heads a single Hydra can have depends on the resources of the machine it's running on. To get the desired number of heads you may need to run multiple Hydras on multiple machines. There's a couple of challenges with this:
+
+* Peer IDs of Hydra heads are balanced in the DHT. When running multiple Hydras it's necessary to designate one of the Hydras to be the "idgen server" and the rest to be "idgen clients" so that all Peer IDs in the Hydra swarm are balanced. Use the `-idgen-addr` flag or `HYDRA_IDGEN_ADDR` environment variable to ensure all Peer IDs in the Hydra swarm are balanced perfectly.
+* A datastore is shared by all Hydra heads but not by all Hydras. Use the `-db` flag or `HYDRA_DB` environment variable to specify a PostgreSQL database connection string that can be shared by all Hydras in the swarm.
+
 ## Developers
 
 ### Release a new version

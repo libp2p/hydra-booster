@@ -31,7 +31,7 @@ const (
 func main() {
 	start := time.Now()
 	nheads := flag.Int("nheads", -1, "Specify the number of Hydra heads to create.")
-	dbpath := flag.String("db", "hydra-belly", "Datastore folder path")
+	dbpath := flag.String("db", "hydra-belly", "Datastore directory (for LevelDB store) or postgresql:// connection string (for PostgreSQL store)")
 	httpAPIAddr := flag.String("httpapi-addr", defaultHTTPAPIAddr, "Specify an IP and port to run prometheus metrics and pprof http server on")
 	inmem := flag.Bool("mem", false, "Use an in-memory database. This overrides the -db option")
 	metricsAddr := flag.String("metrics-addr", defaultMetricsAddr, "Specify an IP and port to run prometheus metrics and pprof http server on")
@@ -47,6 +47,8 @@ func main() {
 
 	if *inmem {
 		*dbpath = ""
+	} else if *dbpath == "" {
+		*dbpath = os.Getenv("HYDRA_DB")
 	}
 
 	if *nheads == -1 {
