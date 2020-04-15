@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -66,14 +67,20 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		ctx = nctx
 	}
 
-	lds, err := leveldb.NewDatastore(options.DatastorePath, nil)
+	var ds datastore.Batching
+	var err error
+	if strings.HasPrefix(options.DatastorePath, "postgres://") {
+		ds, err = hyds.NewPostgreSQLDatastore(options.DatastorePath)
+	} else {
+		ds, err = leveldb.NewDatastore(options.DatastorePath, nil)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to create datastore: %w", err)
 	}
 
 	var hds []*head.Head
 
-	ds := hyds.NewProxy(ctx, lds, func(_ cid.Cid) (routing.Routing, hyds.AddProviderFunc, error) {
+	ds = hyds.NewProxy(ctx, ds, func(_ cid.Cid) (routing.Routing, hyds.AddProviderFunc, error) {
 		if len(hds) == 0 {
 			return nil, nil, fmt.Errorf("no heads available")
 		}
@@ -87,9 +94,6 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		FindProvidersTimeout:        time.Second * 20,
 		FindProvidersFailureBackoff: time.Hour,
 	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create datastore: %w", err)
-	}
 
 	fmt.Fprintf(os.Stderr, "Running Hydra with %d heads:\n", options.NHeads)
 

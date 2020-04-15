@@ -21,6 +21,8 @@ github.com/alanshaw/prom-metrics-client v0.2.0 h1:bQVECOMIuHabVA3/aLY9Ahh2hLYFby
 github.com/alanshaw/prom-metrics-client v0.2.0/go.mod h1:PAIsdFNQd5vGDP+AEa+KmYqGfZTXd951YE4AP2xP7gM=
 github.com/alanshaw/prom-metrics-client v0.3.0 h1:HfkAEmViUMyL4L6dSA2uR3+d+2Fw+yZUAPpRXV5ju0I=
 github.com/alanshaw/prom-metrics-client v0.3.0/go.mod h1:PAIsdFNQd5vGDP+AEa+KmYqGfZTXd951YE4AP2xP7gM=
+github.com/alanshaw/sql-datastore v0.0.0-20200415144513-d2fc2f9add3d h1:Qap62ekAMQ/Hy9dJl8Ju0DO2WDtBFp6OIwekbhpv9OA=
+github.com/alanshaw/sql-datastore v0.0.0-20200415144513-d2fc2f9add3d/go.mod h1:yAySTQsHXyRjkfYQpyu7LBHuLcNbpuE5tW+S/twmqc8=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf/go.mod h1:ybxpYRFXyAe+OPACYpWeL0wqObRcbAqCMya13uyzqw0=
@@ -219,6 +221,8 @@ github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORN
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0 h1:45sCR5RtlFHMR4UwH9sdQ5TC8v0qDQCHnXt+kaKSTVE=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
+github.com/lib/pq v1.3.0 h1:/qkRGz8zljWiDcFvgpwUpwIAPu3r07TDvs3Rws+o/pU=
+github.com/lib/pq v1.3.0/go.mod h1:5WUZQaWbwv1U+lTReE5YruASi9Al49XbQIvNi/34Woo=
 github.com/libp2p/go-addr-util v0.0.1 h1:TpTQm9cXVRVSKsYbgQ7GKc3KbbHVTnbostgGaDEP+88=
 github.com/libp2p/go-addr-util v0.0.1/go.mod h1:4ac6O7n9rIAKB1dnd+s8IbbMXkt+oBpzX4/+RACcnlQ=
 github.com/libp2p/go-buffer-pool v0.0.1/go.mod h1:xtyIz9PMobb13WaxR6Zo1Pd1zXJKYg0a8KiIvDp3TzQ=
