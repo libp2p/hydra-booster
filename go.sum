@@ -21,8 +21,6 @@ github.com/alanshaw/prom-metrics-client v0.2.0 h1:bQVECOMIuHabVA3/aLY9Ahh2hLYFby
 github.com/alanshaw/prom-metrics-client v0.2.0/go.mod h1:PAIsdFNQd5vGDP+AEa+KmYqGfZTXd951YE4AP2xP7gM=
 github.com/alanshaw/prom-metrics-client v0.3.0 h1:HfkAEmViUMyL4L6dSA2uR3+d+2Fw+yZUAPpRXV5ju0I=
 github.com/alanshaw/prom-metrics-client v0.3.0/go.mod h1:PAIsdFNQd5vGDP+AEa+KmYqGfZTXd951YE4AP2xP7gM=
-github.com/alanshaw/sql-datastore v0.0.0-20200415144513-d2fc2f9add3d h1:Qap62ekAMQ/Hy9dJl8Ju0DO2WDtBFp6OIwekbhpv9OA=
-github.com/alanshaw/sql-datastore v0.0.0-20200415144513-d2fc2f9add3d/go.mod h1:yAySTQsHXyRjkfYQpyu7LBHuLcNbpuE5tW+S/twmqc8=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf/go.mod h1:ybxpYRFXyAe+OPACYpWeL0wqObRcbAqCMya13uyzqw0=
@@ -170,6 +168,8 @@ github.com/ipfs/go-ds-leveldb v0.1.0/go.mod h1:hqAW8y4bwX5LWcCtku2rFNX3vjDZCy5LZ
 github.com/ipfs/go-ds-leveldb v0.4.1/go.mod h1:jpbku/YqBSsBc1qgME8BkWS4AxzF2cEu1Ii2r79Hh9s=
 github.com/ipfs/go-ds-leveldb v0.4.2 h1:QmQoAJ9WkPMUfBLnu1sBVy0xWWlJPg0m4kRAiJL9iaw=
 github.com/ipfs/go-ds-leveldb v0.4.2/go.mod h1:jpbku/YqBSsBc1qgME8BkWS4AxzF2cEu1Ii2r79Hh9s=
+github.com/ipfs/go-ds-sql v0.1.0 h1:5PzIXPmhyVDj1YPXzxJc0r2mobFs3g1JumdWKdp0x5Q=
+github.com/ipfs/go-ds-sql v0.1.0/go.mod h1:/c47NpRiHobwn+8F8EpW0yBy8d3Mx/j/tIlrVN1e1Ec=
 github.com/ipfs/go-ipfs-delay v0.0.0-20181109222059-70721b86a9a8/go.mod h1:8SP1YXK1M1kXuc4KJZINY3TQQ03J2rwBG9QfXmbRPrw=
 github.com/ipfs/go-ipfs-util v0.0.1 h1:Wz9bL2wB2YBJqggkA4dD7oSmqB4cAnpNbGrlHJulv50=
 github.com/ipfs/go-ipfs-util v0.0.1/go.mod h1:spsl5z8KUnrve+73pOhSVZND1SIxPW5RyBCNzQxlJBc=

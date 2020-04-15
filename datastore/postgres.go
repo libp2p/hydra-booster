@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 
-	sqlds "github.com/alanshaw/sql-datastore"
-	"github.com/alanshaw/sql-datastore/postgres"
+	sqlds "github.com/ipfs/go-ds-sql"
+	"github.com/ipfs/go-ds-sql/postgres"
 )
 
 // NewPostgreSQLDatastore creates a new sqlds.Datastore that talks to a PostgreSQL database
