@@ -116,11 +116,11 @@ Returns an ndjson list of peers created by the Hydra: their IDs and mulitaddrs. 
 
 #### `GET /records/list`
 
-Returns an ndjson list of records stored by the Hydra Booster node.
+Returns an ndjson list of provider records stored by the Hydra Booster node.
 
-#### `GET /records/fetch`
+#### `GET /records/fetch/{cid}?nProviders=1`
 
-Fetches a record available on the network by CID. `NOT IMPLEMENTED YET`
+Fetches provider record(s) available on the network by CID. Use the `nProviders` query string parameter to signal the number of provider records to find. Returns an ndjson list of provider peers: their IDs and mulitaddrs. Will return HTTP status code 404 if no records were found.
 
 #### `POST /idgen/add`
 
