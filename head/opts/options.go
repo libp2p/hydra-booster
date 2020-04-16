@@ -5,6 +5,7 @@ import (
 
 	ds "github.com/ipfs/go-datastore"
 	dssync "github.com/ipfs/go-datastore/sync"
+	"github.com/libp2p/go-libp2p-core/protocol"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	kbucket "github.com/libp2p/go-libp2p-kbucket"
 	"github.com/libp2p/hydra-booster/idgen"
@@ -17,6 +18,7 @@ type Options struct {
 	RoutingTable   *kbucket.RoutingTable
 	Relay          bool
 	Addr           multiaddr.Multiaddr
+	ProtocolPrefix protocol.ID
 	BucketSize     int
 	Limiter        chan struct{}
 	BootstrapPeers []multiaddr.Multiaddr
@@ -42,6 +44,7 @@ var Defaults = func(o *Options) error {
 	o.Datastore = dssync.MutexWrap(ds.NewMapDatastore())
 	o.Relay = false
 	o.Addr, _ = multiaddr.NewMultiaddr("/ip4/0.0.0.0/tcp/0")
+	o.ProtocolPrefix = dht.DefaultPrefix
 	o.BucketSize = 20
 	o.BootstrapPeers = dht.DefaultBootstrapPeers
 	o.IDGenerator = idgen.HydraIdentityGenerator
@@ -80,6 +83,17 @@ func Relay(relay bool) Option {
 func Addr(addr multiaddr.Multiaddr) Option {
 	return func(o *Options) error {
 		o.Addr = addr
+		return nil
+	}
+}
+
+// ProtocolPrefix configures the application specific prefix attached to all DHT protocols by default.
+// The default value is "/ipfs".
+func ProtocolPrefix(pfx protocol.ID) Option {
+	return func(o *Options) error {
+		if pfx != "" {
+			o.ProtocolPrefix = pfx
+		}
 		return nil
 	}
 }
