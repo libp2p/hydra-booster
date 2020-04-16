@@ -14,6 +14,7 @@ import (
 	"github.com/ipfs/go-datastore"
 	leveldb "github.com/ipfs/go-ds-leveldb"
 	"github.com/libp2p/go-libp2p-core/network"
+	"github.com/libp2p/go-libp2p-core/protocol"
 	"github.com/libp2p/go-libp2p-core/routing"
 	hyds "github.com/libp2p/hydra-booster/datastore"
 	"github.com/libp2p/hydra-booster/head"
@@ -46,15 +47,16 @@ type Hydra struct {
 
 // Options are configuration for a new hydra.
 type Options struct {
-	Name          string
-	DatastorePath string
-	GetPort       func() int
-	NHeads        int
-	BucketSize    int
-	BsCon         int
-	Relay         bool
-	Stagger       time.Duration
-	IDGenerator   idgen.IdentityGenerator
+	Name           string
+	DatastorePath  string
+	GetPort        func() int
+	NHeads         int
+	ProtocolPrefix protocol.ID
+	BucketSize     int
+	BsCon          int
+	Relay          bool
+	Stagger        time.Duration
+	IDGenerator    idgen.IdentityGenerator
 }
 
 // NewHydra creates a new Hydra with the passed options.
@@ -113,6 +115,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 			opts.Datastore(ds),
 			opts.Addr(addr),
 			opts.Relay(options.Relay),
+			opts.ProtocolPrefix(options.ProtocolPrefix),
 			opts.BucketSize(options.BucketSize),
 			opts.Limiter(limiter),
 			opts.IDGenerator(options.IDGenerator),

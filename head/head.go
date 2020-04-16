@@ -88,6 +88,7 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		ctx,
 		node,
 		dht.Mode(dht.ModeServer),
+		dht.ProtocolPrefix(cfg.ProtocolPrefix),
 		dht.BucketSize(cfg.BucketSize),
 		dht.Datastore(cfg.Datastore),
 		dht.Validator(record.NamespacedValidator{

@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"github.com/libp2p/go-libp2p-core/crypto"
+	"github.com/libp2p/go-libp2p-core/protocol"
+	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/hydra-booster/httpapi"
 	"github.com/libp2p/hydra-booster/hydra"
 	"github.com/libp2p/hydra-booster/idgen"
@@ -37,7 +39,8 @@ func main() {
 	metricsAddr := flag.String("metrics-addr", defaultMetricsAddr, "Specify an IP and port to run prometheus metrics and pprof http server on")
 	relay := flag.Bool("relay", false, "Enable libp2p circuit relaying for this node")
 	portBegin := flag.Int("port-begin", -1, "If set, begin port allocation here")
-	bucketSize := flag.Int("bucket-size", defaultBucketSize, "Specify the bucket size")
+	protocolPrefix := flag.String("protocol-prefix", string(dht.DefaultPrefix), "Specify the DHT protocol prefix (default \"/ipfs\")")
+	bucketSize := flag.Int("bucket-size", defaultBucketSize, "Specify the bucket size, note that for some protocols this must be a specific value i.e. for \"/ipfs\" it MUST be 20")
 	bootstrapConcurrency := flag.Int("bootstrap-conc", 32, "How many concurrent bootstraps to run")
 	stagger := flag.Duration("stagger", 0*time.Second, "Duration to stagger nodes starts by")
 	uiTheme := flag.String("ui-theme", "default", "UI theme, \"gooey\", \"logey\" or \"none\" (default \"gooey\" for 1 head otherwise \"logey\")")
@@ -90,15 +93,16 @@ func main() {
 	}
 
 	opts := hydra.Options{
-		Name:          *name,
-		DatastorePath: *dbpath,
-		Relay:         *relay,
-		BucketSize:    *bucketSize,
-		GetPort:       utils.PortSelector(*portBegin),
-		NHeads:        *nheads,
-		BsCon:         *bootstrapConcurrency,
-		Stagger:       *stagger,
-		IDGenerator:   idGenerator,
+		Name:           *name,
+		DatastorePath:  *dbpath,
+		Relay:          *relay,
+		ProtocolPrefix: protocol.ID(*protocolPrefix),
+		BucketSize:     *bucketSize,
+		GetPort:        utils.PortSelector(*portBegin),
+		NHeads:         *nheads,
+		BsCon:          *bootstrapConcurrency,
+		Stagger:        *stagger,
+		IDGenerator:    idGenerator,
 	}
 
 	go func() {
