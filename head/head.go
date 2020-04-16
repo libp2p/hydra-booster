@@ -71,6 +71,8 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		libp2p.ListenAddrs(cfg.Addr),
 		libp2p.ConnectionManager(cmgr),
 		libp2p.Identity(priv),
+		libp2p.EnableNATService(),
+		libp2p.AutoNATServiceRateLimit(0, 3, time.Minute),
 	}
 
 	if cfg.Relay {
