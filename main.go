@@ -31,6 +31,8 @@ const (
 )
 
 func main() {
+	fmt.Fprintf(os.Stderr, "🐉 \033[1mHydra Booster\033[0m starting up...\n")
+
 	start := time.Now()
 	nheads := flag.Int("nheads", -1, "Specify the number of Hydra heads to create.")
 	dbpath := flag.String("db", "", "Datastore directory (for LevelDB store) or postgresql:// connection URI (for PostgreSQL store)")
@@ -114,7 +116,7 @@ func main() {
 			log.Fatalln(err)
 		}
 	}()
-	fmt.Printf("Prometheus metrics and pprof server listening on http://%v\n", *metricsAddr)
+	fmt.Fprintf(os.Stderr, "📊 Prometheus metrics and pprof server listening on http://%v\n", *metricsAddr)
 
 	hy, err := hydra.NewHydra(ctx, opts)
 	if err != nil {
@@ -150,7 +152,7 @@ func main() {
 			log.Fatalln(err)
 		}
 	}()
-	fmt.Println(fmt.Sprintf("HTTP API listening on http://%s", *httpAPIAddr))
+	fmt.Fprintf(os.Stderr, "🧩 HTTP API listening on http://%s\n", *httpAPIAddr)
 
 	termChan := make(chan os.Signal)
 	signal.Notify(termChan, os.Interrupt, syscall.SIGTERM)

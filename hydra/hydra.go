@@ -72,8 +72,10 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	var ds datastore.Batching
 	var err error
 	if strings.HasPrefix(options.DatastorePath, "postgresql://") {
+		fmt.Fprintf(os.Stderr, "🐘 Using PostgreSQL datastore\n")
 		ds, err = hyds.NewPostgreSQLDatastore(options.DatastorePath)
 	} else {
+		fmt.Fprintf(os.Stderr, "🥞 Using LevelDB datastore\n")
 		ds, err = leveldb.NewDatastore(options.DatastorePath, nil)
 	}
 	if err != nil {
@@ -97,7 +99,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		FindProvidersFailureBackoff: time.Hour,
 	})
 
-	fmt.Fprintf(os.Stderr, "Running Hydra with %d heads:\n", options.NHeads)
+	fmt.Fprintf(os.Stderr, "🐲 Spawning %d heads: ", options.NHeads)
 
 	var hyperLock sync.Mutex
 	hyperlog := hyperloglog.New()
