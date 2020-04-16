@@ -71,7 +71,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 
 	var ds datastore.Batching
 	var err error
-	if strings.HasPrefix(options.DatastorePath, "postgres://") {
+	if strings.HasPrefix(options.DatastorePath, "postgresql://") {
 		ds, err = hyds.NewPostgreSQLDatastore(options.DatastorePath)
 	} else {
 		ds, err = leveldb.NewDatastore(options.DatastorePath, nil)
