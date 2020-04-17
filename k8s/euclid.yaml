@@ -1,0 +1,1075 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: euclid
+  name: euclid-deployment
+  namespace: hydra-boosters
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: euclid
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: euclid
+    spec:
+      containers:
+      - name: euclid-container
+        env:
+        - name: HYDRA_NHEADS
+          value: "200"
+        - name: HYDRA_PORT_BEGIN
+          value: "30800"
+        - name: HYDRA_NAME
+          value: Euclid
+        - name: HYDRA_IDGEN_ADDR
+          value: http://10.245.168.5:7779
+        image: docker.io/libp2p/hydra-booster
+        resources:
+          requests:
+            memory: 12Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: euclid
+  name: euclid-nodeport-service
+  namespace: hydra-boosters
+spec:
+  selector:
+    app: euclid
+  sessionAffinity: None
+  type: NodePort
+  ports:
+  - name: metrics
+    nodePort: 32641
+    port: 8888
+    protocol: TCP
+    targetPort: 8888
+  - name: httpapi
+    nodePort: 32640
+    port: 7779
+    protocol: TCP
+    targetPort: 7779
+  - name: head-000
+    nodePort: 30800
+    port: 30800
+    protocol: TCP
+    targetPort: 30800
+  - name: head-001
+    nodePort: 30801
+    port: 30801
+    protocol: TCP
+    targetPort: 30801
+  - name: head-002
+    nodePort: 30802
+    port: 30802
+    protocol: TCP
+    targetPort: 30802
+  - name: head-003
+    nodePort: 30803
+    port: 30803
+    protocol: TCP
+    targetPort: 30803
+  - name: head-004
+    nodePort: 30804
+    port: 30804
+    protocol: TCP
+    targetPort: 30804
+  - name: head-005
+    nodePort: 30805
+    port: 30805
+    protocol: TCP
+    targetPort: 30805
+  - name: head-006
+    nodePort: 30806
+    port: 30806
+    protocol: TCP
+    targetPort: 30806
+  - name: head-007
+    nodePort: 30807
+    port: 30807
+    protocol: TCP
+    targetPort: 30807
+  - name: head-008
+    nodePort: 30808
+    port: 30808
+    protocol: TCP
+    targetPort: 30808
+  - name: head-009
+    nodePort: 30809
+    port: 30809
+    protocol: TCP
+    targetPort: 30809
+  - name: head-010
+    nodePort: 30810
+    port: 30810
+    protocol: TCP
+    targetPort: 30810
+  - name: head-011
+    nodePort: 30811
+    port: 30811
+    protocol: TCP
+    targetPort: 30811
+  - name: head-012
+    nodePort: 30812
+    port: 30812
+    protocol: TCP
+    targetPort: 30812
+  - name: head-013
+    nodePort: 30813
+    port: 30813
+    protocol: TCP
+    targetPort: 30813
+  - name: head-014
+    nodePort: 30814
+    port: 30814
+    protocol: TCP
+    targetPort: 30814
+  - name: head-015
+    nodePort: 30815
+    port: 30815
+    protocol: TCP
+    targetPort: 30815
+  - name: head-016
+    nodePort: 30816
+    port: 30816
+    protocol: TCP
+    targetPort: 30816
+  - name: head-017
+    nodePort: 30817
+    port: 30817
+    protocol: TCP
+    targetPort: 30817
+  - name: head-018
+    nodePort: 30818
+    port: 30818
+    protocol: TCP
+    targetPort: 30818
+  - name: head-019
+    nodePort: 30819
+    port: 30819
+    protocol: TCP
+    targetPort: 30819
+  - name: head-020
+    nodePort: 30820
+    port: 30820
+    protocol: TCP
+    targetPort: 30820
+  - name: head-021
+    nodePort: 30821
+    port: 30821
+    protocol: TCP
+    targetPort: 30821
+  - name: head-022
+    nodePort: 30822
+    port: 30822
+    protocol: TCP
+    targetPort: 30822
+  - name: head-023
+    nodePort: 30823
+    port: 30823
+    protocol: TCP
+    targetPort: 30823
+  - name: head-024
+    nodePort: 30824
+    port: 30824
+    protocol: TCP
+    targetPort: 30824
+  - name: head-025
+    nodePort: 30825
+    port: 30825
+    protocol: TCP
+    targetPort: 30825
+  - name: head-026
+    nodePort: 30826
+    port: 30826
+    protocol: TCP
+    targetPort: 30826
+  - name: head-027
+    nodePort: 30827
+    port: 30827
+    protocol: TCP
+    targetPort: 30827
+  - name: head-028
+    nodePort: 30828
+    port: 30828
+    protocol: TCP
+    targetPort: 30828
+  - name: head-029
+    nodePort: 30829
+    port: 30829
+    protocol: TCP
+    targetPort: 30829
+  - name: head-030
+    nodePort: 30830
+    port: 30830
+    protocol: TCP
+    targetPort: 30830
+  - name: head-031
+    nodePort: 30831
+    port: 30831
+    protocol: TCP
+    targetPort: 30831
+  - name: head-032
+    nodePort: 30832
+    port: 30832
+    protocol: TCP
+    targetPort: 30832
+  - name: head-033
+    nodePort: 30833
+    port: 30833
+    protocol: TCP
+    targetPort: 30833
+  - name: head-034
+    nodePort: 30834
+    port: 30834
+    protocol: TCP
+    targetPort: 30834
+  - name: head-035
+    nodePort: 30835
+    port: 30835
+    protocol: TCP
+    targetPort: 30835
+  - name: head-036
+    nodePort: 30836
+    port: 30836
+    protocol: TCP
+    targetPort: 30836
+  - name: head-037
+    nodePort: 30837
+    port: 30837
+    protocol: TCP
+    targetPort: 30837
+  - name: head-038
+    nodePort: 30838
+    port: 30838
+    protocol: TCP
+    targetPort: 30838
+  - name: head-039
+    nodePort: 30839
+    port: 30839
+    protocol: TCP
+    targetPort: 30839
+  - name: head-040
+    nodePort: 30840
+    port: 30840
+    protocol: TCP
+    targetPort: 30840
+  - name: head-041
+    nodePort: 30841
+    port: 30841
+    protocol: TCP
+    targetPort: 30841
+  - name: head-042
+    nodePort: 30842
+    port: 30842
+    protocol: TCP
+    targetPort: 30842
+  - name: head-043
+    nodePort: 30843
+    port: 30843
+    protocol: TCP
+    targetPort: 30843
+  - name: head-044
+    nodePort: 30844
+    port: 30844
+    protocol: TCP
+    targetPort: 30844
+  - name: head-045
+    nodePort: 30845
+    port: 30845
+    protocol: TCP
+    targetPort: 30845
+  - name: head-046
+    nodePort: 30846
+    port: 30846
+    protocol: TCP
+    targetPort: 30846
+  - name: head-047
+    nodePort: 30847
+    port: 30847
+    protocol: TCP
+    targetPort: 30847
+  - name: head-048
+    nodePort: 30848
+    port: 30848
+    protocol: TCP
+    targetPort: 30848
+  - name: head-049
+    nodePort: 30849
+    port: 30849
+    protocol: TCP
+    targetPort: 30849
+  - name: head-050
+    nodePort: 30850
+    port: 30850
+    protocol: TCP
+    targetPort: 30850
+  - name: head-051
+    nodePort: 30851
+    port: 30851
+    protocol: TCP
+    targetPort: 30851
+  - name: head-052
+    nodePort: 30852
+    port: 30852
+    protocol: TCP
+    targetPort: 30852
+  - name: head-053
+    nodePort: 30853
+    port: 30853
+    protocol: TCP
+    targetPort: 30853
+  - name: head-054
+    nodePort: 30854
+    port: 30854
+    protocol: TCP
+    targetPort: 30854
+  - name: head-055
+    nodePort: 30855
+    port: 30855
+    protocol: TCP
+    targetPort: 30855
+  - name: head-056
+    nodePort: 30856
+    port: 30856
+    protocol: TCP
+    targetPort: 30856
+  - name: head-057
+    nodePort: 30857
+    port: 30857
+    protocol: TCP
+    targetPort: 30857
+  - name: head-058
+    nodePort: 30858
+    port: 30858
+    protocol: TCP
+    targetPort: 30858
+  - name: head-059
+    nodePort: 30859
+    port: 30859
+    protocol: TCP
+    targetPort: 30859
+  - name: head-060
+    nodePort: 30860
+    port: 30860
+    protocol: TCP
+    targetPort: 30860
+  - name: head-061
+    nodePort: 30861
+    port: 30861
+    protocol: TCP
+    targetPort: 30861
+  - name: head-062
+    nodePort: 30862
+    port: 30862
+    protocol: TCP
+    targetPort: 30862
+  - name: head-063
+    nodePort: 30863
+    port: 30863
+    protocol: TCP
+    targetPort: 30863
+  - name: head-064
+    nodePort: 30864
+    port: 30864
+    protocol: TCP
+    targetPort: 30864
+  - name: head-065
+    nodePort: 30865
+    port: 30865
+    protocol: TCP
+    targetPort: 30865
+  - name: head-066
+    nodePort: 30866
+    port: 30866
+    protocol: TCP
+    targetPort: 30866
+  - name: head-067
+    nodePort: 30867
+    port: 30867
+    protocol: TCP
+    targetPort: 30867
+  - name: head-068
+    nodePort: 30868
+    port: 30868
+    protocol: TCP
+    targetPort: 30868
+  - name: head-069
+    nodePort: 30869
+    port: 30869
+    protocol: TCP
+    targetPort: 30869
+  - name: head-070
+    nodePort: 30870
+    port: 30870
+    protocol: TCP
+    targetPort: 30870
+  - name: head-071
+    nodePort: 30871
+    port: 30871
+    protocol: TCP
+    targetPort: 30871
+  - name: head-072
+    nodePort: 30872
+    port: 30872
+    protocol: TCP
+    targetPort: 30872
+  - name: head-073
+    nodePort: 30873
+    port: 30873
+    protocol: TCP
+    targetPort: 30873
+  - name: head-074
+    nodePort: 30874
+    port: 30874
+    protocol: TCP
+    targetPort: 30874
+  - name: head-075
+    nodePort: 30875
+    port: 30875
+    protocol: TCP
+    targetPort: 30875
+  - name: head-076
+    nodePort: 30876
+    port: 30876
+    protocol: TCP
+    targetPort: 30876
+  - name: head-077
+    nodePort: 30877
+    port: 30877
+    protocol: TCP
+    targetPort: 30877
+  - name: head-078
+    nodePort: 30878
+    port: 30878
+    protocol: TCP
+    targetPort: 30878
+  - name: head-079
+    nodePort: 30879
+    port: 30879
+    protocol: TCP
+    targetPort: 30879
+  - name: head-080
+    nodePort: 30880
+    port: 30880
+    protocol: TCP
+    targetPort: 30880
+  - name: head-081
+    nodePort: 30881
+    port: 30881
+    protocol: TCP
+    targetPort: 30881
+  - name: head-082
+    nodePort: 30882
+    port: 30882
+    protocol: TCP
+    targetPort: 30882
+  - name: head-083
+    nodePort: 30883
+    port: 30883
+    protocol: TCP
+    targetPort: 30883
+  - name: head-084
+    nodePort: 30884
+    port: 30884
+    protocol: TCP
+    targetPort: 30884
+  - name: head-085
+    nodePort: 30885
+    port: 30885
+    protocol: TCP
+    targetPort: 30885
+  - name: head-086
+    nodePort: 30886
+    port: 30886
+    protocol: TCP
+    targetPort: 30886
+  - name: head-087
+    nodePort: 30887
+    port: 30887
+    protocol: TCP
+    targetPort: 30887
+  - name: head-088
+    nodePort: 30888
+    port: 30888
+    protocol: TCP
+    targetPort: 30888
+  - name: head-089
+    nodePort: 30889
+    port: 30889
+    protocol: TCP
+    targetPort: 30889
+  - name: head-090
+    nodePort: 30890
+    port: 30890
+    protocol: TCP
+    targetPort: 30890
+  - name: head-091
+    nodePort: 30891
+    port: 30891
+    protocol: TCP
+    targetPort: 30891
+  - name: head-092
+    nodePort: 30892
+    port: 30892
+    protocol: TCP
+    targetPort: 30892
+  - name: head-093
+    nodePort: 30893
+    port: 30893
+    protocol: TCP
+    targetPort: 30893
+  - name: head-094
+    nodePort: 30894
+    port: 30894
+    protocol: TCP
+    targetPort: 30894
+  - name: head-095
+    nodePort: 30895
+    port: 30895
+    protocol: TCP
+    targetPort: 30895
+  - name: head-096
+    nodePort: 30896
+    port: 30896
+    protocol: TCP
+    targetPort: 30896
+  - name: head-097
+    nodePort: 30897
+    port: 30897
+    protocol: TCP
+    targetPort: 30897
+  - name: head-098
+    nodePort: 30898
+    port: 30898
+    protocol: TCP
+    targetPort: 30898
+  - name: head-099
+    nodePort: 30899
+    port: 30899
+    protocol: TCP
+    targetPort: 30899
+  - name: head-100
+    nodePort: 30900
+    port: 30900
+    protocol: TCP
+    targetPort: 30900
+  - name: head-101
+    nodePort: 30901
+    port: 30901
+    protocol: TCP
+    targetPort: 30901
+  - name: head-102
+    nodePort: 30902
+    port: 30902
+    protocol: TCP
+    targetPort: 30902
+  - name: head-103
+    nodePort: 30903
+    port: 30903
+    protocol: TCP
+    targetPort: 30903
+  - name: head-104
+    nodePort: 30904
+    port: 30904
+    protocol: TCP
+    targetPort: 30904
+  - name: head-105
+    nodePort: 30905
+    port: 30905
+    protocol: TCP
+    targetPort: 30905
+  - name: head-106
+    nodePort: 30906
+    port: 30906
+    protocol: TCP
+    targetPort: 30906
+  - name: head-107
+    nodePort: 30907
+    port: 30907
+    protocol: TCP
+    targetPort: 30907
+  - name: head-108
+    nodePort: 30908
+    port: 30908
+    protocol: TCP
+    targetPort: 30908
+  - name: head-109
+    nodePort: 30909
+    port: 30909
+    protocol: TCP
+    targetPort: 30909
+  - name: head-110
+    nodePort: 30910
+    port: 30910
+    protocol: TCP
+    targetPort: 30910
+  - name: head-111
+    nodePort: 30911
+    port: 30911
+    protocol: TCP
+    targetPort: 30911
+  - name: head-112
+    nodePort: 30912
+    port: 30912
+    protocol: TCP
+    targetPort: 30912
+  - name: head-113
+    nodePort: 30913
+    port: 30913
+    protocol: TCP
+    targetPort: 30913
+  - name: head-114
+    nodePort: 30914
+    port: 30914
+    protocol: TCP
+    targetPort: 30914
+  - name: head-115
+    nodePort: 30915
+    port: 30915
+    protocol: TCP
+    targetPort: 30915
+  - name: head-116
+    nodePort: 30916
+    port: 30916
+    protocol: TCP
+    targetPort: 30916
+  - name: head-117
+    nodePort: 30917
+    port: 30917
+    protocol: TCP
+    targetPort: 30917
+  - name: head-118
+    nodePort: 30918
+    port: 30918
+    protocol: TCP
+    targetPort: 30918
+  - name: head-119
+    nodePort: 30919
+    port: 30919
+    protocol: TCP
+    targetPort: 30919
+  - name: head-120
+    nodePort: 30920
+    port: 30920
+    protocol: TCP
+    targetPort: 30920
+  - name: head-121
+    nodePort: 30921
+    port: 30921
+    protocol: TCP
+    targetPort: 30921
+  - name: head-122
+    nodePort: 30922
+    port: 30922
+    protocol: TCP
+    targetPort: 30922
+  - name: head-123
+    nodePort: 30923
+    port: 30923
+    protocol: TCP
+    targetPort: 30923
+  - name: head-124
+    nodePort: 30924
+    port: 30924
+    protocol: TCP
+    targetPort: 30924
+  - name: head-125
+    nodePort: 30925
+    port: 30925
+    protocol: TCP
+    targetPort: 30925
+  - name: head-126
+    nodePort: 30926
+    port: 30926
+    protocol: TCP
+    targetPort: 30926
+  - name: head-127
+    nodePort: 30927
+    port: 30927
+    protocol: TCP
+    targetPort: 30927
+  - name: head-128
+    nodePort: 30928
+    port: 30928
+    protocol: TCP
+    targetPort: 30928
+  - name: head-129
+    nodePort: 30929
+    port: 30929
+    protocol: TCP
+    targetPort: 30929
+  - name: head-130
+    nodePort: 30930
+    port: 30930
+    protocol: TCP
+    targetPort: 30930
+  - name: head-131
+    nodePort: 30931
+    port: 30931
+    protocol: TCP
+    targetPort: 30931
+  - name: head-132
+    nodePort: 30932
+    port: 30932
+    protocol: TCP
+    targetPort: 30932
+  - name: head-133
+    nodePort: 30933
+    port: 30933
+    protocol: TCP
+    targetPort: 30933
+  - name: head-134
+    nodePort: 30934
+    port: 30934
+    protocol: TCP
+    targetPort: 30934
+  - name: head-135
+    nodePort: 30935
+    port: 30935
+    protocol: TCP
+    targetPort: 30935
+  - name: head-136
+    nodePort: 30936
+    port: 30936
+    protocol: TCP
+    targetPort: 30936
+  - name: head-137
+    nodePort: 30937
+    port: 30937
+    protocol: TCP
+    targetPort: 30937
+  - name: head-138
+    nodePort: 30938
+    port: 30938
+    protocol: TCP
+    targetPort: 30938
+  - name: head-139
+    nodePort: 30939
+    port: 30939
+    protocol: TCP
+    targetPort: 30939
+  - name: head-140
+    nodePort: 30940
+    port: 30940
+    protocol: TCP
+    targetPort: 30940
+  - name: head-141
+    nodePort: 30941
+    port: 30941
+    protocol: TCP
+    targetPort: 30941
+  - name: head-142
+    nodePort: 30942
+    port: 30942
+    protocol: TCP
+    targetPort: 30942
+  - name: head-143
+    nodePort: 30943
+    port: 30943
+    protocol: TCP
+    targetPort: 30943
+  - name: head-144
+    nodePort: 30944
+    port: 30944
+    protocol: TCP
+    targetPort: 30944
+  - name: head-145
+    nodePort: 30945
+    port: 30945
+    protocol: TCP
+    targetPort: 30945
+  - name: head-146
+    nodePort: 30946
+    port: 30946
+    protocol: TCP
+    targetPort: 30946
+  - name: head-147
+    nodePort: 30947
+    port: 30947
+    protocol: TCP
+    targetPort: 30947
+  - name: head-148
+    nodePort: 30948
+    port: 30948
+    protocol: TCP
+    targetPort: 30948
+  - name: head-149
+    nodePort: 30949
+    port: 30949
+    protocol: TCP
+    targetPort: 30949
+  - name: head-150
+    nodePort: 30950
+    port: 30950
+    protocol: TCP
+    targetPort: 30950
+  - name: head-151
+    nodePort: 30951
+    port: 30951
+    protocol: TCP
+    targetPort: 30951
+  - name: head-152
+    nodePort: 30952
+    port: 30952
+    protocol: TCP
+    targetPort: 30952
+  - name: head-153
+    nodePort: 30953
+    port: 30953
+    protocol: TCP
+    targetPort: 30953
+  - name: head-154
+    nodePort: 30954
+    port: 30954
+    protocol: TCP
+    targetPort: 30954
+  - name: head-155
+    nodePort: 30955
+    port: 30955
+    protocol: TCP
+    targetPort: 30955
+  - name: head-156
+    nodePort: 30956
+    port: 30956
+    protocol: TCP
+    targetPort: 30956
+  - name: head-157
+    nodePort: 30957
+    port: 30957
+    protocol: TCP
+    targetPort: 30957
+  - name: head-158
+    nodePort: 30958
+    port: 30958
+    protocol: TCP
+    targetPort: 30958
+  - name: head-159
+    nodePort: 30959
+    port: 30959
+    protocol: TCP
+    targetPort: 30959
+  - name: head-160
+    nodePort: 30960
+    port: 30960
+    protocol: TCP
+    targetPort: 30960
+  - name: head-161
+    nodePort: 30961
+    port: 30961
+    protocol: TCP
+    targetPort: 30961
+  - name: head-162
+    nodePort: 30962
+    port: 30962
+    protocol: TCP
+    targetPort: 30962
+  - name: head-163
+    nodePort: 30963
+    port: 30963
+    protocol: TCP
+    targetPort: 30963
+  - name: head-164
+    nodePort: 30964
+    port: 30964
+    protocol: TCP
+    targetPort: 30964
+  - name: head-165
+    nodePort: 30965
+    port: 30965
+    protocol: TCP
+    targetPort: 30965
+  - name: head-166
+    nodePort: 30966
+    port: 30966
+    protocol: TCP
+    targetPort: 30966
+  - name: head-167
+    nodePort: 30967
+    port: 30967
+    protocol: TCP
+    targetPort: 30967
+  - name: head-168
+    nodePort: 30968
+    port: 30968
+    protocol: TCP
+    targetPort: 30968
+  - name: head-169
+    nodePort: 30969
+    port: 30969
+    protocol: TCP
+    targetPort: 30969
+  - name: head-170
+    nodePort: 30970
+    port: 30970
+    protocol: TCP
+    targetPort: 30970
+  - name: head-171
+    nodePort: 30971
+    port: 30971
+    protocol: TCP
+    targetPort: 30971
+  - name: head-172
+    nodePort: 30972
+    port: 30972
+    protocol: TCP
+    targetPort: 30972
+  - name: head-173
+    nodePort: 30973
+    port: 30973
+    protocol: TCP
+    targetPort: 30973
+  - name: head-174
+    nodePort: 30974
+    port: 30974
+    protocol: TCP
+    targetPort: 30974
+  - name: head-175
+    nodePort: 30975
+    port: 30975
+    protocol: TCP
+    targetPort: 30975
+  - name: head-176
+    nodePort: 30976
+    port: 30976
+    protocol: TCP
+    targetPort: 30976
+  - name: head-177
+    nodePort: 30977
+    port: 30977
+    protocol: TCP
+    targetPort: 30977
+  - name: head-178
+    nodePort: 30978
+    port: 30978
+    protocol: TCP
+    targetPort: 30978
+  - name: head-179
+    nodePort: 30979
+    port: 30979
+    protocol: TCP
+    targetPort: 30979
+  - name: head-180
+    nodePort: 30980
+    port: 30980
+    protocol: TCP
+    targetPort: 30980
+  - name: head-181
+    nodePort: 30981
+    port: 30981
+    protocol: TCP
+    targetPort: 30981
+  - name: head-182
+    nodePort: 30982
+    port: 30982
+    protocol: TCP
+    targetPort: 30982
+  - name: head-183
+    nodePort: 30983
+    port: 30983
+    protocol: TCP
+    targetPort: 30983
+  - name: head-184
+    nodePort: 30984
+    port: 30984
+    protocol: TCP
+    targetPort: 30984
+  - name: head-185
+    nodePort: 30985
+    port: 30985
+    protocol: TCP
+    targetPort: 30985
+  - name: head-186
+    nodePort: 30986
+    port: 30986
+    protocol: TCP
+    targetPort: 30986
+  - name: head-187
+    nodePort: 30987
+    port: 30987
+    protocol: TCP
+    targetPort: 30987
+  - name: head-188
+    nodePort: 30988
+    port: 30988
+    protocol: TCP
+    targetPort: 30988
+  - name: head-189
+    nodePort: 30989
+    port: 30989
+    protocol: TCP
+    targetPort: 30989
+  - name: head-190
+    nodePort: 30990
+    port: 30990
+    protocol: TCP
+    targetPort: 30990
+  - name: head-191
+    nodePort: 30991
+    port: 30991
+    protocol: TCP
+    targetPort: 30991
+  - name: head-192
+    nodePort: 30992
+    port: 30992
+    protocol: TCP
+    targetPort: 30992
+  - name: head-193
+    nodePort: 30993
+    port: 30993
+    protocol: TCP
+    targetPort: 30993
+  - name: head-194
+    nodePort: 30994
+    port: 30994
+    protocol: TCP
+    targetPort: 30994
+  - name: head-195
+    nodePort: 30995
+    port: 30995
+    protocol: TCP
+    targetPort: 30995
+  - name: head-196
+    nodePort: 30996
+    port: 30996
+    protocol: TCP
+    targetPort: 30996
+  - name: head-197
+    nodePort: 30997
+    port: 30997
+    protocol: TCP
+    targetPort: 30997
+  - name: head-198
+    nodePort: 30998
+    port: 30998
+    protocol: TCP
+    targetPort: 30998
+  - name: head-199
+    nodePort: 30999
+    port: 30999
+    protocol: TCP
+    targetPort: 30999
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: euclid
+  name: euclid-loadbalancer-service
+  namespace: hydra-boosters
+spec:
+  selector:
+    app: euclid
+  sessionAffinity: None
+  type: LoadBalancer
+  ports:
+  - port: 8888
+    protocol: TCP
+    targetPort: 8888
