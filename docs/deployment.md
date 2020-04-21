@@ -11,14 +11,14 @@ There are the environment variables that can be tweaked to affect the deployment
 * `HYDRA_PORT_BEGIN` - controls the port that Hydra heads listen on. Each head is allocated a port sequentially beginning from the port specified here. See [Cluster Setup](#cluster-setup) below for what this value should be for each Hydra
 * `HYDRA_IDGEN_ADDR` - the address of a Hydra HTTP API server that provides the `/idgen/*` endpoints. In the current deployment, Alasybil acts as the idgen server and the other nodes obtain their Peer IDs from it.
 
-These environment variables are not yet used in production but will be soon (and possibly by the time you read this).
+These environment variables are not yet used in production but will be soon (and possibly by the time you read this):
 
 * `HYDRA_DB` - a PostgreSQL database connection string that can be shared by all Hydras in the swarm.
 * `HYDRA_DISABLE_PROV_GC` - disables provider record garbage collection (when used in combination with `HYDRA_DB` it should be `true` on all but one Hydra).
 
 ## Cluster setup
 
-We have one _cluster_  in `us-central1-c` with a _deployment_ for each Hydra. Deployments have a application name picked from http://www.petnames.net/unusual-pet-names.html and live in the `hydra-boosters` namespace. Each deployment has _one pod_ and a `NodePort` service that forwards external ports to internal ports on the pod.
+We have one _cluster_  in DigitalOcean's `SFO2` region with a _deployment_ for each Hydra. Deployments have a application name picked from [petnames.net](http://www.petnames.net/unusual-pet-names.html) and live in the `hydra-boosters` namespace. Each deployment has _one pod_ and a `NodePort` service that forwards external ports to internal ports on the pod.
 
 This [blog post](https://medium.com/google-cloud/kubernetes-nodeport-vs-loadbalancer-vs-ingress-when-should-i-use-what-922f010849e0) has some good info and diagrams on the differences between the different types of "services" that Kubernetes has.
 
