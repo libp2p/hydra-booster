@@ -19,7 +19,7 @@ require (
 	github.com/libp2p/go-libp2p-circuit v0.2.1
 	github.com/libp2p/go-libp2p-connmgr v0.2.1
 	github.com/libp2p/go-libp2p-core v0.5.1
-	github.com/libp2p/go-libp2p-kad-dht v0.7.5
+	github.com/libp2p/go-libp2p-kad-dht v0.7.6
 	github.com/libp2p/go-libp2p-kbucket v0.4.1
 	github.com/libp2p/go-libp2p-record v0.1.2
 	github.com/multiformats/go-base32 v0.0.3
@@ -32,7 +32,6 @@ require (
 
 replace (
 	github.com/hnlq715/golang-lru => github.com/alanshaw/golang-lru v0.2.1-0.20200421095802-22ff8c8eb84c
-	github.com/libp2p/go-libp2p-kad-dht => github.com/alanshaw/go-libp2p-kad-dht v0.7.5-0.20200421085313-1d696d1ea201
 )
 
 go 1.13
