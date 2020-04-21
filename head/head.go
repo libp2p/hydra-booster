@@ -91,7 +91,7 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		return nil, nil, fmt.Errorf("failed to spawn libp2p node: %w", err)
 	}
 
-	o := []dht.Option{
+	dhtOpts := []dht.Option{
 		dht.Mode(dht.ModeServer),
 		dht.ProtocolPrefix(cfg.ProtocolPrefix),
 		dht.BucketSize(cfg.BucketSize),
@@ -106,13 +106,13 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 
 	if cfg.DisableProvGC {
 		cache, _ := simplelru.NewLRUWithExpire(provCacheSize, provCacheExpiry, nil)
-		o = append(o, dht.ProvidersOptions([]providers.Option{
+		dhtOpts = append(dhtOpts, dht.ProvidersOptions([]providers.Option{
 			providers.CleanupInterval(provDisabledGCInterval),
 			providers.Cache(cache),
 		}))
 	}
 
-	dhtNode, err := dht.New(ctx, node, o...)
+	dhtNode, err := dht.New(ctx, node, dhtOpts...)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to instantiate DHT: %w", err)
 	}

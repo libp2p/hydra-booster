@@ -113,7 +113,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		fmt.Fprintf(os.Stderr, ".")
 
 		addr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", options.GetPort()))
-		o := []opts.Option{
+		hdOpts := []opts.Option{
 			opts.Datastore(ds),
 			opts.Addr(addr),
 			opts.EnableRelay(options.EnableRelay),
@@ -125,10 +125,10 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 
 		// only the first head should GC, or none of them if it's disabled
 		if options.DisableProvGC || i > 0 {
-			o = append(o, opts.DisableProvGC(true))
+			hdOpts = append(hdOpts, opts.DisableProvGC(true))
 		}
 
-		hd, bsCh, err := head.NewHead(ctx, o...)
+		hd, bsCh, err := head.NewHead(ctx, hdOpts...)
 		if err != nil {
 			return nil, fmt.Errorf("failed to spawn node with swarm address %v: %w", addr, err)
 		}
