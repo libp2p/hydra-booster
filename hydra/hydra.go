@@ -54,9 +54,10 @@ type Options struct {
 	ProtocolPrefix protocol.ID
 	BucketSize     int
 	BsCon          int
-	Relay          bool
+	EnableRelay    bool
 	Stagger        time.Duration
 	IDGenerator    idgen.IdentityGenerator
+	DisableProvGC  bool
 }
 
 // NewHydra creates a new Hydra with the passed options.
@@ -112,16 +113,22 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		fmt.Fprintf(os.Stderr, ".")
 
 		addr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", options.GetPort()))
-		hd, bsCh, err := head.NewHead(
-			ctx,
+		o := []opts.Option{
 			opts.Datastore(ds),
 			opts.Addr(addr),
-			opts.Relay(options.Relay),
+			opts.EnableRelay(options.EnableRelay),
 			opts.ProtocolPrefix(options.ProtocolPrefix),
 			opts.BucketSize(options.BucketSize),
 			opts.Limiter(limiter),
 			opts.IDGenerator(options.IDGenerator),
-		)
+		}
+
+		// only the first head should GC, or none of them if it's disabled
+		if options.DisableProvGC || i > 0 {
+			o = append(o, opts.DisableProvGC(true))
+		}
+
+		hd, bsCh, err := head.NewHead(ctx, o...)
 		if err != nil {
 			return nil, fmt.Errorf("failed to spawn node with swarm address %v: %w", addr, err)
 		}

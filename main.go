@@ -39,7 +39,7 @@ func main() {
 	httpAPIAddr := flag.String("httpapi-addr", defaultHTTPAPIAddr, "Specify an IP and port to run prometheus metrics and pprof http server on")
 	inmem := flag.Bool("mem", false, "Use an in-memory database. This overrides the -db option")
 	metricsAddr := flag.String("metrics-addr", defaultMetricsAddr, "Specify an IP and port to run prometheus metrics and pprof http server on")
-	relay := flag.Bool("relay", false, "Enable libp2p circuit relaying for this node")
+	enableRelay := flag.Bool("enable-relay", false, "Enable libp2p circuit relaying for this node")
 	portBegin := flag.Int("port-begin", -1, "If set, begin port allocation here")
 	protocolPrefix := flag.String("protocol-prefix", string(dht.DefaultPrefix), "Specify the DHT protocol prefix (default \"/ipfs\")")
 	bucketSize := flag.Int("bucket-size", defaultBucketSize, "Specify the bucket size, note that for some protocols this must be a specific value i.e. for \"/ipfs\" it MUST be 20")
@@ -48,6 +48,7 @@ func main() {
 	uiTheme := flag.String("ui-theme", "default", "UI theme, \"gooey\", \"logey\" or \"none\" (default \"gooey\" for 1 head otherwise \"logey\")")
 	name := flag.String("name", "", "A name for the Hydra (for use in metrics)")
 	idgenAddr := flag.String("idgen-addr", "", "Address of an idgen HTTP API endpoint to use for generating private keys for heads")
+	disableProvGC := flag.Bool("disable-prov-gc", false, "Disable provider record garbage collection (default false).")
 	flag.Parse()
 
 	if *inmem {
@@ -58,21 +59,20 @@ func main() {
 			*dbpath = "hydra-belly"
 		}
 	}
-
 	if *nheads == -1 {
 		*nheads = mustGetEnvInt("HYDRA_NHEADS", 1)
 	}
-
 	if *portBegin == -1 {
 		*portBegin = mustGetEnvInt("HYDRA_PORT_BEGIN", 0)
 	}
-
 	if *name == "" {
 		*name = os.Getenv("HYDRA_NAME")
 	}
-
 	if *idgenAddr == "" {
 		*idgenAddr = os.Getenv("HYDRA_IDGEN_ADDR")
+	}
+	if *disableProvGC == false {
+		*disableProvGC = mustGetEnvBool("HYDRA_DISABLE_PROV_GC", false)
 	}
 
 	// Allow short keys. Otherwise, we'll refuse connections from the bootsrappers and break the network.
@@ -100,7 +100,7 @@ func main() {
 	opts := hydra.Options{
 		Name:           *name,
 		DatastorePath:  *dbpath,
-		Relay:          *relay,
+		EnableRelay:    *enableRelay,
 		ProtocolPrefix: protocol.ID(*protocolPrefix),
 		BucketSize:     *bucketSize,
 		GetPort:        utils.PortSelector(*portBegin),
@@ -108,6 +108,7 @@ func main() {
 		BsCon:          *bootstrapConcurrency,
 		Stagger:        *stagger,
 		IDGenerator:    idGenerator,
+		DisableProvGC:  *disableProvGC,
 	}
 
 	go func() {
@@ -165,6 +166,17 @@ func mustGetEnvInt(key string, def int) int {
 		return def
 	}
 	val, err := strconv.Atoi(os.Getenv(key))
+	if err != nil {
+		log.Fatalln(fmt.Errorf("invalid %s env value: %w", key, err))
+	}
+	return val
+}
+
+func mustGetEnvBool(key string, def bool) bool {
+	if os.Getenv(key) == "" {
+		return def
+	}
+	val, err := strconv.ParseBool(os.Getenv(key))
 	if err != nil {
 		log.Fatalln(fmt.Errorf("invalid %s env value: %w", key, err))
 	}
