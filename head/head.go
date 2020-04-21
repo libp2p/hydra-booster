@@ -25,11 +25,14 @@ import (
 	"github.com/multiformats/go-multiaddr"
 )
 
-const lowWater = 1500
-const highWater = 2000
-const gracePeriod = time.Minute
-const provDisabledGCInterval = time.Hour * 24 * 365 * 100 // set really high to be "disabled"
-const provCacheExpiry = time.Hour
+const (
+	lowWater               = 1500
+	highWater              = 2000
+	gracePeriod            = time.Minute
+	provDisabledGCInterval = time.Hour * 24 * 365 * 100 // set really high to be "disabled"
+	provCacheSize          = 256
+	provCacheExpiry        = time.Hour
+)
 
 func randBootstrapAddr(bootstrapPeers []multiaddr.Multiaddr) (*peer.AddrInfo, error) {
 	addr := bootstrapPeers[rand.Intn(len(bootstrapPeers))]
@@ -102,7 +105,7 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 	}
 
 	if cfg.DisableProvGC {
-		cache, _ := simplelru.NewLRUWithExpire(256, provCacheExpiry, nil)
+		cache, _ := simplelru.NewLRUWithExpire(provCacheSize, provCacheExpiry, nil)
 		o = append(o, dht.ProvidersOptions([]providers.Option{
 			providers.CleanupInterval(provDisabledGCInterval),
 			providers.Cache(cache),
