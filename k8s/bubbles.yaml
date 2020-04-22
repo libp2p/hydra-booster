@@ -1321,6 +1321,7 @@ spec:
   type: LoadBalancer
   ports:
   - port: 8888
+    nodePort: 32612
     protocol: TCP
     targetPort: 8888
   
