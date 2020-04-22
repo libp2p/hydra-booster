@@ -60,3 +60,23 @@ func TestGetUniquePeersCount(t *testing.T) {
 		t.Fatal("expected unique peers count to be greater than 0")
 	}
 }
+
+func TestSpawnHydraWithCustomProtocolPrefix(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hy, err := NewHydra(ctx, Options{
+		NHeads:           2,
+		GetPort:          utils.PortSelector(3000),
+		ProtocolPrefix:   "/myapp",
+		DisableProviders: true,
+		DisableValues:    true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(hy.Heads) != 2 {
+		t.Fatal("expected hydra to spawn 2 heads")
+	}
+}
