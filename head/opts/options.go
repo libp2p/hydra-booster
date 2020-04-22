@@ -16,13 +16,14 @@ import (
 type Options struct {
 	Datastore      ds.Batching
 	RoutingTable   *kbucket.RoutingTable
-	Relay          bool
+	EnableRelay    bool
 	Addr           multiaddr.Multiaddr
 	ProtocolPrefix protocol.ID
 	BucketSize     int
 	Limiter        chan struct{}
 	BootstrapPeers []multiaddr.Multiaddr
 	IDGenerator    idgen.IdentityGenerator
+	DisableProvGC  bool
 }
 
 // Option is the Hydra option type.
@@ -42,7 +43,6 @@ func (o *Options) Apply(opts ...Option) error {
 // prepended to any options you pass to the Hydra constructor.
 var Defaults = func(o *Options) error {
 	o.Datastore = dssync.MutexWrap(ds.NewMapDatastore())
-	o.Relay = false
 	o.Addr, _ = multiaddr.NewMultiaddr("/ip4/0.0.0.0/tcp/0")
 	o.ProtocolPrefix = dht.DefaultPrefix
 	o.BucketSize = 20
@@ -69,11 +69,11 @@ func RoutingTable(rt *kbucket.RoutingTable) Option {
 	}
 }
 
-// Relay configures whether this node acts as a relay node.
+// EnableRelay configures whether this node acts as a relay node.
 // The default value is false.
-func Relay(relay bool) Option {
+func EnableRelay(v bool) Option {
 	return func(o *Options) error {
-		o.Relay = relay
+		o.EnableRelay = v
 		return nil
 	}
 }
@@ -134,6 +134,15 @@ func IDGenerator(g idgen.IdentityGenerator) Option {
 		if g != nil {
 			o.IDGenerator = g
 		}
+		return nil
+	}
+}
+
+// DisableProvGC configures whether this node garbage collects provider records from the shared datastore.
+// The default value is false.
+func DisableProvGC(v bool) Option {
+	return func(o *Options) error {
+		o.DisableProvGC = v
 		return nil
 	}
 }

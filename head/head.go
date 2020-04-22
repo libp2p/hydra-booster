@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/hnlq715/golang-lru/simplelru"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-ipns"
@@ -16,6 +17,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/routing"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
+	"github.com/libp2p/go-libp2p-kad-dht/providers"
 	kbucket "github.com/libp2p/go-libp2p-kbucket"
 	record "github.com/libp2p/go-libp2p-record"
 	"github.com/libp2p/hydra-booster/head/opts"
@@ -23,9 +25,14 @@ import (
 	"github.com/multiformats/go-multiaddr"
 )
 
-const lowWater = 1500
-const highWater = 2000
-const gracePeriod = time.Minute
+const (
+	lowWater               = 1500
+	highWater              = 2000
+	gracePeriod            = time.Minute
+	provDisabledGCInterval = time.Hour * 24 * 365 * 100 // set really high to be "disabled"
+	provCacheSize          = 256
+	provCacheExpiry        = time.Hour
+)
 
 func randBootstrapAddr(bootstrapPeers []multiaddr.Multiaddr) (*peer.AddrInfo, error) {
 	addr := bootstrapPeers[rand.Intn(len(bootstrapPeers))]
@@ -62,7 +69,7 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 	}
 
 	ua := version.UserAgent
-	if cfg.Relay {
+	if cfg.EnableRelay {
 		ua += "+relay"
 	}
 
@@ -75,7 +82,7 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		libp2p.AutoNATServiceRateLimit(0, 3, time.Minute),
 	}
 
-	if cfg.Relay {
+	if cfg.EnableRelay {
 		libp2pOpts = append(libp2pOpts, libp2p.EnableRelay(circuit.OptHop))
 	}
 
@@ -84,9 +91,7 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		return nil, nil, fmt.Errorf("failed to spawn libp2p node: %w", err)
 	}
 
-	dhtNode, err := dht.New(
-		ctx,
-		node,
+	dhtOpts := []dht.Option{
 		dht.Mode(dht.ModeServer),
 		dht.ProtocolPrefix(cfg.ProtocolPrefix),
 		dht.BucketSize(cfg.BucketSize),
@@ -97,7 +102,17 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		}),
 		dht.QueryFilter(dht.PublicQueryFilter),
 		dht.RoutingTableFilter(dht.PublicRoutingTableFilter),
-	)
+	}
+
+	if cfg.DisableProvGC {
+		cache, _ := simplelru.NewLRUWithExpire(provCacheSize, provCacheExpiry, nil)
+		dhtOpts = append(dhtOpts, dht.ProvidersOptions([]providers.Option{
+			providers.CleanupInterval(provDisabledGCInterval),
+			providers.Cache(cache),
+		}))
+	}
+
+	dhtNode, err := dht.New(ctx, node, dhtOpts...)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to instantiate DHT: %w", err)
 	}
