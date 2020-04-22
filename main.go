@@ -31,8 +31,6 @@ const (
 )
 
 func main() {
-	fmt.Fprintf(os.Stderr, "🐉 \033[1mHydra Booster\033[0m starting up...\n")
-
 	start := time.Now()
 	nheads := flag.Int("nheads", -1, "Specify the number of Hydra heads to create.")
 	dbpath := flag.String("db", "", "Datastore directory (for LevelDB store) or postgresql:// connection URI (for PostgreSQL store)")
@@ -49,7 +47,11 @@ func main() {
 	name := flag.String("name", "", "A name for the Hydra (for use in metrics)")
 	idgenAddr := flag.String("idgen-addr", "", "Address of an idgen HTTP API endpoint to use for generating private keys for heads")
 	disableProvGC := flag.Bool("disable-prov-gc", false, "Disable provider record garbage collection (default false).")
+	disableProviders := flag.Bool("disable-providers", false, "Disable storing and retrieving provider records, note that for some protocols, like \"/ipfs\", it MUST be false (default false).")
+	disableValues := flag.Bool("disable-values", false, "Disable storing and retrieving value records, note that for some protocols, like \"/ipfs\", it MUST be false (default false).")
 	flag.Parse()
+
+	fmt.Fprintf(os.Stderr, "🐉 Hydra Booster starting up...\n")
 
 	if *inmem {
 		*dbpath = ""
@@ -98,17 +100,19 @@ func main() {
 	}
 
 	opts := hydra.Options{
-		Name:           *name,
-		DatastorePath:  *dbpath,
-		EnableRelay:    *enableRelay,
-		ProtocolPrefix: protocol.ID(*protocolPrefix),
-		BucketSize:     *bucketSize,
-		GetPort:        utils.PortSelector(*portBegin),
-		NHeads:         *nheads,
-		BsCon:          *bootstrapConcurrency,
-		Stagger:        *stagger,
-		IDGenerator:    idGenerator,
-		DisableProvGC:  *disableProvGC,
+		Name:             *name,
+		DatastorePath:    *dbpath,
+		EnableRelay:      *enableRelay,
+		ProtocolPrefix:   protocol.ID(*protocolPrefix),
+		BucketSize:       *bucketSize,
+		GetPort:          utils.PortSelector(*portBegin),
+		NHeads:           *nheads,
+		BsCon:            *bootstrapConcurrency,
+		Stagger:          *stagger,
+		IDGenerator:      idGenerator,
+		DisableProvGC:    *disableProvGC,
+		DisableProviders: *disableProviders,
+		DisableValues:    *disableValues,
 	}
 
 	go func() {

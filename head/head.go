@@ -96,10 +96,6 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		dht.ProtocolPrefix(cfg.ProtocolPrefix),
 		dht.BucketSize(cfg.BucketSize),
 		dht.Datastore(cfg.Datastore),
-		dht.Validator(record.NamespacedValidator{
-			"pk":   record.PublicKeyValidator{},
-			"ipns": ipns.Validator{KeyBook: node.Peerstore()},
-		}),
 		dht.QueryFilter(dht.PublicQueryFilter),
 		dht.RoutingTableFilter(dht.PublicRoutingTableFilter),
 	}
@@ -110,6 +106,17 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 			providers.CleanupInterval(provDisabledGCInterval),
 			providers.Cache(cache),
 		}))
+	}
+	if cfg.DisableValues {
+		dhtOpts = append(dhtOpts, dht.DisableValues())
+	} else {
+		dhtOpts = append(dhtOpts, dht.Validator(record.NamespacedValidator{
+			"pk":   record.PublicKeyValidator{},
+			"ipns": ipns.Validator{KeyBook: node.Peerstore()},
+		}))
+	}
+	if cfg.DisableProviders {
+		dhtOpts = append(dhtOpts, dht.DisableProviders())
 	}
 
 	dhtNode, err := dht.New(ctx, node, dhtOpts...)

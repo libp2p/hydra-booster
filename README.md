@@ -53,11 +53,71 @@ go run ./main.go -nheads=5
 
 Alternatively you can use the `HYDRA_NHEADS` environment var to specify the number of heads. Note the `-nheads` flag takes precedence.
 
+### Flags
+
+```console
+Usage of hydra-booster:
+  -bootstrap-conc int
+        How many concurrent bootstraps to run (default 32)
+  -bucket-size int
+        Specify the bucket size, note that for some protocols this must be a specific value i.e. for "/ipfs" it MUST be 20 (default 20)
+  -db string
+        Datastore directory (for LevelDB store) or postgresql:// connection URI (for PostgreSQL store)
+  -disable-prov-gc
+        Disable provider record garbage collection (default false).
+  -disable-providers
+        Disable storing and retrieving provider records, note that for some protocols, like "/ipfs", it MUST be false (default false).
+  -disable-values
+        Disable storing and retrieving value records, note that for some protocols, like "/ipfs", it MUST be false (default false).
+  -enable-relay
+        Enable libp2p circuit relaying for this node
+  -httpapi-addr string
+        Specify an IP and port to run prometheus metrics and pprof http server on (default "127.0.0.1:7779")
+  -idgen-addr string
+        Address of an idgen HTTP API endpoint to use for generating private keys for heads
+  -mem
+        Use an in-memory database. This overrides the -db option
+  -metrics-addr string
+        Specify an IP and port to run prometheus metrics and pprof http server on (default "0.0.0.0:8888")
+  -name string
+        A name for the Hydra (for use in metrics)
+  -nheads int
+        Specify the number of Hydra heads to create. (default -1)
+  -port-begin int
+        If set, begin port allocation here (default -1)
+  -protocol-prefix string
+        Specify the DHT protocol prefix (default "/ipfs") (default "/ipfs")
+  -stagger duration
+        Duration to stagger nodes starts by
+  -ui-theme string
+        UI theme, "gooey", "logey" or "none" (default "gooey" for 1 head otherwise "logey")
+```
+
+### Environment variables
+
+Alternatively, some flags can be set via environment variables. Note that flags take precedence over environment variables.
+
+```console
+Usage of hydra-booster:
+  HYDRA_DB string
+        Datastore directory (for LevelDB store) or postgresql:// connection URI (for PostgreSQL store)
+  HYDRA_DISABLE_PROV_GC
+        Disable provider record garbage collection (default false).
+  HYDRA_IDGEN_ADDR string
+        Address of an idgen HTTP API endpoint to use for generating private keys for heads
+  HYDRA_NAME string
+        A name for the Hydra (for use in metrics)
+  HYDRA_NHEADS int
+        Specify the number of Hydra heads to create. (default -1)
+  HYDRA_PORT_BEGIN int
+        If set, begin port allocation here (default -1)
+```
+
 ### Best Practices
 
 Only run a `hydra-booster` on machines with public IP addresses. Having more DHT nodes behind NATs makes DHT queries in general slower, as connecting in generally takes longer and sometimes doesnt even work (resulting in a timeout).
 
-When running with `-nheads`, please make sure to bump the ulimit to something fairly high. Expect ~500 connections per node youre running (so with `-nheads=10`, try setting `ulimit -n 5000`)
+When running with `-nheads`, please make sure to bump the ulimit to something fairly high. Expect ~500 connections per node you're running (so with `-nheads=10`, try setting `ulimit -n 5000`)
 
 ### Running Multiple Hydras
 
@@ -65,6 +125,7 @@ The total number of heads a single Hydra can have depends on the resources of th
 
 * Peer IDs of Hydra heads are balanced in the DHT. When running multiple Hydras it's necessary to designate one of the Hydras to be the "idgen server" and the rest to be "idgen clients" so that all Peer IDs in the Hydra swarm are balanced. Use the `-idgen-addr` flag or `HYDRA_IDGEN_ADDR` environment variable to ensure all Peer IDs in the Hydra swarm are balanced perfectly.
 * A datastore is shared by all Hydra heads but not by all Hydras. Use the `-db` flag or `HYDRA_DB` environment variable to specify a PostgreSQL database connection string that can be shared by all Hydras in the swarm.
+* When sharing a datastore between multiple _Hydras_ ensure only one Hydra in the swarm is performing GC on provider records by using the `-disable-prov-gc` flag or `HYDRA_DISABLE_PROV_GC` environment variable.
 
 ## Developers
 
