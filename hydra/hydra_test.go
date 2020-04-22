@@ -15,6 +15,7 @@ func TestSpawnHydra(t *testing.T) {
 	defer cancel()
 
 	hy, err := NewHydra(ctx, Options{
+		Name:    "Scary",
 		NHeads:  2,
 		GetPort: utils.PortSelector(3000),
 	})
