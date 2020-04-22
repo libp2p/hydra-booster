@@ -95,9 +95,7 @@ Usage of hydra-booster:
 
 ### Environment variables
 
-Alternatively, some flags can be set via environment variables.
-
-Note: flags take precedence over environment variables.
+Alternatively, some flags can be set via environment variables. Note that flags take precedence over environment variables.
 
 ```console
 Usage of hydra-booster:
@@ -105,10 +103,6 @@ Usage of hydra-booster:
         Datastore directory (for LevelDB store) or postgresql:// connection URI (for PostgreSQL store)
   HYDRA_DISABLE_PROV_GC
         Disable provider record garbage collection (default false).
-  HYDRA_DISABLE_PROVIDERS
-        Disable storing and retrieving provider records (default false).
-  HYDRA_DISABLE_VALUES
-        Disable storing and retrieving value records (default false).
   HYDRA_IDGEN_ADDR string
         Address of an idgen HTTP API endpoint to use for generating private keys for heads
   HYDRA_NAME string
@@ -117,8 +111,6 @@ Usage of hydra-booster:
         Specify the number of Hydra heads to create. (default -1)
   HYDRA_PORT_BEGIN int
         If set, begin port allocation here (default -1)
-  HYDRA_PROTOCOL_PREFIX string
-        Specify the DHT protocol prefix (default "/ipfs") (default "/ipfs")
 ```
 
 ### Best Practices

@@ -73,17 +73,8 @@ func main() {
 	if *idgenAddr == "" {
 		*idgenAddr = os.Getenv("HYDRA_IDGEN_ADDR")
 	}
-	if *protocolPrefix == "" {
-		*protocolPrefix = os.Getenv("HYDRA_PROTOCOL_PREFIX")
-	}
 	if *disableProvGC == false {
 		*disableProvGC = mustGetEnvBool("HYDRA_DISABLE_PROV_GC", false)
-	}
-	if *disableProviders == false {
-		*disableProviders = mustGetEnvBool("HYDRA_DISABLE_PROVIDERS", false)
-	}
-	if *disableValues == false {
-		*disableValues = mustGetEnvBool("HYDRA_DISABLE_VALUES", false)
 	}
 
 	// Allow short keys. Otherwise, we'll refuse connections from the bootsrappers and break the network.
