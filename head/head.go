@@ -132,23 +132,40 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 	go func() {
 		// ❓ what is this limiter for?
 		if cfg.Limiter != nil {
-			cfg.Limiter <- struct{}{}
+			select {
+			case cfg.Limiter <- struct{}{}:
+			case <-ctx.Done():
+				return
+			}
 		}
 
 		if len(cfg.BootstrapPeers) > 0 {
 			for {
 				addr, err := randBootstrapAddr(cfg.BootstrapPeers)
 				if err != nil {
-					bsCh <- BootstrapStatus{Err: fmt.Errorf("failed to get random bootstrap multiaddr: %w", err)}
-					continue
+					select {
+					case bsCh <- BootstrapStatus{Err: fmt.Errorf("failed to get random bootstrap multiaddr: %w", err)}:
+						continue
+					case <-ctx.Done():
+						return
+					}
 				}
 				if err := node.Connect(context.Background(), *addr); err != nil {
-					bsCh <- BootstrapStatus{Err: fmt.Errorf("bootstrap connect failed with error: %w. Trying again", err)}
-					continue
+					select {
+					case bsCh <- BootstrapStatus{Err: fmt.Errorf("bootstrap connect failed with error: %w. Trying again", err)}:
+						continue
+					case <-ctx.Done():
+						return
+					}
 				}
 				break
 			}
-			bsCh <- BootstrapStatus{Done: true}
+
+			select {
+			case bsCh <- BootstrapStatus{Done: true}:
+			case <-ctx.Done():
+				return
+			}
 		}
 
 		if cfg.Limiter != nil {
