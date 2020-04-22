@@ -24,3 +24,24 @@ kubectl apply -f k8s/chumpy.yaml
 kubectl apply -f k8s/domino.yaml
 kubectl apply -f k8s/euclid.yaml
 ```
+
+## Updating a deployment
+
+The config uses the latest `libp2p/hydra-booster` image, so if you've tagged an pushed a new version all you need to do is scale down and up each deployment:
+
+```sh
+kubectl scale deployment/alasybil-deployment --replicas=0 -n hydra-boosters
+kubectl scale deployment/alasybil-deployment --replicas=1 -n hydra-boosters
+
+# Pause for Alasybil to scale up (it's the idgen server)
+
+kubectl scale deployment/bubbles-deployment --replicas=0 -n hydra-boosters
+kubectl scale deployment/chumpy-deployment --replicas=0 -n hydra-boosters
+kubectl scale deployment/domino-deployment --replicas=0 -n hydra-boosters
+kubectl scale deployment/euclid-deployment --replicas=0 -n hydra-boosters
+
+kubectl scale deployment/bubbles-deployment --replicas=1 -n hydra-boosters
+kubectl scale deployment/chumpy-deployment --replicas=1 -n hydra-boosters
+kubectl scale deployment/domino-deployment --replicas=1 -n hydra-boosters
+kubectl scale deployment/euclid-deployment --replicas=1 -n hydra-boosters
+```
