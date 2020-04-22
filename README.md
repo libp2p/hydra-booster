@@ -66,9 +66,9 @@ Usage of hydra-booster:
   -disable-prov-gc
         Disable provider record garbage collection (default false).
   -disable-providers
-        Disable storing and retrieving provider records (default false).
+        Disable storing and retrieving provider records, note that for some protocols, like "/ipfs", it MUST be false (default false).
   -disable-values
-        Disable storing and retrieving value records (default false).
+        Disable storing and retrieving value records, note that for some protocols, like "/ipfs", it MUST be false (default false).
   -enable-relay
         Enable libp2p circuit relaying for this node
   -httpapi-addr string
