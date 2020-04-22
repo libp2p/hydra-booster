@@ -9,7 +9,7 @@ require (
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/gorilla/mux v1.7.4
 	github.com/hashicorp/go-multierror v1.1.0
-	github.com/hnlq715/golang-lru v0.2.0
+	github.com/hnlq715/golang-lru v0.2.1-0.20200422024707-82ba7badf9a6
 	github.com/ipfs/go-cid v0.0.5
 	github.com/ipfs/go-datastore v0.4.4
 	github.com/ipfs/go-ds-leveldb v0.4.2
@@ -28,10 +28,6 @@ require (
 	github.com/prometheus/client_golang v1.5.1
 	github.com/whyrusleeping/timecache v0.0.0-20160911033111-cfcb2f1abfee
 	go.opencensus.io v0.22.3
-)
-
-replace (
-	github.com/hnlq715/golang-lru => github.com/alanshaw/golang-lru v0.2.1-0.20200421095802-22ff8c8eb84c
 )
 
 go 1.13
