@@ -28,14 +28,19 @@ Hydra head swarm listening ports are allocated as such:
 
 |          | Port range    |
 | -------- | ------------- |
-| Alasybil | `30000-30199` |
-| Bubbles  | `30200-30399` |
-| Chumpy   | `30400-30599` |
-| Domino   | `30600-30799` |
-| Euclid   | `30800-30999` |
+| Alasybil | `30000-30249` |
+| Bubbles  | `30250-30499` |
+| Chumpy   | `30500-30749` |
+| Domino   | `30750-30999` |
+| Euclid   | `31000-31249` |
+| Flake    | `31250-31499` |
+| Grendel  | `31500-31749` |
+| Hojo     | `31750-31999` |
+| Ibycus   | `32000-32249` |
+| Jetta    | `32250-32499` |
 | ...      | ...           |
 
-This gives us **up to 13 hydras and 2,600 heads per cluster**. It assumes we can run up to 200 heads on a single node. We may want to revist these allocations if the hardware is not capable.
+This gives us **up to 10 hydras and 2,500 heads per cluster** (actually you can have an extra one with 100 heads if you really need it). It assumes we can run up to 250 heads on a single node. We may want to revist these allocations if the hardware is not capable.
 
 Ports `32600-32767` are reserved for misc other services. We currently have 2 per hydra (httpapi and metrics).
 
@@ -48,21 +53,31 @@ Misc service ports are allocated as such:
 | Chumpy   | `32620`       | `32621`      | `32622` |
 | Domino   | `32630`       | `32631`      | `32632` |
 | Euclid   | `32640`       | `32641`      | `32642` |
+| Flake    | `32650`       | `32651`      | `32652` |
+| Grendel  | `32660`       | `32661`      | `32662` |
+| Hojo     | `32670`       | `32671`      | `32672` |
+| Ibycus   | `32680`       | `32681`      | `32682` |
+| Jetta    | `32690`       | `32691`      | `32692` |
 | ...      | ...           | ...          | ...     |
 
 This gives us **up to 10 misc service ports per hydra**.
 
 There is one firewall rule ("Networking" => "Firewalls") that opens up ports `30000-32767` (the ports that `NodePort` allows us to bind to).
 
-We're currently running **5 Hydras** with the following head counts:
+We're currently running **10 Hydras** with the following head counts:
 
 |          | Heads | 
 | -------- | ----- | 
-| Alasybil | `25`  |
-| Bubbles  | `50`  |
-| Chumpy   | `100` |
-| Domino   | `150` |
-| Euclid   | `200` |
+| Alasybil | `250` |
+| Bubbles  | `250` |
+| Chumpy   | `250` |
+| Domino   | `250` |
+| Euclid   | `250` |
+| Flake    | `250` |
+| Grendel  | `250` |
+| Hojo     | `250` |
+| Ibycus   | `250` |
+| Jetta    | `250` |
 | ...      | ...   |
 
 ## Metrics and reporting
@@ -86,7 +101,7 @@ I used the following script to generate the YAML config for the head ports:
 
 ```js
 const begin = 30200
-for (let i = 0; i < 200; i++) {
+for (let i = 0; i < 250; i++) {
   console.log(`  - name: head-${i.toString().padStart(3, '0')}
     port: ${begin + i}
     nodePort: ${begin + i}
