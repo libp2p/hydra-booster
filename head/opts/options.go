@@ -12,21 +12,23 @@ import (
 	"github.com/multiformats/go-multiaddr"
 )
 
-// Options are Hydra Node options
+// Options are Hydra Head options
 type Options struct {
-	Datastore      ds.Batching
-	RoutingTable   *kbucket.RoutingTable
-	EnableRelay    bool
-	Addr           multiaddr.Multiaddr
-	ProtocolPrefix protocol.ID
-	BucketSize     int
-	Limiter        chan struct{}
-	BootstrapPeers []multiaddr.Multiaddr
-	IDGenerator    idgen.IdentityGenerator
-	DisableProvGC  bool
+	Datastore        ds.Batching
+	RoutingTable     *kbucket.RoutingTable
+	EnableRelay      bool
+	Addr             multiaddr.Multiaddr
+	ProtocolPrefix   protocol.ID
+	BucketSize       int
+	Limiter          chan struct{}
+	BootstrapPeers   []multiaddr.Multiaddr
+	IDGenerator      idgen.IdentityGenerator
+	DisableProvGC    bool
+	DisableProviders bool
+	DisableValues    bool
 }
 
-// Option is the Hydra option type.
+// Option is the Hydra Head option type.
 type Option func(*Options) error
 
 // Apply applies the given options to this Option.
@@ -39,8 +41,8 @@ func (o *Options) Apply(opts ...Option) error {
 	return nil
 }
 
-// Defaults are the default Hydra options. This option will be automatically
-// prepended to any options you pass to the Hydra constructor.
+// Defaults are the default Hydra Head options. This option will be automatically
+// prepended to any options you pass to the Hydra Head constructor.
 var Defaults = func(o *Options) error {
 	o.Datastore = dssync.MutexWrap(ds.NewMapDatastore())
 	o.Addr, _ = multiaddr.NewMultiaddr("/ip4/0.0.0.0/tcp/0")
@@ -51,7 +53,7 @@ var Defaults = func(o *Options) error {
 	return nil
 }
 
-// Datastore configures the Hydra Node to use the specified datastore.
+// Datastore configures the Hydra Head to use the specified datastore.
 // Defaults to an in-memory (temporary) map.
 func Datastore(ds ds.Batching) Option {
 	return func(o *Options) error {
@@ -60,7 +62,7 @@ func Datastore(ds ds.Batching) Option {
 	}
 }
 
-// RoutingTable configures the Hydra Node to use the specified routing table.
+// RoutingTable configures the Hydra Head to use the specified routing table.
 // Defaults to the routing table provided by IpfsDHT.
 func RoutingTable(rt *kbucket.RoutingTable) Option {
 	return func(o *Options) error {
@@ -71,9 +73,9 @@ func RoutingTable(rt *kbucket.RoutingTable) Option {
 
 // EnableRelay configures whether this node acts as a relay node.
 // The default value is false.
-func EnableRelay(v bool) Option {
+func EnableRelay() Option {
 	return func(o *Options) error {
-		o.EnableRelay = v
+		o.EnableRelay = true
 		return nil
 	}
 }
@@ -138,11 +140,29 @@ func IDGenerator(g idgen.IdentityGenerator) Option {
 	}
 }
 
-// DisableProvGC configures whether this node garbage collects provider records from the shared datastore.
+// DisableProvGC disables garbage collections of provider records from the shared datastore.
 // The default value is false.
-func DisableProvGC(v bool) Option {
+func DisableProvGC() Option {
 	return func(o *Options) error {
-		o.DisableProvGC = v
+		o.DisableProvGC = true
+		return nil
+	}
+}
+
+// DisableProviders disables storing and retrieving provider records.
+// The default value is false.
+func DisableProviders() Option {
+	return func(o *Options) error {
+		o.DisableProviders = true
+		return nil
+	}
+}
+
+// DisableValues disables storing and retrieving value records (including public keys).
+// The default value is false.
+func DisableValues() Option {
+	return func(o *Options) error {
+		o.DisableValues = true
 		return nil
 	}
 }

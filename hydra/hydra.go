@@ -47,17 +47,19 @@ type Hydra struct {
 
 // Options are configuration for a new hydra.
 type Options struct {
-	Name           string
-	DatastorePath  string
-	GetPort        func() int
-	NHeads         int
-	ProtocolPrefix protocol.ID
-	BucketSize     int
-	BsCon          int
-	EnableRelay    bool
-	Stagger        time.Duration
-	IDGenerator    idgen.IdentityGenerator
-	DisableProvGC  bool
+	Name             string
+	DatastorePath    string
+	GetPort          func() int
+	NHeads           int
+	ProtocolPrefix   protocol.ID
+	BucketSize       int
+	BsCon            int
+	EnableRelay      bool
+	Stagger          time.Duration
+	IDGenerator      idgen.IdentityGenerator
+	DisableProvGC    bool
+	DisableProviders bool
+	DisableValues    bool
 }
 
 // NewHydra creates a new Hydra with the passed options.
@@ -116,16 +118,23 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		hdOpts := []opts.Option{
 			opts.Datastore(ds),
 			opts.Addr(addr),
-			opts.EnableRelay(options.EnableRelay),
 			opts.ProtocolPrefix(options.ProtocolPrefix),
 			opts.BucketSize(options.BucketSize),
 			opts.Limiter(limiter),
 			opts.IDGenerator(options.IDGenerator),
 		}
-
+		if options.EnableRelay {
+			hdOpts = append(hdOpts, opts.EnableRelay())
+		}
 		// only the first head should GC, or none of them if it's disabled
 		if options.DisableProvGC || i > 0 {
-			hdOpts = append(hdOpts, opts.DisableProvGC(true))
+			hdOpts = append(hdOpts, opts.DisableProvGC())
+		}
+		if options.DisableProviders {
+			hdOpts = append(hdOpts, opts.DisableProviders())
+		}
+		if options.DisableValues {
+			hdOpts = append(hdOpts, opts.DisableValues())
 		}
 
 		hd, bsCh, err := head.NewHead(ctx, hdOpts...)

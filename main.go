@@ -31,8 +31,6 @@ const (
 )
 
 func main() {
-	fmt.Fprintf(os.Stderr, "🐉 \033[1mHydra Booster\033[0m starting up...\n")
-
 	start := time.Now()
 	nheads := flag.Int("nheads", -1, "Specify the number of Hydra heads to create.")
 	dbpath := flag.String("db", "", "Datastore directory (for LevelDB store) or postgresql:// connection URI (for PostgreSQL store)")
@@ -49,7 +47,11 @@ func main() {
 	name := flag.String("name", "", "A name for the Hydra (for use in metrics)")
 	idgenAddr := flag.String("idgen-addr", "", "Address of an idgen HTTP API endpoint to use for generating private keys for heads")
 	disableProvGC := flag.Bool("disable-prov-gc", false, "Disable provider record garbage collection (default false).")
+	disableProviders := flag.Bool("disable-providers", false, "Disable storing and retrieving provider records (default false).")
+	disableValues := flag.Bool("disable-values", false, "Disable storing and retrieving value records (default false).")
 	flag.Parse()
+
+	fmt.Fprintf(os.Stderr, "🐉 Hydra Booster starting up...\n")
 
 	if *inmem {
 		*dbpath = ""
@@ -71,8 +73,17 @@ func main() {
 	if *idgenAddr == "" {
 		*idgenAddr = os.Getenv("HYDRA_IDGEN_ADDR")
 	}
+	if *protocolPrefix == "" {
+		*protocolPrefix = os.Getenv("HYDRA_PROTOCOL_PREFIX")
+	}
 	if *disableProvGC == false {
 		*disableProvGC = mustGetEnvBool("HYDRA_DISABLE_PROV_GC", false)
+	}
+	if *disableProviders == false {
+		*disableProviders = mustGetEnvBool("HYDRA_DISABLE_PROVIDERS", false)
+	}
+	if *disableValues == false {
+		*disableValues = mustGetEnvBool("HYDRA_DISABLE_VALUES", false)
 	}
 
 	// Allow short keys. Otherwise, we'll refuse connections from the bootsrappers and break the network.
@@ -98,17 +109,19 @@ func main() {
 	}
 
 	opts := hydra.Options{
-		Name:           *name,
-		DatastorePath:  *dbpath,
-		EnableRelay:    *enableRelay,
-		ProtocolPrefix: protocol.ID(*protocolPrefix),
-		BucketSize:     *bucketSize,
-		GetPort:        utils.PortSelector(*portBegin),
-		NHeads:         *nheads,
-		BsCon:          *bootstrapConcurrency,
-		Stagger:        *stagger,
-		IDGenerator:    idGenerator,
-		DisableProvGC:  *disableProvGC,
+		Name:             *name,
+		DatastorePath:    *dbpath,
+		EnableRelay:      *enableRelay,
+		ProtocolPrefix:   protocol.ID(*protocolPrefix),
+		BucketSize:       *bucketSize,
+		GetPort:          utils.PortSelector(*portBegin),
+		NHeads:           *nheads,
+		BsCon:            *bootstrapConcurrency,
+		Stagger:          *stagger,
+		IDGenerator:      idGenerator,
+		DisableProvGC:    *disableProvGC,
+		DisableProviders: *disableProviders,
+		DisableValues:    *disableValues,
 	}
 
 	go func() {
