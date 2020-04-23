@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"sync"
 	"time"
 
 	"github.com/hnlq715/golang-lru/simplelru"
@@ -147,26 +148,35 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 			}
 		}
 
+		// Connect to all bootstrappers, and protect them.
 		if len(cfg.BootstrapPeers) > 0 {
-			for {
-				addr, err := randBootstrapAddr(cfg.BootstrapPeers)
-				if err != nil {
-					select {
-					case bsCh <- BootstrapStatus{Err: fmt.Errorf("failed to get random bootstrap multiaddr: %w", err)}:
-						continue
-					case <-ctx.Done():
+			var wg sync.WaitGroup
+			wg.Add(len(cfg.BootstrapPeers))
+			for _, addr := range cfg.BootstrapPeers {
+				go func(addr multiaddr.Multiaddr) {
+					defer wg.Done()
+					ai, err := peer.AddrInfoFromP2pAddr(addr)
+					if err != nil {
+						select {
+						case bsCh <- BootstrapStatus{Err: fmt.Errorf("failed to get random bootstrap multiaddr: %w", err)}:
+						case <-ctx.Done():
+						}
 						return
 					}
-				}
-				if err := node.Connect(context.Background(), *addr); err != nil {
-					select {
-					case bsCh <- BootstrapStatus{Err: fmt.Errorf("bootstrap connect failed with error: %w. Trying again", err)}:
-						continue
-					case <-ctx.Done():
+					if err := node.Connect(context.Background(), *ai); err != nil {
+						select {
+						case bsCh <- BootstrapStatus{Err: fmt.Errorf("bootstrap connect failed with error: %w. Trying again", err)}:
+						case <-ctx.Done():
+						}
 						return
 					}
-				}
-				break
+					node.ConnManager().Protect(ai.ID, "bootstrap-peer")
+				}(addr)
+			}
+			wg.Wait()
+
+			if ctx.Err() != nil {
+				return
 			}
 
 			select {
