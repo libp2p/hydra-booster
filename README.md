@@ -59,6 +59,8 @@ Alternatively you can use the `HYDRA_NHEADS` environment var to specify the numb
 Usage of hydra-booster:
   -bootstrap-conc int
         How many concurrent bootstraps to run (default 32)
+  -bootstrap-peers string
+        A CSV list of peer addresses to bootstrap from.
   -bucket-size int
         Specify the bucket size, note that for some protocols this must be a specific value i.e. for "/ipfs" it MUST be 20 (default 20)
   -db string
@@ -101,6 +103,8 @@ Alternatively, some flags can be set via environment variables. Note that flags 
 
 ```console
 Usage of hydra-booster:
+  HYDRA_BOOTSTRAP_PEERS string
+        A CSV list of peer addresses to bootstrap from.
   HYDRA_DB string
         Datastore directory (for LevelDB store) or postgresql:// connection URI (for PostgreSQL store)
   HYDRA_DISABLE_PROV_GC

@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -22,6 +23,7 @@ import (
 	hyui "github.com/libp2p/hydra-booster/ui"
 	uiopts "github.com/libp2p/hydra-booster/ui/opts"
 	"github.com/libp2p/hydra-booster/utils"
+	"github.com/multiformats/go-multiaddr"
 )
 
 const (
@@ -42,6 +44,7 @@ func main() {
 	protocolPrefix := flag.String("protocol-prefix", string(dht.DefaultPrefix), "Specify the DHT protocol prefix (default \"/ipfs\")")
 	bucketSize := flag.Int("bucket-size", defaultBucketSize, "Specify the bucket size, note that for some protocols this must be a specific value i.e. for \"/ipfs\" it MUST be 20")
 	bootstrapConcurrency := flag.Int("bootstrap-conc", 32, "How many concurrent bootstraps to run")
+	bootstrapPeers := flag.String("bootstrap-peers", "", "A CSV list of peer addresses to bootstrap from.")
 	stagger := flag.Duration("stagger", 0*time.Second, "Duration to stagger nodes starts by")
 	uiTheme := flag.String("ui-theme", "default", "UI theme, \"gooey\", \"logey\" or \"none\" (default \"gooey\" for 1 head otherwise \"logey\")")
 	name := flag.String("name", "", "A name for the Hydra (for use in metrics)")
@@ -79,6 +82,9 @@ func main() {
 	}
 	if *enableV1Compat == false {
 		*enableV1Compat = mustGetEnvBool("HYDRA_ENABLE_V1_COMPAT", false)
+	}
+	if *bootstrapPeers == "" {
+		*bootstrapPeers = os.Getenv("HYDRA_BOOTSTRAP_PEERS")
 	}
 
 	// Allow short keys. Otherwise, we'll refuse connections from the bootsrappers and break the network.
@@ -118,6 +124,7 @@ func main() {
 		DisableProviders: *disableProviders,
 		DisableValues:    *disableValues,
 		EnableV1Compat:   *enableV1Compat,
+		BootstrapPeers:   mustConvertToMultiaddr(*bootstrapPeers),
 	}
 
 	go func() {
@@ -190,4 +197,19 @@ func mustGetEnvBool(key string, def bool) bool {
 		log.Fatalln(fmt.Errorf("invalid %s env value: %w", key, err))
 	}
 	return val
+}
+
+func mustConvertToMultiaddr(csv string) []multiaddr.Multiaddr {
+	var peers []multiaddr.Multiaddr
+	if csv != "" {
+		addrs := strings.Split(csv, ",")
+		for _, addr := range addrs {
+			ma, err := multiaddr.NewMultiaddr(addr)
+			if err != nil {
+				log.Fatalln(fmt.Errorf("invalid multiaddr %s: %w", addr, err))
+			}
+			peers = append(peers, ma)
+		}
+	}
+	return peers
 }
