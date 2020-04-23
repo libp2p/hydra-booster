@@ -61,6 +61,7 @@ type Options struct {
 	DisableProviders bool
 	DisableValues    bool
 	EnableV1Compat   bool
+	BootstrapPeers   []multiaddr.Multiaddr
 }
 
 // NewHydra creates a new Hydra with the passed options.
@@ -123,6 +124,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 			opts.BucketSize(options.BucketSize),
 			opts.Limiter(limiter),
 			opts.IDGenerator(options.IDGenerator),
+			opts.BootstrapPeers(options.BootstrapPeers),
 		}
 		if options.EnableRelay {
 			hdOpts = append(hdOpts, opts.EnableRelay())

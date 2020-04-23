@@ -125,7 +125,9 @@ func Limiter(l chan struct{}) Option {
 // The default value is `dht.DefaultBootstrapPeers`.
 func BootstrapPeers(addrs []multiaddr.Multiaddr) Option {
 	return func(o *Options) error {
-		o.BootstrapPeers = addrs
+		if len(addrs) > 0 {
+			o.BootstrapPeers = addrs
+		}
 		return nil
 	}
 }
