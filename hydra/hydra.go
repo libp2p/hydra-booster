@@ -60,6 +60,7 @@ type Options struct {
 	DisableProvGC    bool
 	DisableProviders bool
 	DisableValues    bool
+	EnableV1Compat   bool
 }
 
 // NewHydra creates a new Hydra with the passed options.
@@ -135,6 +136,9 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		}
 		if options.DisableValues {
 			hdOpts = append(hdOpts, opts.DisableValues())
+		}
+		if options.EnableV1Compat {
+			hdOpts = append(hdOpts, opts.EnableV1Compat())
 		}
 
 		hd, bsCh, err := head.NewHead(ctx, hdOpts...)

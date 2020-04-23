@@ -88,6 +88,33 @@ func TestSpawnHeadWithCustomProtocolPrefix(t *testing.T) { // TODO spawn a node 
 	}
 }
 
+func TestSpawnHeadWithV1Compat(t *testing.T) { // TODO spawn a node to bootstrap from so we don't hit the public bootstrappers
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	_, bsCh, err := NewHead(
+		ctx,
+		opts.Datastore(datastore.NewMapDatastore()),
+		opts.EnableV1Compat(),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for {
+		status, ok := <-bsCh
+		if !ok {
+			t.Fatal(fmt.Errorf("channel closed before bootstrap complete"))
+		}
+		if status.Err != nil {
+			fmt.Println(status.Err)
+		}
+		if status.Done {
+			break
+		}
+	}
+}
+
 func TestGetRoutingTable(t *testing.T) { // TODO spawn a node to bootstrap from so we don't hit the public bootstrappers
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

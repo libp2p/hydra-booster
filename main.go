@@ -37,7 +37,7 @@ func main() {
 	httpAPIAddr := flag.String("httpapi-addr", defaultHTTPAPIAddr, "Specify an IP and port to run prometheus metrics and pprof http server on")
 	inmem := flag.Bool("mem", false, "Use an in-memory database. This overrides the -db option")
 	metricsAddr := flag.String("metrics-addr", defaultMetricsAddr, "Specify an IP and port to run prometheus metrics and pprof http server on")
-	enableRelay := flag.Bool("enable-relay", false, "Enable libp2p circuit relaying for this node")
+	enableRelay := flag.Bool("enable-relay", false, "Enable libp2p circuit relaying for this node (default false).")
 	portBegin := flag.Int("port-begin", -1, "If set, begin port allocation here")
 	protocolPrefix := flag.String("protocol-prefix", string(dht.DefaultPrefix), "Specify the DHT protocol prefix (default \"/ipfs\")")
 	bucketSize := flag.Int("bucket-size", defaultBucketSize, "Specify the bucket size, note that for some protocols this must be a specific value i.e. for \"/ipfs\" it MUST be 20")
@@ -49,6 +49,7 @@ func main() {
 	disableProvGC := flag.Bool("disable-prov-gc", false, "Disable provider record garbage collection (default false).")
 	disableProviders := flag.Bool("disable-providers", false, "Disable storing and retrieving provider records, note that for some protocols, like \"/ipfs\", it MUST be false (default false).")
 	disableValues := flag.Bool("disable-values", false, "Disable storing and retrieving value records, note that for some protocols, like \"/ipfs\", it MUST be false (default false).")
+	enableV1Compat := flag.Bool("enable-v1-compat", false, "Enables DHT v1 compatibility (default false).")
 	flag.Parse()
 
 	fmt.Fprintf(os.Stderr, "🐉 Hydra Booster starting up...\n")
@@ -75,6 +76,9 @@ func main() {
 	}
 	if *disableProvGC == false {
 		*disableProvGC = mustGetEnvBool("HYDRA_DISABLE_PROV_GC", false)
+	}
+	if *enableV1Compat == false {
+		*enableV1Compat = mustGetEnvBool("HYDRA_ENABLE_V1_COMPAT", false)
 	}
 
 	// Allow short keys. Otherwise, we'll refuse connections from the bootsrappers and break the network.
@@ -113,6 +117,7 @@ func main() {
 		DisableProvGC:    *disableProvGC,
 		DisableProviders: *disableProviders,
 		DisableValues:    *disableValues,
+		EnableV1Compat:   *enableV1Compat,
 	}
 
 	go func() {

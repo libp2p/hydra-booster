@@ -98,6 +98,7 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		dht.Datastore(cfg.Datastore),
 		dht.QueryFilter(dht.PublicQueryFilter),
 		dht.RoutingTableFilter(dht.PublicRoutingTableFilter),
+		dht.V1CompatibleMode(cfg.EnableV1Compat),
 	}
 
 	if cfg.DisableProvGC {
