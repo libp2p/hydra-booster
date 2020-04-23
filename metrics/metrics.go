@@ -7,6 +7,7 @@ import (
 	"net/http/pprof"
 
 	"contrib.go.opencensus.io/exporter/prometheus"
+	dhtmetrics "github.com/libp2p/go-libp2p-kad-dht/metrics"
 	prom "github.com/prometheus/client_golang/prometheus"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/zpages"
@@ -33,6 +34,9 @@ func ListenAndServe(address string) error {
 	view.RegisterExporter(pe)
 	if err := view.Register(DefaultViews...); err != nil {
 		return fmt.Errorf("failed to register hydra views: %w", err)
+	}
+	if err := view.Register(dhtmetrics.DefaultViews...); err != nil {
+		return fmt.Errorf("failed to register dht views: %w", err)
 	}
 
 	mux := http.NewServeMux()
