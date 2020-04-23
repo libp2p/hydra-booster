@@ -26,6 +26,7 @@ type Options struct {
 	DisableProvGC    bool
 	DisableProviders bool
 	DisableValues    bool
+	EnableV1Compat   bool
 }
 
 // Option is the Hydra Head option type.
@@ -163,6 +164,15 @@ func DisableProviders() Option {
 func DisableValues() Option {
 	return func(o *Options) error {
 		o.DisableValues = true
+		return nil
+	}
+}
+
+// EnableV1Compat enables DHT v1 compatibility.
+// The default value is false.
+func EnableV1Compat() Option {
+	return func(o *Options) error {
+		o.EnableV1Compat = true
 		return nil
 	}
 }

@@ -26,6 +26,8 @@ spec:
           value: "32000"
         - name: HYDRA_NAME
           value: Ibycus
+        - name: HYDRA_ENABLE_V1_COMPAT
+          value: "false"
         image: docker.io/libp2p/hydra-booster
         resources:
           requests:
