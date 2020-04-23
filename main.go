@@ -53,6 +53,7 @@ func main() {
 	disableProviders := flag.Bool("disable-providers", false, "Disable storing and retrieving provider records, note that for some protocols, like \"/ipfs\", it MUST be false (default false).")
 	disableValues := flag.Bool("disable-values", false, "Disable storing and retrieving value records, note that for some protocols, like \"/ipfs\", it MUST be false (default false).")
 	enableV1Compat := flag.Bool("enable-v1-compat", false, "Enables DHT v1 compatibility (default false).")
+	disablePrefetch := flag.Bool("disable-prefetch", false, "Disables pre-fetching of discovered provider records (default false).")
 	flag.Parse()
 
 	fmt.Fprintf(os.Stderr, "🐉 Hydra Booster starting up...\n")
@@ -85,6 +86,9 @@ func main() {
 	}
 	if *bootstrapPeers == "" {
 		*bootstrapPeers = os.Getenv("HYDRA_BOOTSTRAP_PEERS")
+	}
+	if *disablePrefetch == false {
+		*disablePrefetch = mustGetEnvBool("HYDRA_DISABLE_PREFETCH", false)
 	}
 
 	// Allow short keys. Otherwise, we'll refuse connections from the bootsrappers and break the network.
@@ -125,6 +129,7 @@ func main() {
 		DisableValues:    *disableValues,
 		EnableV1Compat:   *enableV1Compat,
 		BootstrapPeers:   mustConvertToMultiaddr(*bootstrapPeers),
+		DisablePrefetch:  *disablePrefetch,
 	}
 
 	go func() {

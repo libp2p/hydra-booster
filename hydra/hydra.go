@@ -62,6 +62,7 @@ type Options struct {
 	DisableValues    bool
 	EnableV1Compat   bool
 	BootstrapPeers   []multiaddr.Multiaddr
+	DisablePrefetch  bool
 }
 
 // NewHydra creates a new Hydra with the passed options.
@@ -89,20 +90,22 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 
 	var hds []*head.Head
 
-	ds = hyds.NewProxy(ctx, ds, func(_ cid.Cid) (routing.Routing, hyds.AddProviderFunc, error) {
-		if len(hds) == 0 {
-			return nil, nil, fmt.Errorf("no heads available")
-		}
-		s := hds[rand.Intn(len(hds))]
-		// we should ask the closest head, but later they'll all share the same routing table so it won't matter which one we pick
-		return s.Routing, s.AddProvider, nil
-	}, hyds.Options{
-		FindProvidersConcurrency:    options.NHeads,
-		FindProvidersCount:          1,
-		FindProvidersQueueSize:      options.NHeads * 10,
-		FindProvidersTimeout:        time.Second * 20,
-		FindProvidersFailureBackoff: time.Hour,
-	})
+	if !options.DisablePrefetch {
+		ds = hyds.NewProxy(ctx, ds, func(_ cid.Cid) (routing.Routing, hyds.AddProviderFunc, error) {
+			if len(hds) == 0 {
+				return nil, nil, fmt.Errorf("no heads available")
+			}
+			s := hds[rand.Intn(len(hds))]
+			// we should ask the closest head, but later they'll all share the same routing table so it won't matter which one we pick
+			return s.Routing, s.AddProvider, nil
+		}, hyds.Options{
+			FindProvidersConcurrency:    options.NHeads,
+			FindProvidersCount:          1,
+			FindProvidersQueueSize:      options.NHeads * 10,
+			FindProvidersTimeout:        time.Second * 20,
+			FindProvidersFailureBackoff: time.Hour,
+		})
+	}
 
 	fmt.Fprintf(os.Stderr, "🐲 Spawning %d heads: ", options.NHeads)
 
