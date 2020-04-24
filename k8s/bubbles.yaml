@@ -39,7 +39,9 @@ spec:
             secretKeyRef:
               name: secrets
               key: db
-        image: docker.io/libp2p/hydra-booster
+        - name: HYDRA_DISABLE_PROV_GC
+          value: "true"
+        image: docker.io/libp2p/hydra-booster:next
         resources:
           limits:
             memory: 12Gi
