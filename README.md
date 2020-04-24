@@ -65,6 +65,8 @@ Usage of hydra-booster:
         Specify the bucket size, note that for some protocols this must be a specific value i.e. for "/ipfs" it MUST be 20 (default 20)
   -db string
         Datastore directory (for LevelDB store) or postgresql:// connection URI (for PostgreSQL store)
+  -disable-prefetch
+    	Disables pre-fetching of discovered provider records (default false).
   -disable-prov-gc
         Disable provider record garbage collection (default false).
   -disable-providers
@@ -107,6 +109,8 @@ Usage of hydra-booster:
         A CSV list of peer addresses to bootstrap from.
   HYDRA_DB string
         Datastore directory (for LevelDB store) or postgresql:// connection URI (for PostgreSQL store)
+  HYDRA_DISABLE_PREFETCH
+    	Disables pre-fetching of discovered provider records (default false).
   HYDRA_DISABLE_PROV_GC
         Disable provider record garbage collection (default false).
   HYDRA_ENABLE_V1_COMPAT
