@@ -21,7 +21,7 @@ spec:
       - name: bubbles-container
         env:
         - name: HYDRA_NHEADS
-          value: "250"
+          value: "50"
         - name: HYDRA_PORT_BEGIN
           value: "30250"
         - name: HYDRA_NAME
@@ -39,7 +39,9 @@ spec:
             secretKeyRef:
               name: secrets
               key: db
-        image: docker.io/libp2p/hydra-booster
+        - name: HYDRA_DISABLE_PROV_GC
+          value: "true"
+        image: docker.io/libp2p/hydra-booster:next
         resources:
           requests:
             memory: 12Gi
