@@ -54,6 +54,7 @@ func main() {
 	disableValues := flag.Bool("disable-values", false, "Disable storing and retrieving value records, note that for some protocols, like \"/ipfs\", it MUST be false (default false).")
 	enableV1Compat := flag.Bool("enable-v1-compat", false, "Enables DHT v1 compatibility (default false).")
 	disablePrefetch := flag.Bool("disable-prefetch", false, "Disables pre-fetching of discovered provider records (default false).")
+	disableProvCounts := flag.Bool("disable-prov-counts", false, "Disable counting provider records for metrics reporting (default false).")
 	flag.Parse()
 
 	fmt.Fprintf(os.Stderr, "🐉 Hydra Booster starting up...\n")
@@ -90,6 +91,9 @@ func main() {
 	if *disablePrefetch == false {
 		*disablePrefetch = mustGetEnvBool("HYDRA_DISABLE_PREFETCH", false)
 	}
+	if *disableProvCounts == false {
+		*disableProvCounts = mustGetEnvBool("HYDRA_DISABLE_PROV_COUNTS", false)
+	}
 
 	// Allow short keys. Otherwise, we'll refuse connections from the bootsrappers and break the network.
 	// TODO: Remove this when we shut those bootstrappers down.
@@ -114,22 +118,23 @@ func main() {
 	}
 
 	opts := hydra.Options{
-		Name:             *name,
-		DatastorePath:    *dbpath,
-		EnableRelay:      *enableRelay,
-		ProtocolPrefix:   protocol.ID(*protocolPrefix),
-		BucketSize:       *bucketSize,
-		GetPort:          utils.PortSelector(*portBegin),
-		NHeads:           *nheads,
-		BsCon:            *bootstrapConcurrency,
-		Stagger:          *stagger,
-		IDGenerator:      idGenerator,
-		DisableProvGC:    *disableProvGC,
-		DisableProviders: *disableProviders,
-		DisableValues:    *disableValues,
-		EnableV1Compat:   *enableV1Compat,
-		BootstrapPeers:   mustConvertToMultiaddr(*bootstrapPeers),
-		DisablePrefetch:  *disablePrefetch,
+		Name:              *name,
+		DatastorePath:     *dbpath,
+		EnableRelay:       *enableRelay,
+		ProtocolPrefix:    protocol.ID(*protocolPrefix),
+		BucketSize:        *bucketSize,
+		GetPort:           utils.PortSelector(*portBegin),
+		NHeads:            *nheads,
+		BsCon:             *bootstrapConcurrency,
+		Stagger:           *stagger,
+		IDGenerator:       idGenerator,
+		DisableProvGC:     *disableProvGC,
+		DisableProviders:  *disableProviders,
+		DisableValues:     *disableValues,
+		EnableV1Compat:    *enableV1Compat,
+		BootstrapPeers:    mustConvertToMultiaddr(*bootstrapPeers),
+		DisablePrefetch:   *disablePrefetch,
+		DisableProvCounts: *disableProvCounts,
 	}
 
 	go func() {
