@@ -39,6 +39,8 @@ spec:
               key: db
         - name: HYDRA_DISABLE_PROV_GC
           value: "true"
+        - name: HYDRA_DISABLE_PROV_COUNTS
+          value: "true"
         image: docker.io/libp2p/hydra-booster:next
         resources:
           limits:
