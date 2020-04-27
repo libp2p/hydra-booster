@@ -10,11 +10,9 @@ There are the environment variables that can be tweaked to affect the deployment
 * `HYDRA_NHEADS` - controls the number of heads that are spawned by a Hydra
 * `HYDRA_PORT_BEGIN` - controls the port that Hydra heads listen on. Each head is allocated a port sequentially beginning from the port specified here. See [Cluster Setup](#cluster-setup) below for what this value should be for each Hydra
 * `HYDRA_IDGEN_ADDR` - the address of a Hydra HTTP API server that provides the `/idgen/*` endpoints. In the current deployment, Alasybil acts as the idgen server and the other nodes obtain their Peer IDs from it.
-
-These environment variables are not yet used in production but will be soon (and possibly by the time you read this):
-
 * `HYDRA_DB` - a PostgreSQL database connection string that can be shared by all Hydras in the swarm.
 * `HYDRA_DISABLE_PROV_GC` - disables provider record garbage collection (when used in combination with `HYDRA_DB` it should be `true` on all but one Hydra).
+* `HYDRA_DISABLE_PROV_COUNTS` - disables provider record counting, which is used in metrics reporting (when used in combination with `HYDRA_DB` it should be `true` on all but one Hydra).
 
 ## Cluster setup
 
@@ -79,6 +77,10 @@ We're currently running **10 Hydras** with the following head counts:
 | Ibycus   | `250` |
 | Jetta    | `250` |
 | ...      | ...   |
+
+## PostgreSQL datastore
+
+This is a simple PostgreSQL database hosted by DigitalOcean with a pgbouncer connection pool. Note that the connection string uses `binary_parameters=yes` to enable use with pgbouncer. See [github.com/lib/pq#389](https://github.com/lib/pq/issues/389).
 
 ## Metrics and reporting
 
