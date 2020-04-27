@@ -192,7 +192,7 @@ func findProviders(ctx context.Context, findC chan datastore.Key, foundC chan fi
 		case k := <-findC:
 			cid, err := providerKeyToCID(k)
 			if err != nil {
-				done(findResult{key: k, err: fmt.Errorf("failed to create CID from provider record key: %w", err)})
+				done(findResult{key: k, err: fmt.Errorf("failed to create CID from provider record key %v: %w", k, err)})
 				continue
 			}
 
