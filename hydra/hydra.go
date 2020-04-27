@@ -47,22 +47,23 @@ type Hydra struct {
 
 // Options are configuration for a new hydra.
 type Options struct {
-	Name             string
-	DatastorePath    string
-	GetPort          func() int
-	NHeads           int
-	ProtocolPrefix   protocol.ID
-	BucketSize       int
-	BsCon            int
-	EnableRelay      bool
-	Stagger          time.Duration
-	IDGenerator      idgen.IdentityGenerator
-	DisableProvGC    bool
-	DisableProviders bool
-	DisableValues    bool
-	EnableV1Compat   bool
-	BootstrapPeers   []multiaddr.Multiaddr
-	DisablePrefetch  bool
+	Name              string
+	DatastorePath     string
+	GetPort           func() int
+	NHeads            int
+	ProtocolPrefix    protocol.ID
+	BucketSize        int
+	BsCon             int
+	EnableRelay       bool
+	Stagger           time.Duration
+	IDGenerator       idgen.IdentityGenerator
+	DisableProvGC     bool
+	DisableProviders  bool
+	DisableValues     bool
+	EnableV1Compat    bool
+	BootstrapPeers    []multiaddr.Multiaddr
+	DisablePrefetch   bool
+	DisableProvCounts bool
 }
 
 // NewHydra creates a new Hydra with the passed options.
@@ -181,6 +182,15 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		SharedDatastore: ds,
 		hyperLock:       &hyperLock,
 		hyperlog:        hyperlog,
+	}
+
+	tasks := []periodictasks.PeriodicTask{
+		newRoutingTableSizeTask(&hydra, routingTableSizeTaskInterval),
+		newUniquePeersTask(&hydra, uniquePeersTaskInterval),
+	}
+
+	if !options.DisableProvCounts {
+		tasks = append(tasks, newProviderRecordsTask(&hydra, providerRecordsTaskInterval))
 	}
 
 	periodictasks.RunTasks(ctx, []periodictasks.PeriodicTask{
