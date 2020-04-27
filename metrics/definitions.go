@@ -1,9 +1,15 @@
 package metrics
 
 import (
+	dhtmetrics "github.com/libp2p/go-libp2p-kad-dht/metrics"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
+)
+
+var (
+	defaultBytesDistribution        = view.Distribution(1024, 2048, 4096, 16384, 65536, 262144, 1048576, 4194304, 16777216, 67108864, 268435456, 1073741824, 4294967296)
+	defaultMillisecondsDistribution = view.Distribution(0.01, 0.05, 0.1, 0.3, 0.6, 0.8, 1, 2, 3, 4, 5, 6, 8, 10, 13, 16, 20, 25, 30, 40, 50, 65, 80, 100, 130, 160, 200, 250, 300, 400, 500, 650, 800, 1000, 2000, 5000, 10000, 20000, 50000, 100000)
 )
 
 // Keys
@@ -81,10 +87,62 @@ var (
 		TagKeys:     []tag.Key{KeyName},
 		Aggregation: view.Sum(),
 	}
+	// DHT views
+	ReceivedMessagesView = &view.View{
+		Measure:     dhtmetrics.ReceivedMessages,
+		TagKeys:     []tag.Key{dhtmetrics.KeyMessageType},
+		Aggregation: view.Count(),
+	}
+	ReceivedMessageErrorsView = &view.View{
+		Measure:     dhtmetrics.ReceivedMessageErrors,
+		TagKeys:     []tag.Key{dhtmetrics.KeyMessageType},
+		Aggregation: view.Count(),
+	}
+	ReceivedBytesView = &view.View{
+		Measure:     dhtmetrics.ReceivedBytes,
+		TagKeys:     []tag.Key{dhtmetrics.KeyMessageType},
+		Aggregation: defaultBytesDistribution,
+	}
+	InboundRequestLatencyView = &view.View{
+		Measure:     dhtmetrics.InboundRequestLatency,
+		TagKeys:     []tag.Key{dhtmetrics.KeyMessageType},
+		Aggregation: defaultMillisecondsDistribution,
+	}
+	OutboundRequestLatencyView = &view.View{
+		Measure:     dhtmetrics.OutboundRequestLatency,
+		TagKeys:     []tag.Key{dhtmetrics.KeyMessageType},
+		Aggregation: defaultMillisecondsDistribution,
+	}
+	SentMessagesView = &view.View{
+		Measure:     dhtmetrics.SentMessages,
+		TagKeys:     []tag.Key{dhtmetrics.KeyMessageType},
+		Aggregation: view.Count(),
+	}
+	SentMessageErrorsView = &view.View{
+		Measure:     dhtmetrics.SentMessageErrors,
+		TagKeys:     []tag.Key{dhtmetrics.KeyMessageType},
+		Aggregation: view.Count(),
+	}
+	SentRequestsView = &view.View{
+		Measure:     dhtmetrics.SentRequests,
+		TagKeys:     []tag.Key{dhtmetrics.KeyMessageType},
+		Aggregation: view.Count(),
+	}
+	SentRequestErrorsView = &view.View{
+		Measure:     dhtmetrics.SentRequestErrors,
+		TagKeys:     []tag.Key{dhtmetrics.KeyMessageType},
+		Aggregation: view.Count(),
+	}
+	SentBytesView = &view.View{
+		Measure:     dhtmetrics.SentBytes,
+		TagKeys:     []tag.Key{dhtmetrics.KeyMessageType},
+		Aggregation: defaultBytesDistribution,
+	}
 )
 
 // DefaultViews with all views in it.
 var DefaultViews = []*view.View{
+	// Hydra views
 	HeadsView,
 	BootstrappedHeadsView,
 	ConnectedPeersView,
@@ -94,4 +152,15 @@ var DefaultViews = []*view.View{
 	FindProvsView,
 	FindProvsDurationView,
 	FindProvsQueueSizeView,
+	// DHT views
+	ReceivedMessagesView,
+	ReceivedMessageErrorsView,
+	ReceivedBytesView,
+	InboundRequestLatencyView,
+	OutboundRequestLatencyView,
+	SentMessagesView,
+	SentMessageErrorsView,
+	SentRequestsView,
+	SentRequestErrorsView,
+	SentBytesView,
 }

@@ -19,7 +19,7 @@ require (
 	github.com/libp2p/go-libp2p-circuit v0.2.2
 	github.com/libp2p/go-libp2p-connmgr v0.2.1
 	github.com/libp2p/go-libp2p-core v0.5.2
-	github.com/libp2p/go-libp2p-kad-dht v0.7.11-0.20200427145526-30ebeda6c23c
+	github.com/libp2p/go-libp2p-kad-dht v0.7.10
 	github.com/libp2p/go-libp2p-kbucket v0.4.1
 	github.com/libp2p/go-libp2p-mplex v0.2.3
 	github.com/libp2p/go-libp2p-quic-transport v0.3.5
