@@ -66,7 +66,9 @@ Usage of hydra-booster:
   -db string
         Datastore directory (for LevelDB store) or postgresql:// connection URI (for PostgreSQL store)
   -disable-prefetch
-    	Disables pre-fetching of discovered provider records (default false).
+        Disables pre-fetching of discovered provider records (default false).
+  -disable-prov-counts
+        Disable counting provider records for metrics reporting (default false).
   -disable-prov-gc
         Disable provider record garbage collection (default false).
   -disable-providers
@@ -110,7 +112,9 @@ Usage of hydra-booster:
   HYDRA_DB string
         Datastore directory (for LevelDB store) or postgresql:// connection URI (for PostgreSQL store)
   HYDRA_DISABLE_PREFETCH
-    	Disables pre-fetching of discovered provider records (default false).
+        Disables pre-fetching of discovered provider records (default false).
+  HYDRA_DISABLE_PROV_COUNTS
+        Disable counting provider records for metrics reporting (default false).
   HYDRA_DISABLE_PROV_GC
         Disable provider record garbage collection (default false).
   HYDRA_ENABLE_V1_COMPAT
@@ -137,7 +141,7 @@ The total number of heads a single Hydra can have depends on the resources of th
 
 * Peer IDs of Hydra heads are balanced in the DHT. When running multiple Hydras it's necessary to designate one of the Hydras to be the "idgen server" and the rest to be "idgen clients" so that all Peer IDs in the Hydra swarm are balanced. Use the `-idgen-addr` flag or `HYDRA_IDGEN_ADDR` environment variable to ensure all Peer IDs in the Hydra swarm are balanced perfectly.
 * A datastore is shared by all Hydra heads but not by all Hydras. Use the `-db` flag or `HYDRA_DB` environment variable to specify a PostgreSQL database connection string that can be shared by all Hydras in the swarm.
-* When sharing a datastore between multiple _Hydras_ ensure only one Hydra in the swarm is performing GC on provider records by using the `-disable-prov-gc` flag or `HYDRA_DISABLE_PROV_GC` environment variable.
+* When sharing a datastore between multiple _Hydras_, ensure only one Hydra in the swarm is performing GC on provider records by using the `-disable-prov-gc` flag or `HYDRA_DISABLE_PROV_GC` environment variable, and ensure only one Hydra is counting the provider records in the datastore by using the `-disable-prov-counts` flag or `HYDRA_DISABLE_PROV_COUNTS` environment variable.
 
 ## Developers
 
