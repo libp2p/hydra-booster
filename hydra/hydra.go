@@ -199,11 +199,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		tasks = append(tasks, newProviderRecordsTask(&hydra, providerRecordsTaskInterval))
 	}
 
-	periodictasks.RunTasks(ctx, []periodictasks.PeriodicTask{
-		newProviderRecordsTask(&hydra, providerRecordsTaskInterval),
-		newRoutingTableSizeTask(&hydra, routingTableSizeTaskInterval),
-		newUniquePeersTask(&hydra, uniquePeersTaskInterval),
-	})
+	periodictasks.RunTasks(ctx, tasks)
 
 	return &hydra, nil
 }
