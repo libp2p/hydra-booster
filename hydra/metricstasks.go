@@ -24,6 +24,7 @@ func newProviderRecordsTask(hy *Hydra, d time.Duration) periodictasks.PeriodicTa
 			for range prs.Next() {
 				provRecords++
 			}
+			prs.Close()
 
 			stats.Record(ctx, metrics.ProviderRecords.M(int64(provRecords)))
 			return nil

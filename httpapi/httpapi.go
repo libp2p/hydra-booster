@@ -118,6 +118,7 @@ func recordListHandler(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request)
 		for result := range results.Next() {
 			enc.Encode(result.Entry)
 		}
+		results.Close()
 	}
 }
 
