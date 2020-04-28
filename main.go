@@ -15,7 +15,6 @@ import (
 
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/protocol"
-	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/hydra-booster/httpapi"
 	"github.com/libp2p/hydra-booster/hydra"
 	"github.com/libp2p/hydra-booster/idgen"
@@ -41,7 +40,7 @@ func main() {
 	metricsAddr := flag.String("metrics-addr", defaultMetricsAddr, "Specify an IP and port to run prometheus metrics and pprof http server on")
 	enableRelay := flag.Bool("enable-relay", false, "Enable libp2p circuit relaying for this node (default false).")
 	portBegin := flag.Int("port-begin", -1, "If set, begin port allocation here")
-	protocolPrefix := flag.String("protocol-prefix", string(dht.DefaultPrefix), "Specify the DHT protocol prefix (default \"/ipfs\")")
+	protocolPrefix := flag.String("protocol-prefix", "/ipfs", "Specify the DHT protocol prefix (default \"/ipfs\")")
 	bucketSize := flag.Int("bucket-size", defaultBucketSize, "Specify the bucket size, note that for some protocols this must be a specific value i.e. for \"/ipfs\" it MUST be 20")
 	bootstrapConcurrency := flag.Int("bootstrap-conc", 32, "How many concurrent bootstraps to run")
 	bootstrapPeers := flag.String("bootstrap-peers", "", "A CSV list of peer addresses to bootstrap from.")

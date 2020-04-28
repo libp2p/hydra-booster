@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hnlq715/golang-lru/simplelru"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-ipns"
@@ -18,7 +17,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/routing"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
-	"github.com/libp2p/go-libp2p-kad-dht/providers"
+	dhtopts "github.com/libp2p/go-libp2p-kad-dht/opts"
 	kbucket "github.com/libp2p/go-libp2p-kbucket"
 	mplex "github.com/libp2p/go-libp2p-mplex"
 	record "github.com/libp2p/go-libp2p-record"
@@ -82,7 +81,7 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		libp2p.Identity(priv),
 		libp2p.EnableNATService(),
 		libp2p.Muxer("/mplex/6.7.0", mplex.DefaultTransport),
-		libp2p.AutoNATServiceRateLimit(0, 3, time.Minute),
+		// libp2p.AutoNATServiceRateLimit(0, 3, time.Minute),
 	}
 
 	if cfg.EnableRelay {
@@ -94,33 +93,33 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		return nil, nil, fmt.Errorf("failed to spawn libp2p node: %w", err)
 	}
 
-	dhtOpts := []dht.Option{
-		dht.Mode(dht.ModeServer),
-		dht.ProtocolPrefix(cfg.ProtocolPrefix),
-		dht.BucketSize(cfg.BucketSize),
-		dht.Datastore(cfg.Datastore),
-		dht.QueryFilter(dht.PublicQueryFilter),
-		dht.RoutingTableFilter(dht.PublicRoutingTableFilter),
-		dht.V1CompatibleMode(cfg.EnableV1Compat),
+	dhtOpts := []dhtopts.Option{
+		// dhtopts.Mode(dht.ModeServer),
+		// dhtopts.ProtocolPrefix(cfg.ProtocolPrefix),
+		dhtopts.BucketSize(cfg.BucketSize),
+		dhtopts.Datastore(cfg.Datastore),
+		// dhtopts.QueryFilter(dht.PublicQueryFilter),
+		// dhtopts.RoutingTableFilter(dht.PublicRoutingTableFilter),
+		// dhtopts.V1CompatibleMode(cfg.EnableV1Compat),
 	}
 
-	if cfg.DisableProvGC {
-		cache, _ := simplelru.NewLRUWithExpire(provCacheSize, provCacheExpiry, nil)
-		dhtOpts = append(dhtOpts, dht.ProvidersOptions([]providers.Option{
-			providers.CleanupInterval(provDisabledGCInterval),
-			providers.Cache(cache),
-		}))
-	}
+	// if cfg.DisableProvGC {
+	// 	cache, _ := simplelru.NewLRUWithExpire(provCacheSize, provCacheExpiry, nil)
+	// 	dhtOpts = append(dhtOpts, dht.ProvidersOptions([]providers.Option{
+	// 		providers.CleanupInterval(provDisabledGCInterval),
+	// 		providers.Cache(cache),
+	// 	}))
+	// }
 	if cfg.DisableValues {
-		dhtOpts = append(dhtOpts, dht.DisableValues())
+		dhtOpts = append(dhtOpts, dhtopts.DisableValues())
 	} else {
-		dhtOpts = append(dhtOpts, dht.Validator(record.NamespacedValidator{
+		dhtOpts = append(dhtOpts, dhtopts.Validator(record.NamespacedValidator{
 			"pk":   record.PublicKeyValidator{},
 			"ipns": ipns.Validator{KeyBook: node.Peerstore()},
 		}))
 	}
 	if cfg.DisableProviders {
-		dhtOpts = append(dhtOpts, dht.DisableProviders())
+		dhtOpts = append(dhtOpts, dhtopts.DisableProviders())
 	}
 
 	dhtNode, err := dht.New(ctx, node, dhtOpts...)

@@ -47,7 +47,7 @@ func (o *Options) Apply(opts ...Option) error {
 var Defaults = func(o *Options) error {
 	o.Datastore = dssync.MutexWrap(ds.NewMapDatastore())
 	o.Addr, _ = multiaddr.NewMultiaddr("/ip4/0.0.0.0/tcp/0")
-	o.ProtocolPrefix = dht.DefaultPrefix
+	o.ProtocolPrefix = "/ipfs"
 	o.BucketSize = 20
 	o.BootstrapPeers = dht.DefaultBootstrapPeers
 	o.IDGenerator = idgen.HydraIdentityGenerator

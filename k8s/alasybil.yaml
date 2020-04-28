@@ -20,6 +20,8 @@ spec:
       containers:
       - name: alasybil-container
         env:
+        - name: GOGC
+          value: "50"
         - name: HYDRA_NHEADS
           value: "1"
         - name: HYDRA_PORT_BEGIN
