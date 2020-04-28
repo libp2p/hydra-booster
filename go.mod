@@ -22,8 +22,10 @@ require (
 	github.com/libp2p/go-libp2p-kad-dht v0.7.8-0.20200423233743-24feef726f32
 	github.com/libp2p/go-libp2p-kbucket v0.4.1
 	github.com/libp2p/go-libp2p-mplex v0.2.3
+	github.com/libp2p/go-libp2p-quic-transport v0.3.5
 	github.com/libp2p/go-libp2p-record v0.1.2
 	github.com/libp2p/go-mplex v0.1.3-0.20200424022829-dabf4b3e113f // indirect
+	github.com/libp2p/go-tcp-transport v0.2.0
 	github.com/multiformats/go-base32 v0.0.3
 	github.com/multiformats/go-multiaddr v0.2.1
 	github.com/multiformats/go-multihash v0.0.13
