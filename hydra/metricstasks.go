@@ -18,16 +18,24 @@ func newProviderRecordsTask(hy *Hydra, d time.Duration) periodictasks.PeriodicTa
 			if err != nil {
 				return err
 			}
+			defer prs.Close()
 
 			// TODO: make fast https://github.com/libp2p/go-libp2p-kad-dht/issues/487
 			var provRecords int
-			for range prs.Next() {
-				provRecords++
+			for {
+				select {
+				case r, ok := <-prs.Next():
+					if !ok {
+						stats.Record(ctx, metrics.ProviderRecords.M(int64(provRecords)))
+						return nil
+					}
+					if r.Error == nil {
+						provRecords++
+					}
+				case <-ctx.Done():
+					return nil
+				}
 			}
-			prs.Close()
-
-			stats.Record(ctx, metrics.ProviderRecords.M(int64(provRecords)))
-			return nil
 		},
 	}
 }
