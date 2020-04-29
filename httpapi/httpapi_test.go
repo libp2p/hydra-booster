@@ -372,3 +372,122 @@ func TestIDGeneratorRemoveInvalidPrivateKey(t *testing.T) {
 		t.Fatal(fmt.Errorf("unexpected status %d", res.StatusCode))
 	}
 }
+
+type hostPeer struct {
+	ID   peer.ID
+	Peer struct {
+		ID        peer.ID
+		Addr      string
+		Direction int
+	}
+}
+
+func TestHTTPAPISwarmPeers(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hds, err := hytesting.SpawnHeads(ctx, 2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	listener, err := net.Listen("tcp", ":0")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	go http.Serve(listener, NewRouter(&hydra.Hydra{Heads: hds}))
+	defer listener.Close()
+
+	err = hds[0].Host.Connect(ctx, peer.AddrInfo{
+		ID:    hds[1].Host.ID(),
+		Addrs: hds[1].Host.Addrs(),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	url := fmt.Sprintf("http://%s/swarm/peers", listener.Addr().String())
+	res, err := http.Get(url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.StatusCode < 200 || res.StatusCode > 299 {
+		t.Fatal(fmt.Errorf("got non-2XX status code %d: %s", res.StatusCode, url))
+	}
+
+	dec := json.NewDecoder(res.Body)
+	hps := []hostPeer{}
+
+	for {
+		var hp hostPeer
+		if err := dec.Decode(&hp); err != nil {
+			break
+		}
+		hps = append(hps, hp)
+	}
+
+	found := false
+	for _, hp := range hps {
+		if hp.Peer.ID == hds[1].Host.ID() {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		t.Fatal(fmt.Errorf("head %s not in peer list", hds[1].Host.ID()))
+	}
+}
+
+func TestHTTPAPISwarmPeersHeadFilter(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hds, err := hytesting.SpawnHeads(ctx, 2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	listener, err := net.Listen("tcp", ":0")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	go http.Serve(listener, NewRouter(&hydra.Hydra{Heads: hds}))
+	defer listener.Close()
+
+	err = hds[0].Host.Connect(ctx, peer.AddrInfo{
+		ID:    hds[1].Host.ID(),
+		Addrs: hds[1].Host.Addrs(),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	url := fmt.Sprintf("http://%s/swarm/peers?head=%s", listener.Addr().String(), hds[0].Host.ID())
+	res, err := http.Get(url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.StatusCode < 200 || res.StatusCode > 299 {
+		t.Fatal(fmt.Errorf("got non-2XX status code %d: %s", res.StatusCode, url))
+	}
+
+	dec := json.NewDecoder(res.Body)
+	hps := []hostPeer{}
+
+	for {
+		var hp hostPeer
+		if err := dec.Decode(&hp); err != nil {
+			break
+		}
+		hps = append(hps, hp)
+	}
+
+	for _, hp := range hps {
+		if hp.ID != hds[0].Host.ID() {
+			t.Fatal(fmt.Errorf("unexpectedly found head %s in peer list", hp.ID))
+		}
+	}
+}

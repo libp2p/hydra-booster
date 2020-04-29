@@ -215,6 +215,23 @@ Generate and add a balanced Peer ID to the server's xor trie and return it for u
 
 Remove a balanced Peer ID from the server's xor trie. Accepts a base64 encoded JSON string.
 
+#### `GET /swarm/peers?head=`
+
+Returns a list of ndjson peers with open connections optionally filtered by Hydra head. Example output:
+
+```json
+{"ID":"12D3KooWKdEMLcKJWk8Swc3KbBJSjpJfNMKZUhcG8LnYPA3XH8Bh","Peer":{"ID":"QmbLHAnMoJPWSCR5Zhtx6BHJX9KiKNN6tpvbUcqanj75Nb","Addr":"/ip4/147.75.83.83/tcp/4001","Direction":2}}
+{"ID":"12D3KooWKdEMLcKJWk8Swc3KbBJSjpJfNMKZUhcG8LnYPA3XH8Bh","Peer":{"ID":"QmQCU2EcMqAqQPR2i9bChDtGNJchTbq5TbXJJ16u19uLTa","Addr":"/ip6/2604:1380:0:c100::1/tcp/4001","Direction":2}}
+{"ID":"12D3KooWKdEMLcKJWk8Swc3KbBJSjpJfNMKZUhcG8LnYPA3XH8Bh","Peer":{"ID":"QmNnooDu7bfjPFoTZYxMNLWUQJyrVwtbZg5gBMjTezGAJN","Addr":"/ip4/147.75.69.143/tcp/4001","Direction":2}}
+{"ID":"12D3KooWKdEMLcKJWk8Swc3KbBJSjpJfNMKZUhcG8LnYPA3XH8Bh","Peer":{"ID":"QmaCpDMGvV2BGHeYERUEnRQAwe3N8SzbUtfsmvsqQLuvuJ","Addr":"/ip4/104.131.131.82/tcp/4001","Direction":2}}
+{"ID":"12D3KooWKdEMLcKJWk8Swc3KbBJSjpJfNMKZUhcG8LnYPA3XH8Bh","Peer":{"ID":"QmcZf59bWwK5XFi76CZX8cbJ4BhTzzA3gU1ZjYZcYW3dwt","Addr":"/ip6/2604:1380:3000:1f00::1/tcp/4001","Direction":2}}
+{"ID":"12D3KooWA6MQcQhLAWDJFqWAUNyQf9MuFUGVf3LMo232x8cnrK3p","Peer":{"ID":"QmbLHAnMoJPWSCR5Zhtx6BHJX9KiKNN6tpvbUcqanj75Nb","Addr":"/ip6/2604:1380:2000:7a00::1/tcp/4001","Direction":2}}
+{"ID":"12D3KooWA6MQcQhLAWDJFqWAUNyQf9MuFUGVf3LMo232x8cnrK3p","Peer":{"ID":"QmQCU2EcMqAqQPR2i9bChDtGNJchTbq5TbXJJ16u19uLTa","Addr":"/ip6/2604:1380:0:c100::1/tcp/4001","Direction":2}}
+{"ID":"12D3KooWA6MQcQhLAWDJFqWAUNyQf9MuFUGVf3LMo232x8cnrK3p","Peer":{"ID":"QmaCpDMGvV2BGHeYERUEnRQAwe3N8SzbUtfsmvsqQLuvuJ","Addr":"/ip4/104.131.131.82/tcp/4001","Direction":2}}
+{"ID":"12D3KooWA6MQcQhLAWDJFqWAUNyQf9MuFUGVf3LMo232x8cnrK3p","Peer":{"ID":"QmNnooDu7bfjPFoTZYxMNLWUQJyrVwtbZg5gBMjTezGAJN","Addr":"/ip6/2604:1380:1000:6000::1/tcp/4001","Direction":2}}
+{"ID":"12D3KooWA6MQcQhLAWDJFqWAUNyQf9MuFUGVf3LMo232x8cnrK3p","Peer":{"ID":"QmcZf59bWwK5XFi76CZX8cbJ4BhTzzA3gU1ZjYZcYW3dwt","Addr":"/ip4/147.75.94.115/tcp/4001","Direction":2}}
+```
+
 ## License
 
 The hydra-booster project is dual-licensed under Apache 2.0 and MIT terms:
