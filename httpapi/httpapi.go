@@ -9,10 +9,12 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/multiformats/go-multiaddr"
 
 	cid "github.com/ipfs/go-cid"
 	dsq "github.com/ipfs/go-datastore/query"
 	"github.com/libp2p/go-libp2p-core/crypto"
+	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-kad-dht/providers"
 	"github.com/libp2p/hydra-booster/hydra"
@@ -40,6 +42,7 @@ func NewRouter(hy *hydra.Hydra) *mux.Router {
 	mux.HandleFunc("/records/list", recordListHandler(hy))
 	mux.HandleFunc("/idgen/add", idgenAddHandler()).Methods("POST")
 	mux.HandleFunc("/idgen/remove", idgenRemoveHandler()).Methods("POST")
+	mux.HandleFunc("/swarm/peers", swarmPeersHandler(hy))
 	return mux
 }
 
@@ -171,5 +174,42 @@ func idgenRemoveHandler() func(http.ResponseWriter, *http.Request) {
 		}
 
 		w.WriteHeader(http.StatusNoContent)
+	}
+}
+
+type swarmPeersPeer struct {
+	ID        peer.ID
+	Addr      multiaddr.Multiaddr
+	Direction network.Direction
+}
+type swarmPeersHostPeer struct {
+	ID   peer.ID
+	Peer swarmPeersPeer
+}
+
+// "/swarm/peers[?head=]" Get the peers with open connections optionally filtered by hydra head (ndjson)
+func swarmPeersHandler(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		headID := r.FormValue("head")
+
+		enc := json.NewEncoder(w)
+
+		for _, hd := range hy.Heads {
+			if headID != "" && headID != hd.Host.ID().String() {
+				continue
+			}
+
+			for _, c := range hd.Host.Network().Conns() {
+				enc.Encode(swarmPeersHostPeer{
+					ID: hd.Host.ID(),
+					Peer: swarmPeersPeer{
+						ID:        c.RemotePeer(),
+						Addr:      c.RemoteMultiaddr(),
+						Direction: c.Stat().Direction,
+					},
+				})
+			}
+
+		}
 	}
 }
