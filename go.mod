@@ -30,7 +30,6 @@ require (
 	github.com/multiformats/go-multiaddr v0.2.1
 	github.com/multiformats/go-multihash v0.0.13
 	github.com/prometheus/client_golang v1.5.1
-	github.com/libp2p/go-libp2p-quic-transport v0.3.5
 	github.com/whyrusleeping/timecache v0.0.0-20160911033111-cfcb2f1abfee
 	go.opencensus.io v0.22.3
 )

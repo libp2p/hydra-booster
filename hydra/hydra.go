@@ -120,10 +120,13 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		time.Sleep(options.Stagger)
 		fmt.Fprintf(os.Stderr, ".")
 
-		addr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", options.GetPort()))
+		port := options.GetPort()
+		tcpAddr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", port))
+		quicAddr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/udp/%d/quic", port))
+
 		hdOpts := []opts.Option{
 			opts.Datastore(ds),
-			opts.Addr(addr),
+			opts.Addrs([]multiaddr.Multiaddr{tcpAddr, quicAddr}),
 			opts.ProtocolPrefix(options.ProtocolPrefix),
 			opts.BucketSize(options.BucketSize),
 			opts.Limiter(limiter),
@@ -149,7 +152,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 
 		hd, bsCh, err := head.NewHead(ctx, hdOpts...)
 		if err != nil {
-			return nil, fmt.Errorf("failed to spawn node with swarm address %v: %w", addr, err)
+			return nil, fmt.Errorf("failed to spawn node with swarm addresses %v %v: %w", tcpAddr, quicAddr, err)
 		}
 
 		hdCtx, err := tag.New(ctx, tag.Insert(metrics.KeyPeerID, hd.Host.ID().String()))
