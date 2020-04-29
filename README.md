@@ -149,7 +149,8 @@ The total number of heads a single Hydra can have depends on the resources of th
 
 1. Update version number in [`version.go`](version/version.go).
 2. Create a semver tag with "v" prefix e.g. `git tag v0.1.7`.
-3. See [`deployment.md#continuous-deployment`](docs/deployment.md#continuous-deployment) for what happens next.
+3. Publish a new image to docker hub
+4. Scale the hydras down and then back up to pick up the change
 
 ### Publish a new image
 
