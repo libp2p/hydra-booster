@@ -17,7 +17,7 @@ type Options struct {
 	Datastore        ds.Batching
 	RoutingTable     *kbucket.RoutingTable
 	EnableRelay      bool
-	Addr             multiaddr.Multiaddr
+	Addrs            []multiaddr.Multiaddr
 	ProtocolPrefix   protocol.ID
 	BucketSize       int
 	Limiter          chan struct{}
@@ -46,7 +46,9 @@ func (o *Options) Apply(opts ...Option) error {
 // prepended to any options you pass to the Hydra Head constructor.
 var Defaults = func(o *Options) error {
 	o.Datastore = dssync.MutexWrap(ds.NewMapDatastore())
-	o.Addr, _ = multiaddr.NewMultiaddr("/ip4/0.0.0.0/tcp/0")
+	tcpAddr, _ := multiaddr.NewMultiaddr("/ip4/0.0.0.0/tcp/0")
+	quicAddr, _ := multiaddr.NewMultiaddr("/ip4/0.0.0.0/udp/0/quic")
+	o.Addrs = []multiaddr.Multiaddr{tcpAddr, quicAddr}
 	o.ProtocolPrefix = dht.DefaultPrefix
 	o.BucketSize = 20
 	o.BootstrapPeers = dht.DefaultBootstrapPeers
@@ -81,11 +83,11 @@ func EnableRelay() Option {
 	}
 }
 
-// Addr configures the swarm address for this Hydra node.
-// The default value is /ip4/0.0.0.0/tcp/0.
-func Addr(addr multiaddr.Multiaddr) Option {
+// Addrs configures the swarm addresses for this Hydra node.
+// The default value is /ip4/0.0.0.0/tcp/0 and /ip4/0.0.0.0/udp/0/quic.
+func Addrs(addrs []multiaddr.Multiaddr) Option {
 	return func(o *Options) error {
-		o.Addr = addr
+		o.Addrs = addrs
 		return nil
 	}
 }
