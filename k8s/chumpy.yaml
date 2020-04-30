@@ -60,6 +60,9 @@ spec:
     app: chumpy
   sessionAffinity: None
   type: NodePort
+  # Do not NAT inbound connections or Hydra heads receive incorrect addresses for Peers
+  # https://kubernetes.io/docs/tutorials/services/source-ip/#source-ip-for-services-with-type-nodeport
+  externalTrafficPolicy: Local
   ports:
   - name: metrics
     nodePort: 32621
