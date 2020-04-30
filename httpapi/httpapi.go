@@ -26,7 +26,7 @@ func ListenAndServe(hy *hydra.Hydra, addr string) error {
 	srv := &http.Server{
 		Addr: addr,
 		// Good practice to set timeouts to avoid Slowloris attacks.
-		WriteTimeout: time.Second * 15,
+		WriteTimeout: time.Second * 60,
 		ReadTimeout:  time.Second * 60,
 		IdleTimeout:  time.Second * 60,
 		Handler:      NewRouter(hy),
