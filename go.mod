@@ -15,21 +15,20 @@ require (
 	github.com/ipfs/go-ds-leveldb v0.4.2
 	github.com/ipfs/go-ds-sql v0.1.1-0.20200423142616-ada9b9f97230
 	github.com/ipfs/go-ipns v0.0.2
-	github.com/libp2p/go-libp2p v0.8.2
+	github.com/libp2p/go-libp2p v0.8.3
 	github.com/libp2p/go-libp2p-circuit v0.2.2
 	github.com/libp2p/go-libp2p-connmgr v0.2.1
-	github.com/libp2p/go-libp2p-core v0.5.2
-	github.com/libp2p/go-libp2p-kad-dht v0.7.10
+	github.com/libp2p/go-libp2p-core v0.5.3
+	github.com/libp2p/go-libp2p-kad-dht v0.7.11
 	github.com/libp2p/go-libp2p-kbucket v0.4.1
 	github.com/libp2p/go-libp2p-mplex v0.2.3
 	github.com/libp2p/go-libp2p-quic-transport v0.3.5
 	github.com/libp2p/go-libp2p-record v0.1.2
-	github.com/libp2p/go-mplex v0.1.3-0.20200424022829-dabf4b3e113f // indirect
 	github.com/libp2p/go-tcp-transport v0.2.0
 	github.com/multiformats/go-base32 v0.0.3
 	github.com/multiformats/go-multiaddr v0.2.1
 	github.com/multiformats/go-multihash v0.0.13
-	github.com/prometheus/client_golang v1.5.1
+	github.com/prometheus/client_golang v1.6.0
 	github.com/whyrusleeping/timecache v0.0.0-20160911033111-cfcb2f1abfee
 	go.opencensus.io v0.22.3
 )
