@@ -30,7 +30,7 @@ import (
 // Default intervals between periodic task runs, more cpu/memory intensive tasks are run less frequently
 // TODO: expose these as command line options?
 const (
-	providerRecordsTaskInterval  = time.Minute
+	providerRecordsTaskInterval  = time.Minute * 5
 	routingTableSizeTaskInterval = time.Second * 5
 	uniquePeersTaskInterval      = time.Second * 5
 )
