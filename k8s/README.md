@@ -4,7 +4,7 @@ These are the configuration files used to deploy the Hydra Booster nodes that op
 
 ## Deploying to DigitalOcean
 
-First create a cluster with some machines. A 250 Head Hydra requires about `12Gi` of RAM.
+First create a cluster with some machines. A 50 Head Hydra requires about `12Gi` of RAM.
 
 Next install [`doctl`](https://github.com/digitalocean/doctl) and [`kubectl`](https://kubernetes.io/docs/tasks/tools/install-kubectl/) and run the following commands to deploy Hydras:
 

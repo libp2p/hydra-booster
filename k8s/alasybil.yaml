@@ -21,7 +21,7 @@ spec:
       - name: alasybil-container
         env:
         - name: HYDRA_NHEADS
-          value: "50"
+          value: "100"
         - name: HYDRA_PORT_BEGIN
           value: "30000"
         - name: HYDRA_NAME
@@ -37,10 +37,10 @@ spec:
             secretKeyRef:
               name: secrets
               key: db
-        image: docker.io/libp2p/hydra-booster:next
+        image: docker.io/libp2p/hydra-booster
         resources:
           limits:
-            memory: 12Gi
+            memory: 28Gi
 ---
 apiVersion: v1
 kind: Service

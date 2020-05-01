@@ -21,7 +21,7 @@ spec:
       - name: grendel-container
         env:
         - name: HYDRA_NHEADS
-          value: "50"
+          value: "100"
         - name: HYDRA_PORT_BEGIN
           value: "31500"
         - name: HYDRA_NAME
@@ -41,10 +41,10 @@ spec:
           value: "true"
         - name: HYDRA_DISABLE_PROV_COUNTS
           value: "true"
-        image: docker.io/libp2p/hydra-booster:next
+        image: docker.io/libp2p/hydra-booster
         resources:
           limits:
-            memory: 12Gi
+            memory: 28Gi
 ---
 apiVersion: v1
 kind: Service
