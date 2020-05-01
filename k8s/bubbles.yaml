@@ -46,7 +46,7 @@ spec:
         image: docker.io/libp2p/hydra-booster
         resources:
           limits:
-            memory: 28Gi
+            memory: 26Gi
 ---
 apiVersion: v1
 kind: Service
