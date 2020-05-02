@@ -6,13 +6,14 @@ import (
 
 	sqlds "github.com/ipfs/go-ds-sql"
 	"github.com/ipfs/go-ds-sql/postgres"
+	_ "github.com/jackc/pgx/v4/stdlib" // postgres driver
 )
 
 const tableName = "records"
 
 // NewPostgreSQLDatastore creates a new sqlds.Datastore that talks to a PostgreSQL database
 func NewPostgreSQLDatastore(connstr string) (*sqlds.Datastore, error) {
-	db, err := sql.Open("postgres", connstr)
+	db, err := sql.Open("pgx", connstr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open PostgreSQL database: %w", err)
 	}
