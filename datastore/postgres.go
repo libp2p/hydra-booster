@@ -11,8 +11,10 @@ import (
 )
 
 const (
-	tableName       = "records"
-	maxIdleConns    = 25 // TODO tie to number of heads?
+	tableName = "records"
+	// TODO these should be configurable:
+	maxIdleConns    = 8  // tie to number of heads?
+	maxOpenConns    = 32 // tie to max postgres conns / number of hydras
 	connMaxLifetime = time.Hour
 )
 
@@ -24,6 +26,7 @@ func NewPostgreSQLDatastore(connstr string) (*sqlds.Datastore, error) {
 	}
 
 	db.SetMaxIdleConns(maxIdleConns)
+	db.SetMaxOpenConns(maxOpenConns)
 	db.SetConnMaxLifetime(connMaxLifetime)
 
 	_, err = db.Exec(fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (key TEXT NOT NULL UNIQUE, data BYTEA NOT NULL)", tableName))
@@ -31,5 +34,5 @@ func NewPostgreSQLDatastore(connstr string) (*sqlds.Datastore, error) {
 		return nil, fmt.Errorf("failed to init PostgreSQL database: %w", err)
 	}
 
-	return sqlds.NewDatastore(db, postgres.Queries{TableName: tableName}), nil
+	return sqlds.NewDatastore(db, postgres.NewQueries(tableName)), nil
 }

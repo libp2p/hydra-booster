@@ -13,7 +13,7 @@ require (
 	github.com/ipfs/go-cid v0.0.5
 	github.com/ipfs/go-datastore v0.4.4
 	github.com/ipfs/go-ds-leveldb v0.4.2
-	github.com/ipfs/go-ds-sql v0.1.1-0.20200423142616-ada9b9f97230
+	github.com/ipfs/go-ds-sql v0.1.1-0.20200503075234-3070a7b2e61c
 	github.com/ipfs/go-ipns v0.0.2
 	github.com/jackc/pgx/v4 v4.6.0
 	github.com/libp2p/go-libp2p v0.8.3
