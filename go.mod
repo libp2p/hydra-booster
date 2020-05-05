@@ -2,7 +2,7 @@ module github.com/libp2p/hydra-booster
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.1.0
-	github.com/alanshaw/ipfs-ds-postgres v0.0.0-20200505183350-cafe98f3241f
+	github.com/alanshaw/ipfs-ds-postgres v0.1.0
 	github.com/alanshaw/ipfs-hookds v0.2.0
 	github.com/alanshaw/prom-metrics-client v0.3.0
 	github.com/axiomhq/hyperloglog v0.0.0-20191112132149-a4c4c47bc57f
@@ -24,7 +24,7 @@ require (
 	github.com/libp2p/go-libp2p-kbucket v0.4.1
 	github.com/libp2p/go-libp2p-mplex v0.2.3
 	github.com/libp2p/go-libp2p-quic-transport v0.3.6
-	github.com/libp2p/go-libp2p-record v0.1.2
+	github.com/libp2p/go-libp2p-record v0.1.3
 	github.com/libp2p/go-tcp-transport v0.2.0
 	github.com/multiformats/go-base32 v0.0.3
 	github.com/multiformats/go-multiaddr v0.2.1
