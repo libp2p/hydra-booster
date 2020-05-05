@@ -2,7 +2,7 @@ module github.com/libp2p/hydra-booster
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.1.0
-	github.com/alanshaw/ipfs-ds-postgres v0.0.0-20200504221408-edf844d7bccc
+	github.com/alanshaw/ipfs-ds-postgres v0.0.0-20200505183350-cafe98f3241f
 	github.com/alanshaw/ipfs-hookds v0.2.0
 	github.com/alanshaw/prom-metrics-client v0.3.0
 	github.com/axiomhq/hyperloglog v0.0.0-20191112132149-a4c4c47bc57f
