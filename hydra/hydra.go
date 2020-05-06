@@ -80,7 +80,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	var err error
 	if strings.HasPrefix(options.DatastorePath, "postgresql://") {
 		fmt.Fprintf(os.Stderr, "🐘 Using PostgreSQL datastore\n")
-		ds, err = hyds.NewPostgreSQLDatastore(options.DatastorePath)
+		ds, err = hyds.NewPostgreSQLDatastore(ctx, options.DatastorePath)
 	} else {
 		fmt.Fprintf(os.Stderr, "🥞 Using LevelDB datastore\n")
 		ds, err = leveldb.NewDatastore(options.DatastorePath, nil)
