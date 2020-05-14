@@ -80,7 +80,7 @@ We're currently running **10 Hydras** with the following head counts:
 
 ## PostgreSQL datastore
 
-This is a simple PostgreSQL database hosted by DigitalOcean with a pgbouncer connection pool. Note that the connection string uses `binary_parameters=yes` to enable use with pgbouncer. See [github.com/lib/pq#389](https://github.com/lib/pq/issues/389).
+This is a simple PostgreSQL database hosted by DigitalOcean.
 
 ## Metrics and reporting
 
