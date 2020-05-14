@@ -16,7 +16,7 @@
   <a href="https://goreportcard.com/report/github.com/libp2p/hydra-booster"><img src="https://goreportcard.com/badge/github.com/libp2p/hydra-booster" /></a>  
   <a href="https://github.com/RichardLitt/standard-readme"><img src="https://img.shields.io/badge/readme%20style-standard-brightgreen.svg" /></a>
   <a href="https://godoc.org/github.com/libp2p/hydra-booster"><img src="http://img.shields.io/badge/godoc-reference-5272B4.svg" /></a>
-  <a href=""><img src="https://img.shields.io/badge/golang-%3E%3D1.13.8-orange.svg" /></a>
+  <a href=""><img src="https://img.shields.io/badge/golang-%3E%3D1.14.2-orange.svg" /></a>
   <br>
 </p>
 
