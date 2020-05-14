@@ -34,4 +34,4 @@ require (
 	go.opencensus.io v0.22.3
 )
 
-go 1.13
+go 1.14

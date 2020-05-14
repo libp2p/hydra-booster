@@ -1,4 +1,4 @@
-FROM golang:1.13.8-buster
+FROM golang:1.14.2-buster
 
 # Install deps
 RUN apt-get update && apt-get install -y \
