@@ -21,7 +21,7 @@ import (
 	"github.com/libp2p/go-libp2p-kad-dht/providers"
 	kbucket "github.com/libp2p/go-libp2p-kbucket"
 	mplex "github.com/libp2p/go-libp2p-mplex"
-	libp2pquic "github.com/libp2p/go-libp2p-quic-transport"
+	_ "github.com/libp2p/go-libp2p-quic-transport"
 	record "github.com/libp2p/go-libp2p-record"
 	"github.com/libp2p/go-tcp-transport"
 	"github.com/libp2p/hydra-booster/head/opts"
@@ -85,7 +85,7 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		libp2p.EnableNATService(),
 		libp2p.AutoNATServiceRateLimit(0, 3, time.Minute),
 		libp2p.Muxer("/mplex/6.7.0", mplex.DefaultTransport),
-		libp2p.Transport(libp2pquic.NewTransport),
+		// libp2p.Transport(libp2pquic.NewTransport),
 		libp2p.Transport(tcp.NewTCPTransport),
 	}
 
