@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/hydra-booster/utils"
@@ -90,6 +91,24 @@ func TestSpawnHydraWithV1Compat(t *testing.T) {
 		NHeads:         2,
 		GetPort:        utils.PortSelector(3000),
 		EnableV1Compat: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(hy.Heads) != 2 {
+		t.Fatal("expected hydra to spawn 2 heads")
+	}
+}
+
+func TestSpawnHydraWithPeerstorePath(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hy, err := NewHydra(ctx, Options{
+		NHeads:        2,
+		GetPort:       utils.PortSelector(3000),
+		PeerstorePath: fmt.Sprintf("../hydra-pstore/test-%d", time.Now().UnixNano()),
 	})
 	if err != nil {
 		t.Fatal(err)
