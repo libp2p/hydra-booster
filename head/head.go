@@ -91,7 +91,9 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		libp2p.Security(tls.ID, tls.New),
 		libp2p.Security(noise.ID, noise.New),
 	}
-
+	if cfg.Peerstore != nil {
+		libp2pOpts = append(libp2pOpts, libp2p.Peerstore(cfg.Peerstore))
+	}
 	if cfg.EnableRelay {
 		libp2pOpts = append(libp2pOpts, libp2p.EnableRelay(circuit.OptHop))
 	}

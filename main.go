@@ -27,9 +27,10 @@ import (
 )
 
 const (
-	defaultBucketSize  = 20
-	defaultMetricsAddr = "0.0.0.0:8888"
-	defaultHTTPAPIAddr = "127.0.0.1:7779"
+	defaultBucketSize    = 20
+	defaultMetricsAddr   = "0.0.0.0:8888"
+	defaultHTTPAPIAddr   = "127.0.0.1:7779"
+	defaultPeerstorePath = "hydra-pstore"
 )
 
 func main() {
@@ -120,6 +121,7 @@ func main() {
 	opts := hydra.Options{
 		Name:              *name,
 		DatastorePath:     *dbpath,
+		PeerstorePath:     defaultPeerstorePath,
 		EnableRelay:       *enableRelay,
 		ProtocolPrefix:    protocol.ID(*protocolPrefix),
 		BucketSize:        *bucketSize,

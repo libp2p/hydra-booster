@@ -5,6 +5,7 @@ import (
 
 	ds "github.com/ipfs/go-datastore"
 	dssync "github.com/ipfs/go-datastore/sync"
+	"github.com/libp2p/go-libp2p-core/peerstore"
 	"github.com/libp2p/go-libp2p-core/protocol"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	kbucket "github.com/libp2p/go-libp2p-kbucket"
@@ -15,6 +16,7 @@ import (
 // Options are Hydra Head options
 type Options struct {
 	Datastore        ds.Batching
+	Peerstore        peerstore.Peerstore
 	RoutingTable     *kbucket.RoutingTable
 	EnableRelay      bool
 	Addrs            []multiaddr.Multiaddr
@@ -61,6 +63,15 @@ var Defaults = func(o *Options) error {
 func Datastore(ds ds.Batching) Option {
 	return func(o *Options) error {
 		o.Datastore = ds
+		return nil
+	}
+}
+
+// Peerstore configures the Hydra Head to use the specified peerstore.
+// Defaults to an in-memory (temporary) map.
+func Peerstore(ps peerstore.Peerstore) Option {
+	return func(o *Options) error {
+		o.Peerstore = ps
 		return nil
 	}
 }
