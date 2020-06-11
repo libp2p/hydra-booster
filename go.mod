@@ -18,7 +18,7 @@ require (
 	github.com/jackc/pgx/v4 v4.6.0
 	github.com/libp2p/go-libp2p v0.9.6
 	github.com/libp2p/go-libp2p-circuit v0.2.3
-	github.com/libp2p/go-libp2p-connmgr v0.2.3
+	github.com/libp2p/go-libp2p-connmgr v0.2.4
 	github.com/libp2p/go-libp2p-core v0.5.7
 	github.com/libp2p/go-libp2p-kad-dht v0.8.2
 	github.com/libp2p/go-libp2p-kbucket v0.4.2

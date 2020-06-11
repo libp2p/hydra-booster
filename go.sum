@@ -33,6 +33,8 @@ github.com/axiomhq/hyperloglog v0.0.0-20191112132149-a4c4c47bc57f h1:y06x6vGnFYf
 github.com/axiomhq/hyperloglog v0.0.0-20191112132149-a4c4c47bc57f/go.mod h1:2stgcRjl6QmW+gU2h5E7BQXg4HU0gzxKWDuT5HviN9s=
 github.com/benbjohnson/clock v1.0.1 h1:lVM1R/o5khtrr7t3qAr+sS6uagZOP+7iprc7gS3V9CE=
 github.com/benbjohnson/clock v1.0.1/go.mod h1:bGMdMPoPVvcYyt1gHDf4J2KE153Yf9BuiUKYMaxlTDM=
+github.com/benbjohnson/clock v1.0.2 h1:Z0CN0Yb4ig9sGPXkvAQcGJfnrrMQ5QYLCMPRi9iD7YE=
+github.com/benbjohnson/clock v1.0.2/go.mod h1:bGMdMPoPVvcYyt1gHDf4J2KE153Yf9BuiUKYMaxlTDM=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0 h1:HWo1m869IqiPhD389kmkxeTalrjNbbJTC8LXupb+sl0=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
@@ -390,6 +392,8 @@ github.com/libp2p/go-libp2p-circuit v0.2.3 h1:3Uw1fPHWrp1tgIhBz0vSOxRUmnKL8L/NGU
 github.com/libp2p/go-libp2p-circuit v0.2.3/go.mod h1:nkG3iE01tR3FoQ2nMm06IUrCpCyJp1Eo4A1xYdpjfs4=
 github.com/libp2p/go-libp2p-connmgr v0.2.3 h1:v7skKI9n+0obPpzMIO6aIlOSdQOmhxTf40cbpzqaGMQ=
 github.com/libp2p/go-libp2p-connmgr v0.2.3/go.mod h1:Gqjg29zI8CwXX21zRxy6gOg8VYu3zVerJRt2KyktzH4=
+github.com/libp2p/go-libp2p-connmgr v0.2.4 h1:TMS0vc0TCBomtQJyWr7fYxcVYYhx+q/2gF++G5Jkl/w=
+github.com/libp2p/go-libp2p-connmgr v0.2.4/go.mod h1:YV0b/RIm8NGPnnNWM7hG9Q38OeQiQfKhHCCs1++ufn0=
 github.com/libp2p/go-libp2p-core v0.0.1/go.mod h1:g/VxnTZ/1ygHxH3dKok7Vno1VfpvGcGip57wjTU4fco=
 github.com/libp2p/go-libp2p-core v0.0.4/go.mod h1:jyuCQP356gzfCFtRKyvAbNkyeuxb7OlyhWZ3nls5d2I=
 github.com/libp2p/go-libp2p-core v0.2.0/go.mod h1:X0eyB0Gy93v0DZtSYbEM7RnMChm9Uv3j7yRXjO77xSI=

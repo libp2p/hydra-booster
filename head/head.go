@@ -20,7 +20,6 @@ import (
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p-kad-dht/providers"
 	kbucket "github.com/libp2p/go-libp2p-kbucket"
-	_ "github.com/libp2p/go-libp2p-quic-transport"
 	quic "github.com/libp2p/go-libp2p-quic-transport"
 	record "github.com/libp2p/go-libp2p-record"
 	"github.com/libp2p/go-tcp-transport"
