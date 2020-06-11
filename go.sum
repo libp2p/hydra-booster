@@ -21,6 +21,8 @@ github.com/alanshaw/ipfs-ds-postgres v0.1.0 h1:FiaWWvnFwNxj5J/esKxHYx0lnYEhp1Z6e
 github.com/alanshaw/ipfs-ds-postgres v0.1.0/go.mod h1:YYESBYOGnX1/LHOm7J6sJknfgq4KAirF8ZMYIn4+6sU=
 github.com/alanshaw/ipfs-hookds v0.2.0 h1:QNjTOEEDrHV/7Tp02DWXbDvBKLgPgSRjY4gpif7hLio=
 github.com/alanshaw/ipfs-hookds v0.2.0/go.mod h1:cnRH5J+8w/VpM+D+BD//zxtAKeLI5wMj1zo9krt85fU=
+github.com/alanshaw/ipfs-hookds v0.3.0 h1:lpETxiwyVQ9kmBbCJz2KDTXoS3YNC6o4XQdL32t/zlA=
+github.com/alanshaw/ipfs-hookds v0.3.0/go.mod h1:cnRH5J+8w/VpM+D+BD//zxtAKeLI5wMj1zo9krt85fU=
 github.com/alanshaw/prom-metrics-client v0.3.0 h1:HfkAEmViUMyL4L6dSA2uR3+d+2Fw+yZUAPpRXV5ju0I=
 github.com/alanshaw/prom-metrics-client v0.3.0/go.mod h1:PAIsdFNQd5vGDP+AEa+KmYqGfZTXd951YE4AP2xP7gM=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=

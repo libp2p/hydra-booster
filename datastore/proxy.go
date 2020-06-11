@@ -7,9 +7,7 @@ import (
 	"time"
 
 	hook "github.com/alanshaw/ipfs-hookds"
-	hopts "github.com/alanshaw/ipfs-hookds/opts"
 	hres "github.com/alanshaw/ipfs-hookds/query/results"
-	hropts "github.com/alanshaw/ipfs-hookds/query/results/opts"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
@@ -78,10 +76,10 @@ func NewProxy(ctx context.Context, ds datastore.Batching, getRouting GetRoutingF
 	if opts.FindProvidersFailureBackoff == 0 {
 		opts.FindProvidersFailureBackoff = time.Minute
 	}
-	return hook.NewBatching(ds, hopts.OnAfterQuery(newOnAfterQueryHook(ctx, getRouting, opts)))
+	return hook.NewBatching(ds, hook.WithAfterQuery(newOnAfterQueryHook(ctx, getRouting, opts)))
 }
 
-func newOnAfterQueryHook(ctx context.Context, getRouting GetRoutingFunc, opts Options) hopts.OnAfterQueryFunc {
+func newOnAfterQueryHook(ctx context.Context, getRouting GetRoutingFunc, opts Options) hook.AfterQueryFunc {
 	findC := make(chan datastore.Key, opts.FindProvidersQueueSize)
 	foundC := make(chan findResult)
 
@@ -175,7 +173,7 @@ func newOnAfterQueryHook(ctx context.Context, getRouting GetRoutingFunc, opts Op
 			return r, ok
 		}
 
-		return hres.NewResults(res, hropts.OnAfterNextSync(onAfterNextSync)), nil
+		return hres.NewResults(res, hres.WithAfterNextSync(onAfterNextSync)), nil
 	}
 }
 
