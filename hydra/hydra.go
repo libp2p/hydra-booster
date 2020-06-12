@@ -126,8 +126,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 
 		hdOpts := []opts.Option{
 			opts.Datastore(ds),
-			// opts.Addrs([]multiaddr.Multiaddr{tcpAddr, quicAddr}),
-			opts.Addrs([]multiaddr.Multiaddr{tcpAddr}),
+			opts.Addrs([]multiaddr.Multiaddr{tcpAddr, quicAddr}),
 			opts.ProtocolPrefix(options.ProtocolPrefix),
 			opts.BucketSize(options.BucketSize),
 			opts.Limiter(limiter),
