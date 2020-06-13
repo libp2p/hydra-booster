@@ -158,7 +158,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 			}
 			pstore, err := pstoreds.NewPeerstore(ctx, pstoreDs, pstoreds.Options{
 				CacheSize:           0,
-				GCPurgeInterval:     2 * time.Hour,
+				GCPurgeInterval:     0,
 				GCLookaheadInterval: 0,
 				GCInitialDelay:      60 * time.Second,
 			})
