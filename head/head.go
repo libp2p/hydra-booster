@@ -20,8 +20,10 @@ import (
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p-kad-dht/providers"
 	kbucket "github.com/libp2p/go-libp2p-kbucket"
+	noise "github.com/libp2p/go-libp2p-noise"
 	quic "github.com/libp2p/go-libp2p-quic-transport"
 	record "github.com/libp2p/go-libp2p-record"
+	tls "github.com/libp2p/go-libp2p-tls"
 	"github.com/libp2p/go-tcp-transport"
 	"github.com/libp2p/hydra-booster/head/opts"
 	"github.com/libp2p/hydra-booster/version"
@@ -86,6 +88,8 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		libp2p.DefaultMuxers,
 		libp2p.Transport(quic.NewTransport),
 		libp2p.Transport(tcp.NewTCPTransport),
+		libp2p.Security(tls.ID, tls.New),
+		libp2p.Security(noise.ID, noise.New),
 	}
 
 	if cfg.EnableRelay {
