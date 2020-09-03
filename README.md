@@ -97,7 +97,7 @@ Usage of hydra-booster:
   -stagger duration
         Duration to stagger nodes starts by
   -ui-theme string
-        UI theme, "gooey", "logey" or "none" (default "gooey" for 1 head otherwise "logey")
+        UI theme, "logey", "gooey" or "none" (default "logey")
 ```
 
 ### Environment variables
