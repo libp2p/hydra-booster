@@ -79,13 +79,13 @@ Usage of hydra-booster:
   -enable-v1-compat
         Enables DHT v1 compatibility (default false).
   -httpapi-addr string
-        Specify an IP and port to run prometheus metrics and pprof http server on (default "127.0.0.1:7779")
+        Specify an IP and port to run the HTTP API server on (default "127.0.0.1:7779")
   -idgen-addr string
         Address of an idgen HTTP API endpoint to use for generating private keys for heads
   -mem
         Use an in-memory database. This overrides the -db option
   -metrics-addr string
-        Specify an IP and port to run prometheus metrics and pprof http server on (default "0.0.0.0:8888")
+        Specify an IP and port to run Prometheus metrics and pprof HTTP server on (default "0.0.0.0:8888")
   -name string
         A name for the Hydra (for use in metrics)
   -nheads int
