@@ -113,7 +113,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	if options.PeerstorePath == "" {
 		fmt.Fprintf(os.Stderr, "💭 Using in-memory peerstore\n")
 	} else {
-		fmt.Fprintf(os.Stderr, "🥞 Using LevelDB peerstore\n")
+		fmt.Fprintf(os.Stderr, "🥞 Using LevelDB peerstore (EXPERIMENTAL)\n")
 	}
 
 	fmt.Fprintf(os.Stderr, "🐲 Spawning %d heads: ", options.NHeads)
