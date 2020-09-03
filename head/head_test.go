@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/ipfs/go-datastore"
+	"github.com/ipfs/go-datastore/sync"
+	"github.com/libp2p/go-libp2p-peerstore/pstoreds"
 	"github.com/libp2p/hydra-booster/head/opts"
 )
 
@@ -96,6 +98,38 @@ func TestSpawnHeadWithV1Compat(t *testing.T) { // TODO spawn a node to bootstrap
 		ctx,
 		opts.Datastore(datastore.NewMapDatastore()),
 		opts.EnableV1Compat(),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for {
+		status, ok := <-bsCh
+		if !ok {
+			t.Fatal(fmt.Errorf("channel closed before bootstrap complete"))
+		}
+		if status.Err != nil {
+			fmt.Println(status.Err)
+		}
+		if status.Done {
+			break
+		}
+	}
+}
+
+func TestSpawnHeadWithCustomPeerstore(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	pstore, err := pstoreds.NewPeerstore(ctx, sync.MutexWrap(datastore.NewMapDatastore()), pstoreds.DefaultOpts())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, bsCh, err := NewHead(
+		ctx,
+		opts.Datastore(datastore.NewMapDatastore()),
+		opts.Peerstore(pstore),
 	)
 	if err != nil {
 		t.Fatal(err)

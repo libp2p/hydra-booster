@@ -94,6 +94,8 @@ Usage of hydra-booster:
         If set, begin port allocation here (default -1)
   -protocol-prefix string
         Specify the DHT protocol prefix (default "/ipfs") (default "/ipfs")
+  -pstore string
+        Peerstore directory for LevelDB store (defaults to in-memory store)
   -stagger duration
         Duration to stagger nodes starts by
   -ui-theme string
@@ -110,6 +112,8 @@ Usage of hydra-booster:
         A CSV list of peer addresses to bootstrap from.
   HYDRA_DB string
         Datastore directory (for LevelDB store) or postgresql:// connection URI (for PostgreSQL store)
+  HYDRA_PSTORE string
+        Peerstore directory for LevelDB store (defaults to in-memory store)
   HYDRA_DISABLE_PREFETCH
         Disables pre-fetching of discovered provider records (default false).
   HYDRA_DISABLE_PROV_COUNTS

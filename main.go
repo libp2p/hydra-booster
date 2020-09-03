@@ -36,6 +36,7 @@ func main() {
 	start := time.Now()
 	nheads := flag.Int("nheads", -1, "Specify the number of Hydra heads to create.")
 	dbpath := flag.String("db", "", "Datastore directory (for LevelDB store) or postgresql:// connection URI (for PostgreSQL store)")
+	pstorePath := flag.String("pstore", "", "Peerstore directory for LevelDB store (defaults to in-memory store)")
 	httpAPIAddr := flag.String("httpapi-addr", defaultHTTPAPIAddr, "Specify an IP and port to run prometheus metrics and pprof http server on")
 	inmem := flag.Bool("mem", false, "Use an in-memory database. This overrides the -db option")
 	metricsAddr := flag.String("metrics-addr", defaultMetricsAddr, "Specify an IP and port to run prometheus metrics and pprof http server on")
@@ -94,6 +95,9 @@ func main() {
 	if *disableProvCounts == false {
 		*disableProvCounts = mustGetEnvBool("HYDRA_DISABLE_PROV_COUNTS", false)
 	}
+	if *pstorePath == "" {
+		*pstorePath = os.Getenv("HYDRA_PSTORE")
+	}
 
 	// Allow short keys. Otherwise, we'll refuse connections from the bootsrappers and break the network.
 	// TODO: Remove this when we shut those bootstrappers down.
@@ -120,6 +124,7 @@ func main() {
 	opts := hydra.Options{
 		Name:              *name,
 		DatastorePath:     *dbpath,
+		PeerstorePath:     *pstorePath,
 		EnableRelay:       *enableRelay,
 		ProtocolPrefix:    protocol.ID(*protocolPrefix),
 		BucketSize:        *bucketSize,

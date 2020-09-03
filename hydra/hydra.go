@@ -16,6 +16,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/protocol"
 	"github.com/libp2p/go-libp2p-core/routing"
+	"github.com/libp2p/go-libp2p-peerstore/pstoreds"
 	hyds "github.com/libp2p/hydra-booster/datastore"
 	"github.com/libp2p/hydra-booster/head"
 	"github.com/libp2p/hydra-booster/head/opts"
@@ -49,6 +50,7 @@ type Hydra struct {
 type Options struct {
 	Name              string
 	DatastorePath     string
+	PeerstorePath     string
 	GetPort           func() int
 	NHeads            int
 	ProtocolPrefix    protocol.ID
@@ -108,6 +110,12 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		})
 	}
 
+	if options.PeerstorePath == "" {
+		fmt.Fprintf(os.Stderr, "💭 Using in-memory peerstore\n")
+	} else {
+		fmt.Fprintf(os.Stderr, "🥞 Using LevelDB peerstore (EXPERIMENTAL)\n")
+	}
+
 	fmt.Fprintf(os.Stderr, "🐲 Spawning %d heads: ", options.NHeads)
 
 	var hyperLock sync.Mutex
@@ -148,6 +156,17 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		}
 		if options.EnableV1Compat {
 			hdOpts = append(hdOpts, opts.EnableV1Compat())
+		}
+		if options.PeerstorePath != "" {
+			pstoreDs, err := leveldb.NewDatastore(fmt.Sprintf("%s/head-%d", options.PeerstorePath, i), nil)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create peerstore datastore: %w", err)
+			}
+			pstore, err := pstoreds.NewPeerstore(ctx, pstoreDs, pstoreds.DefaultOpts())
+			if err != nil {
+				return nil, fmt.Errorf("failed to create peerstore: %w", err)
+			}
+			hdOpts = append(hdOpts, opts.Peerstore(pstore))
 		}
 
 		hd, bsCh, err := head.NewHead(ctx, hdOpts...)
