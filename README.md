@@ -38,19 +38,25 @@ go get -u github.com/libp2p/hydra-booster
 
 ## Usage
 
-`hydra-booster` has two modes. A 'single head' mode that has a nicer UI, this is intended to be run in a tmux window or something so you can see statistics about your contribution to the network.
+Run a hydra booster with a single head:
 
 ```sh
 go run ./main.go
 ```
 
-The second mode is called 'many heads'. Passing the `-nheads=N` allows you to run N heads at a time in the same process. It periodically prints out a status line with information about total peers, uptime, and memory usage.
+Pass the `-nheads=N` option to run N heads at a time in the same process. It periodically prints out a status line with information about total peers, uptime, and memory usage.
 
 ```sh
 go run ./main.go -nheads=5
 ```
 
-Alternatively you can use the `HYDRA_NHEADS` environment var to specify the number of heads. Note the `-nheads` flag takes precedence.
+Alternatively you can use the `HYDRA_NHEADS` environment var to specify the number of heads.
+
+There's also a nicer UI option, this is intended to be run in a tmux window or something so you can see statistics about your contribution to the network. Use the `-ui-theme` flag to switch to it:
+
+```sh
+go run ./main.go -ui-theme=gooey # also "none" to turn off logging
+```
 
 ### Flags
 
