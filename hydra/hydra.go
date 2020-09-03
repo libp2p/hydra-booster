@@ -162,12 +162,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 			if err != nil {
 				return nil, fmt.Errorf("failed to create peerstore datastore: %w", err)
 			}
-			pstore, err := pstoreds.NewPeerstore(ctx, pstoreDs, pstoreds.Options{
-				CacheSize:           0,
-				GCPurgeInterval:     0,
-				GCLookaheadInterval: 0,
-				GCInitialDelay:      60 * time.Second,
-			})
+			pstore, err := pstoreds.NewPeerstore(ctx, pstoreDs, pstoreds.DefaultOpts())
 			if err != nil {
 				return nil, fmt.Errorf("failed to create peerstore: %w", err)
 			}
