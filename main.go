@@ -47,7 +47,7 @@ func main() {
 	bootstrapConcurrency := flag.Int("bootstrap-conc", 32, "How many concurrent bootstraps to run")
 	bootstrapPeers := flag.String("bootstrap-peers", "", "A CSV list of peer addresses to bootstrap from.")
 	stagger := flag.Duration("stagger", 0*time.Second, "Duration to stagger nodes starts by")
-	uiTheme := flag.String("ui-theme", "default", "UI theme, \"gooey\", \"logey\" or \"none\" (default \"gooey\" for 1 head otherwise \"logey\")")
+	uiTheme := flag.String("ui-theme", "logey", "UI theme, \"logey\", \"gooey\" or \"none\" (default \"logey\")")
 	name := flag.String("name", "", "A name for the Hydra (for use in metrics)")
 	idgenAddr := flag.String("idgen-addr", "", "Address of an idgen HTTP API endpoint to use for generating private keys for heads")
 	disableProvGC := flag.Bool("disable-prov-gc", false, "Disable provider record garbage collection (default false).")
@@ -157,9 +157,6 @@ func main() {
 
 	var ui *hyui.UI
 	if *uiTheme != "none" {
-		if *uiTheme == "default" && len(hy.Heads) == 1 {
-			*uiTheme = "gooey"
-		}
 		var theme hyui.Theme
 		if *uiTheme == "gooey" {
 			theme = hyui.Gooey

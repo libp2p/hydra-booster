@@ -200,6 +200,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	fmt.Fprintf(os.Stderr, "\n")
 
 	for _, hd := range hds {
+		fmt.Fprintf(os.Stderr, "🆔 %v\n", hd.Host.ID())
 		for _, addr := range hd.Host.Addrs() {
 			fmt.Fprintf(os.Stderr, "🐝 Swarm listening on %v\n", addr)
 		}
