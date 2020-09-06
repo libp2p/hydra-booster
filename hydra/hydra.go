@@ -62,7 +62,6 @@ type Options struct {
 	DisableProvGC     bool
 	DisableProviders  bool
 	DisableValues     bool
-	EnableV1Compat    bool
 	BootstrapPeers    []multiaddr.Multiaddr
 	DisablePrefetch   bool
 	DisableProvCounts bool
@@ -153,9 +152,6 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		}
 		if options.DisableValues {
 			hdOpts = append(hdOpts, opts.DisableValues())
-		}
-		if options.EnableV1Compat {
-			hdOpts = append(hdOpts, opts.EnableV1Compat())
 		}
 		if options.PeerstorePath != "" {
 			pstoreDs, err := leveldb.NewDatastore(fmt.Sprintf("%s/head-%d", options.PeerstorePath, i), nil)
