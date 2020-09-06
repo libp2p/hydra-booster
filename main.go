@@ -53,7 +53,6 @@ func main() {
 	disableProvGC := flag.Bool("disable-prov-gc", false, "Disable provider record garbage collection (default false).")
 	disableProviders := flag.Bool("disable-providers", false, "Disable storing and retrieving provider records, note that for some protocols, like \"/ipfs\", it MUST be false (default false).")
 	disableValues := flag.Bool("disable-values", false, "Disable storing and retrieving value records, note that for some protocols, like \"/ipfs\", it MUST be false (default false).")
-	enableV1Compat := flag.Bool("enable-v1-compat", true, "Enables DHT v1 compatibility (default true).")
 	disablePrefetch := flag.Bool("disable-prefetch", false, "Disables pre-fetching of discovered provider records (default false).")
 	disableProvCounts := flag.Bool("disable-prov-counts", false, "Disable counting provider records for metrics reporting (default false).")
 	flag.Parse()
@@ -82,9 +81,6 @@ func main() {
 	}
 	if *disableProvGC == false {
 		*disableProvGC = mustGetEnvBool("HYDRA_DISABLE_PROV_GC", false)
-	}
-	if *enableV1Compat == false {
-		*enableV1Compat = mustGetEnvBool("HYDRA_ENABLE_V1_COMPAT", false)
 	}
 	if *bootstrapPeers == "" {
 		*bootstrapPeers = os.Getenv("HYDRA_BOOTSTRAP_PEERS")
@@ -136,7 +132,6 @@ func main() {
 		DisableProvGC:     *disableProvGC,
 		DisableProviders:  *disableProviders,
 		DisableValues:     *disableValues,
-		EnableV1Compat:    *enableV1Compat,
 		BootstrapPeers:    mustConvertToMultiaddr(*bootstrapPeers),
 		DisablePrefetch:   *disablePrefetch,
 		DisableProvCounts: *disableProvCounts,

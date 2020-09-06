@@ -82,8 +82,6 @@ Usage of hydra-booster:
         Disable storing and retrieving value records, note that for some protocols, like "/ipfs", it MUST be false (default false).
   -enable-relay
         Enable libp2p circuit relaying for this node (default false).
-  -enable-v1-compat
-        Enables DHT v1 compatibility (default true).
   -httpapi-addr string
         Specify an IP and port to run the HTTP API server on (default "127.0.0.1:7779")
   -idgen-addr string
@@ -126,8 +124,6 @@ Usage of hydra-booster:
         Disable counting provider records for metrics reporting (default false).
   HYDRA_DISABLE_PROV_GC
         Disable provider record garbage collection (default false).
-  HYDRA_ENABLE_V1_COMPAT
-        Enables DHT v1 compatibility (default true).
   HYDRA_IDGEN_ADDR string
         Address of an idgen HTTP API endpoint to use for generating private keys for heads
   HYDRA_NAME string
