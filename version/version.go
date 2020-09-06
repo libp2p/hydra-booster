@@ -2,7 +2,7 @@ package version
 
 const (
 	// Version number of the Hydra Booster node, it should be kept in sync with the current release tag.
-	Version = "0.6.0"
+	Version = "0.7.0"
 	// UserAgent is the string passed by the identify protocol to other nodes in the network.
 	UserAgent = "hydra-booster/" + Version
 )
