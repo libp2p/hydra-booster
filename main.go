@@ -28,7 +28,7 @@ import (
 
 const (
 	defaultBucketSize  = 20
-	defaultMetricsAddr = "0.0.0.0:8888"
+	defaultMetricsAddr = "127.0.0.1:9758"
 	defaultHTTPAPIAddr = "127.0.0.1:7779"
 )
 

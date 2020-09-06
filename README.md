@@ -91,7 +91,7 @@ Usage of hydra-booster:
   -mem
         Use an in-memory database. This overrides the -db option
   -metrics-addr string
-        Specify an IP and port to run Prometheus metrics and pprof HTTP server on (default "0.0.0.0:8888")
+        Specify an IP and port to run Prometheus metrics and pprof HTTP server on (default "127.0.0.1:9758")
   -name string
         A name for the Hydra (for use in metrics)
   -nheads int
@@ -188,7 +188,7 @@ prometheus --config.file=promconfig.yaml --storage.tsdb.path=prometheus-data
 Next start the Hydra Booster, specifying the port to run metrics on:
 
 ```console
-go run ./main.go -nheads=5 -metrics-port=8888
+go run ./main.go -nheads=5 -metrics-port=9090
 ```
 
 You should now be able to access metrics at http://127.0.0.1:9090.
