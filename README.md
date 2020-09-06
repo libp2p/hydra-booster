@@ -13,7 +13,7 @@
 <p align="center">
   <a href="https://travis-ci.com/libp2p/hydra-booster"><img src="https://travis-ci.com/libp2p/hydra-booster.svg?branch=master"></a>
   <a href="https://codecov.io/gh/libp2p/hydra-booster"><img src="https://codecov.io/gh/libp2p/hydra-booster/branch/master/graph/badge.svg"></a>
-  <a href="https://goreportcard.com/report/github.com/libp2p/hydra-booster"><img src="https://goreportcard.com/badge/github.com/libp2p/hydra-booster" /></a>  
+  <a href="https://goreportcard.com/report/github.com/libp2p/hydra-booster"><img src="https://goreportcard.com/badge/github.com/libp2p/hydra-booster" /></a>
   <a href="https://github.com/RichardLitt/standard-readme"><img src="https://img.shields.io/badge/readme%20style-standard-brightgreen.svg" /></a>
   <a href="https://godoc.org/github.com/libp2p/hydra-booster"><img src="http://img.shields.io/badge/godoc-reference-5272B4.svg" /></a>
   <a href=""><img src="https://img.shields.io/badge/golang-%3E%3D1.14.2-orange.svg" /></a>
@@ -83,7 +83,7 @@ Usage of hydra-booster:
   -enable-relay
         Enable libp2p circuit relaying for this node (default false).
   -enable-v1-compat
-        Enables DHT v1 compatibility (default false).
+        Enables DHT v1 compatibility (default true).
   -httpapi-addr string
         Specify an IP and port to run the HTTP API server on (default "127.0.0.1:7779")
   -idgen-addr string
@@ -127,7 +127,7 @@ Usage of hydra-booster:
   HYDRA_DISABLE_PROV_GC
         Disable provider record garbage collection (default false).
   HYDRA_ENABLE_V1_COMPAT
-        Enables DHT v1 compatibility (default false).
+        Enables DHT v1 compatibility (default true).
   HYDRA_IDGEN_ADDR string
         Address of an idgen HTTP API endpoint to use for generating private keys for heads
   HYDRA_NAME string

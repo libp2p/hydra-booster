@@ -53,7 +53,7 @@ func main() {
 	disableProvGC := flag.Bool("disable-prov-gc", false, "Disable provider record garbage collection (default false).")
 	disableProviders := flag.Bool("disable-providers", false, "Disable storing and retrieving provider records, note that for some protocols, like \"/ipfs\", it MUST be false (default false).")
 	disableValues := flag.Bool("disable-values", false, "Disable storing and retrieving value records, note that for some protocols, like \"/ipfs\", it MUST be false (default false).")
-	enableV1Compat := flag.Bool("enable-v1-compat", false, "Enables DHT v1 compatibility (default false).")
+	enableV1Compat := flag.Bool("enable-v1-compat", true, "Enables DHT v1 compatibility (default true).")
 	disablePrefetch := flag.Bool("disable-prefetch", false, "Disables pre-fetching of discovered provider records (default false).")
 	disableProvCounts := flag.Bool("disable-prov-counts", false, "Disable counting provider records for metrics reporting (default false).")
 	flag.Parse()
