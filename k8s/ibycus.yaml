@@ -70,1255 +70,2505 @@ spec:
     port: 7779
     protocol: TCP
     targetPort: 7779
-  - name: head-000
+  - name: head-000-tcp
     port: 32000
     nodePort: 32000
     protocol: TCP
     targetPort: 32000
-  - name: head-001
+  - name: head-000-udp
+    port: 32000
+    nodePort: 32000
+    protocol: UDP
+    targetPort: 32000
+  - name: head-001-tcp
     port: 32001
     nodePort: 32001
     protocol: TCP
     targetPort: 32001
-  - name: head-002
+  - name: head-001-udp
+    port: 32001
+    nodePort: 32001
+    protocol: UDP
+    targetPort: 32001
+  - name: head-002-tcp
     port: 32002
     nodePort: 32002
     protocol: TCP
     targetPort: 32002
-  - name: head-003
+  - name: head-002-udp
+    port: 32002
+    nodePort: 32002
+    protocol: UDP
+    targetPort: 32002
+  - name: head-003-tcp
     port: 32003
     nodePort: 32003
     protocol: TCP
     targetPort: 32003
-  - name: head-004
+  - name: head-003-udp
+    port: 32003
+    nodePort: 32003
+    protocol: UDP
+    targetPort: 32003
+  - name: head-004-tcp
     port: 32004
     nodePort: 32004
     protocol: TCP
     targetPort: 32004
-  - name: head-005
+  - name: head-004-udp
+    port: 32004
+    nodePort: 32004
+    protocol: UDP
+    targetPort: 32004
+  - name: head-005-tcp
     port: 32005
     nodePort: 32005
     protocol: TCP
     targetPort: 32005
-  - name: head-006
+  - name: head-005-udp
+    port: 32005
+    nodePort: 32005
+    protocol: UDP
+    targetPort: 32005
+  - name: head-006-tcp
     port: 32006
     nodePort: 32006
     protocol: TCP
     targetPort: 32006
-  - name: head-007
+  - name: head-006-udp
+    port: 32006
+    nodePort: 32006
+    protocol: UDP
+    targetPort: 32006
+  - name: head-007-tcp
     port: 32007
     nodePort: 32007
     protocol: TCP
     targetPort: 32007
-  - name: head-008
+  - name: head-007-udp
+    port: 32007
+    nodePort: 32007
+    protocol: UDP
+    targetPort: 32007
+  - name: head-008-tcp
     port: 32008
     nodePort: 32008
     protocol: TCP
     targetPort: 32008
-  - name: head-009
+  - name: head-008-udp
+    port: 32008
+    nodePort: 32008
+    protocol: UDP
+    targetPort: 32008
+  - name: head-009-tcp
     port: 32009
     nodePort: 32009
     protocol: TCP
     targetPort: 32009
-  - name: head-010
+  - name: head-009-udp
+    port: 32009
+    nodePort: 32009
+    protocol: UDP
+    targetPort: 32009
+  - name: head-010-tcp
     port: 32010
     nodePort: 32010
     protocol: TCP
     targetPort: 32010
-  - name: head-011
+  - name: head-010-udp
+    port: 32010
+    nodePort: 32010
+    protocol: UDP
+    targetPort: 32010
+  - name: head-011-tcp
     port: 32011
     nodePort: 32011
     protocol: TCP
     targetPort: 32011
-  - name: head-012
+  - name: head-011-udp
+    port: 32011
+    nodePort: 32011
+    protocol: UDP
+    targetPort: 32011
+  - name: head-012-tcp
     port: 32012
     nodePort: 32012
     protocol: TCP
     targetPort: 32012
-  - name: head-013
+  - name: head-012-udp
+    port: 32012
+    nodePort: 32012
+    protocol: UDP
+    targetPort: 32012
+  - name: head-013-tcp
     port: 32013
     nodePort: 32013
     protocol: TCP
     targetPort: 32013
-  - name: head-014
+  - name: head-013-udp
+    port: 32013
+    nodePort: 32013
+    protocol: UDP
+    targetPort: 32013
+  - name: head-014-tcp
     port: 32014
     nodePort: 32014
     protocol: TCP
     targetPort: 32014
-  - name: head-015
+  - name: head-014-udp
+    port: 32014
+    nodePort: 32014
+    protocol: UDP
+    targetPort: 32014
+  - name: head-015-tcp
     port: 32015
     nodePort: 32015
     protocol: TCP
     targetPort: 32015
-  - name: head-016
+  - name: head-015-udp
+    port: 32015
+    nodePort: 32015
+    protocol: UDP
+    targetPort: 32015
+  - name: head-016-tcp
     port: 32016
     nodePort: 32016
     protocol: TCP
     targetPort: 32016
-  - name: head-017
+  - name: head-016-udp
+    port: 32016
+    nodePort: 32016
+    protocol: UDP
+    targetPort: 32016
+  - name: head-017-tcp
     port: 32017
     nodePort: 32017
     protocol: TCP
     targetPort: 32017
-  - name: head-018
+  - name: head-017-udp
+    port: 32017
+    nodePort: 32017
+    protocol: UDP
+    targetPort: 32017
+  - name: head-018-tcp
     port: 32018
     nodePort: 32018
     protocol: TCP
     targetPort: 32018
-  - name: head-019
+  - name: head-018-udp
+    port: 32018
+    nodePort: 32018
+    protocol: UDP
+    targetPort: 32018
+  - name: head-019-tcp
     port: 32019
     nodePort: 32019
     protocol: TCP
     targetPort: 32019
-  - name: head-020
+  - name: head-019-udp
+    port: 32019
+    nodePort: 32019
+    protocol: UDP
+    targetPort: 32019
+  - name: head-020-tcp
     port: 32020
     nodePort: 32020
     protocol: TCP
     targetPort: 32020
-  - name: head-021
+  - name: head-020-udp
+    port: 32020
+    nodePort: 32020
+    protocol: UDP
+    targetPort: 32020
+  - name: head-021-tcp
     port: 32021
     nodePort: 32021
     protocol: TCP
     targetPort: 32021
-  - name: head-022
+  - name: head-021-udp
+    port: 32021
+    nodePort: 32021
+    protocol: UDP
+    targetPort: 32021
+  - name: head-022-tcp
     port: 32022
     nodePort: 32022
     protocol: TCP
     targetPort: 32022
-  - name: head-023
+  - name: head-022-udp
+    port: 32022
+    nodePort: 32022
+    protocol: UDP
+    targetPort: 32022
+  - name: head-023-tcp
     port: 32023
     nodePort: 32023
     protocol: TCP
     targetPort: 32023
-  - name: head-024
+  - name: head-023-udp
+    port: 32023
+    nodePort: 32023
+    protocol: UDP
+    targetPort: 32023
+  - name: head-024-tcp
     port: 32024
     nodePort: 32024
     protocol: TCP
     targetPort: 32024
-  - name: head-025
+  - name: head-024-udp
+    port: 32024
+    nodePort: 32024
+    protocol: UDP
+    targetPort: 32024
+  - name: head-025-tcp
     port: 32025
     nodePort: 32025
     protocol: TCP
     targetPort: 32025
-  - name: head-026
+  - name: head-025-udp
+    port: 32025
+    nodePort: 32025
+    protocol: UDP
+    targetPort: 32025
+  - name: head-026-tcp
     port: 32026
     nodePort: 32026
     protocol: TCP
     targetPort: 32026
-  - name: head-027
+  - name: head-026-udp
+    port: 32026
+    nodePort: 32026
+    protocol: UDP
+    targetPort: 32026
+  - name: head-027-tcp
     port: 32027
     nodePort: 32027
     protocol: TCP
     targetPort: 32027
-  - name: head-028
+  - name: head-027-udp
+    port: 32027
+    nodePort: 32027
+    protocol: UDP
+    targetPort: 32027
+  - name: head-028-tcp
     port: 32028
     nodePort: 32028
     protocol: TCP
     targetPort: 32028
-  - name: head-029
+  - name: head-028-udp
+    port: 32028
+    nodePort: 32028
+    protocol: UDP
+    targetPort: 32028
+  - name: head-029-tcp
     port: 32029
     nodePort: 32029
     protocol: TCP
     targetPort: 32029
-  - name: head-030
+  - name: head-029-udp
+    port: 32029
+    nodePort: 32029
+    protocol: UDP
+    targetPort: 32029
+  - name: head-030-tcp
     port: 32030
     nodePort: 32030
     protocol: TCP
     targetPort: 32030
-  - name: head-031
+  - name: head-030-udp
+    port: 32030
+    nodePort: 32030
+    protocol: UDP
+    targetPort: 32030
+  - name: head-031-tcp
     port: 32031
     nodePort: 32031
     protocol: TCP
     targetPort: 32031
-  - name: head-032
+  - name: head-031-udp
+    port: 32031
+    nodePort: 32031
+    protocol: UDP
+    targetPort: 32031
+  - name: head-032-tcp
     port: 32032
     nodePort: 32032
     protocol: TCP
     targetPort: 32032
-  - name: head-033
+  - name: head-032-udp
+    port: 32032
+    nodePort: 32032
+    protocol: UDP
+    targetPort: 32032
+  - name: head-033-tcp
     port: 32033
     nodePort: 32033
     protocol: TCP
     targetPort: 32033
-  - name: head-034
+  - name: head-033-udp
+    port: 32033
+    nodePort: 32033
+    protocol: UDP
+    targetPort: 32033
+  - name: head-034-tcp
     port: 32034
     nodePort: 32034
     protocol: TCP
     targetPort: 32034
-  - name: head-035
+  - name: head-034-udp
+    port: 32034
+    nodePort: 32034
+    protocol: UDP
+    targetPort: 32034
+  - name: head-035-tcp
     port: 32035
     nodePort: 32035
     protocol: TCP
     targetPort: 32035
-  - name: head-036
+  - name: head-035-udp
+    port: 32035
+    nodePort: 32035
+    protocol: UDP
+    targetPort: 32035
+  - name: head-036-tcp
     port: 32036
     nodePort: 32036
     protocol: TCP
     targetPort: 32036
-  - name: head-037
+  - name: head-036-udp
+    port: 32036
+    nodePort: 32036
+    protocol: UDP
+    targetPort: 32036
+  - name: head-037-tcp
     port: 32037
     nodePort: 32037
     protocol: TCP
     targetPort: 32037
-  - name: head-038
+  - name: head-037-udp
+    port: 32037
+    nodePort: 32037
+    protocol: UDP
+    targetPort: 32037
+  - name: head-038-tcp
     port: 32038
     nodePort: 32038
     protocol: TCP
     targetPort: 32038
-  - name: head-039
+  - name: head-038-udp
+    port: 32038
+    nodePort: 32038
+    protocol: UDP
+    targetPort: 32038
+  - name: head-039-tcp
     port: 32039
     nodePort: 32039
     protocol: TCP
     targetPort: 32039
-  - name: head-040
+  - name: head-039-udp
+    port: 32039
+    nodePort: 32039
+    protocol: UDP
+    targetPort: 32039
+  - name: head-040-tcp
     port: 32040
     nodePort: 32040
     protocol: TCP
     targetPort: 32040
-  - name: head-041
+  - name: head-040-udp
+    port: 32040
+    nodePort: 32040
+    protocol: UDP
+    targetPort: 32040
+  - name: head-041-tcp
     port: 32041
     nodePort: 32041
     protocol: TCP
     targetPort: 32041
-  - name: head-042
+  - name: head-041-udp
+    port: 32041
+    nodePort: 32041
+    protocol: UDP
+    targetPort: 32041
+  - name: head-042-tcp
     port: 32042
     nodePort: 32042
     protocol: TCP
     targetPort: 32042
-  - name: head-043
+  - name: head-042-udp
+    port: 32042
+    nodePort: 32042
+    protocol: UDP
+    targetPort: 32042
+  - name: head-043-tcp
     port: 32043
     nodePort: 32043
     protocol: TCP
     targetPort: 32043
-  - name: head-044
+  - name: head-043-udp
+    port: 32043
+    nodePort: 32043
+    protocol: UDP
+    targetPort: 32043
+  - name: head-044-tcp
     port: 32044
     nodePort: 32044
     protocol: TCP
     targetPort: 32044
-  - name: head-045
+  - name: head-044-udp
+    port: 32044
+    nodePort: 32044
+    protocol: UDP
+    targetPort: 32044
+  - name: head-045-tcp
     port: 32045
     nodePort: 32045
     protocol: TCP
     targetPort: 32045
-  - name: head-046
+  - name: head-045-udp
+    port: 32045
+    nodePort: 32045
+    protocol: UDP
+    targetPort: 32045
+  - name: head-046-tcp
     port: 32046
     nodePort: 32046
     protocol: TCP
     targetPort: 32046
-  - name: head-047
+  - name: head-046-udp
+    port: 32046
+    nodePort: 32046
+    protocol: UDP
+    targetPort: 32046
+  - name: head-047-tcp
     port: 32047
     nodePort: 32047
     protocol: TCP
     targetPort: 32047
-  - name: head-048
+  - name: head-047-udp
+    port: 32047
+    nodePort: 32047
+    protocol: UDP
+    targetPort: 32047
+  - name: head-048-tcp
     port: 32048
     nodePort: 32048
     protocol: TCP
     targetPort: 32048
-  - name: head-049
+  - name: head-048-udp
+    port: 32048
+    nodePort: 32048
+    protocol: UDP
+    targetPort: 32048
+  - name: head-049-tcp
     port: 32049
     nodePort: 32049
     protocol: TCP
     targetPort: 32049
-  - name: head-050
+  - name: head-049-udp
+    port: 32049
+    nodePort: 32049
+    protocol: UDP
+    targetPort: 32049
+  - name: head-050-tcp
     port: 32050
     nodePort: 32050
     protocol: TCP
     targetPort: 32050
-  - name: head-051
+  - name: head-050-udp
+    port: 32050
+    nodePort: 32050
+    protocol: UDP
+    targetPort: 32050
+  - name: head-051-tcp
     port: 32051
     nodePort: 32051
     protocol: TCP
     targetPort: 32051
-  - name: head-052
+  - name: head-051-udp
+    port: 32051
+    nodePort: 32051
+    protocol: UDP
+    targetPort: 32051
+  - name: head-052-tcp
     port: 32052
     nodePort: 32052
     protocol: TCP
     targetPort: 32052
-  - name: head-053
+  - name: head-052-udp
+    port: 32052
+    nodePort: 32052
+    protocol: UDP
+    targetPort: 32052
+  - name: head-053-tcp
     port: 32053
     nodePort: 32053
     protocol: TCP
     targetPort: 32053
-  - name: head-054
+  - name: head-053-udp
+    port: 32053
+    nodePort: 32053
+    protocol: UDP
+    targetPort: 32053
+  - name: head-054-tcp
     port: 32054
     nodePort: 32054
     protocol: TCP
     targetPort: 32054
-  - name: head-055
+  - name: head-054-udp
+    port: 32054
+    nodePort: 32054
+    protocol: UDP
+    targetPort: 32054
+  - name: head-055-tcp
     port: 32055
     nodePort: 32055
     protocol: TCP
     targetPort: 32055
-  - name: head-056
+  - name: head-055-udp
+    port: 32055
+    nodePort: 32055
+    protocol: UDP
+    targetPort: 32055
+  - name: head-056-tcp
     port: 32056
     nodePort: 32056
     protocol: TCP
     targetPort: 32056
-  - name: head-057
+  - name: head-056-udp
+    port: 32056
+    nodePort: 32056
+    protocol: UDP
+    targetPort: 32056
+  - name: head-057-tcp
     port: 32057
     nodePort: 32057
     protocol: TCP
     targetPort: 32057
-  - name: head-058
+  - name: head-057-udp
+    port: 32057
+    nodePort: 32057
+    protocol: UDP
+    targetPort: 32057
+  - name: head-058-tcp
     port: 32058
     nodePort: 32058
     protocol: TCP
     targetPort: 32058
-  - name: head-059
+  - name: head-058-udp
+    port: 32058
+    nodePort: 32058
+    protocol: UDP
+    targetPort: 32058
+  - name: head-059-tcp
     port: 32059
     nodePort: 32059
     protocol: TCP
     targetPort: 32059
-  - name: head-060
+  - name: head-059-udp
+    port: 32059
+    nodePort: 32059
+    protocol: UDP
+    targetPort: 32059
+  - name: head-060-tcp
     port: 32060
     nodePort: 32060
     protocol: TCP
     targetPort: 32060
-  - name: head-061
+  - name: head-060-udp
+    port: 32060
+    nodePort: 32060
+    protocol: UDP
+    targetPort: 32060
+  - name: head-061-tcp
     port: 32061
     nodePort: 32061
     protocol: TCP
     targetPort: 32061
-  - name: head-062
+  - name: head-061-udp
+    port: 32061
+    nodePort: 32061
+    protocol: UDP
+    targetPort: 32061
+  - name: head-062-tcp
     port: 32062
     nodePort: 32062
     protocol: TCP
     targetPort: 32062
-  - name: head-063
+  - name: head-062-udp
+    port: 32062
+    nodePort: 32062
+    protocol: UDP
+    targetPort: 32062
+  - name: head-063-tcp
     port: 32063
     nodePort: 32063
     protocol: TCP
     targetPort: 32063
-  - name: head-064
+  - name: head-063-udp
+    port: 32063
+    nodePort: 32063
+    protocol: UDP
+    targetPort: 32063
+  - name: head-064-tcp
     port: 32064
     nodePort: 32064
     protocol: TCP
     targetPort: 32064
-  - name: head-065
+  - name: head-064-udp
+    port: 32064
+    nodePort: 32064
+    protocol: UDP
+    targetPort: 32064
+  - name: head-065-tcp
     port: 32065
     nodePort: 32065
     protocol: TCP
     targetPort: 32065
-  - name: head-066
+  - name: head-065-udp
+    port: 32065
+    nodePort: 32065
+    protocol: UDP
+    targetPort: 32065
+  - name: head-066-tcp
     port: 32066
     nodePort: 32066
     protocol: TCP
     targetPort: 32066
-  - name: head-067
+  - name: head-066-udp
+    port: 32066
+    nodePort: 32066
+    protocol: UDP
+    targetPort: 32066
+  - name: head-067-tcp
     port: 32067
     nodePort: 32067
     protocol: TCP
     targetPort: 32067
-  - name: head-068
+  - name: head-067-udp
+    port: 32067
+    nodePort: 32067
+    protocol: UDP
+    targetPort: 32067
+  - name: head-068-tcp
     port: 32068
     nodePort: 32068
     protocol: TCP
     targetPort: 32068
-  - name: head-069
+  - name: head-068-udp
+    port: 32068
+    nodePort: 32068
+    protocol: UDP
+    targetPort: 32068
+  - name: head-069-tcp
     port: 32069
     nodePort: 32069
     protocol: TCP
     targetPort: 32069
-  - name: head-070
+  - name: head-069-udp
+    port: 32069
+    nodePort: 32069
+    protocol: UDP
+    targetPort: 32069
+  - name: head-070-tcp
     port: 32070
     nodePort: 32070
     protocol: TCP
     targetPort: 32070
-  - name: head-071
+  - name: head-070-udp
+    port: 32070
+    nodePort: 32070
+    protocol: UDP
+    targetPort: 32070
+  - name: head-071-tcp
     port: 32071
     nodePort: 32071
     protocol: TCP
     targetPort: 32071
-  - name: head-072
+  - name: head-071-udp
+    port: 32071
+    nodePort: 32071
+    protocol: UDP
+    targetPort: 32071
+  - name: head-072-tcp
     port: 32072
     nodePort: 32072
     protocol: TCP
     targetPort: 32072
-  - name: head-073
+  - name: head-072-udp
+    port: 32072
+    nodePort: 32072
+    protocol: UDP
+    targetPort: 32072
+  - name: head-073-tcp
     port: 32073
     nodePort: 32073
     protocol: TCP
     targetPort: 32073
-  - name: head-074
+  - name: head-073-udp
+    port: 32073
+    nodePort: 32073
+    protocol: UDP
+    targetPort: 32073
+  - name: head-074-tcp
     port: 32074
     nodePort: 32074
     protocol: TCP
     targetPort: 32074
-  - name: head-075
+  - name: head-074-udp
+    port: 32074
+    nodePort: 32074
+    protocol: UDP
+    targetPort: 32074
+  - name: head-075-tcp
     port: 32075
     nodePort: 32075
     protocol: TCP
     targetPort: 32075
-  - name: head-076
+  - name: head-075-udp
+    port: 32075
+    nodePort: 32075
+    protocol: UDP
+    targetPort: 32075
+  - name: head-076-tcp
     port: 32076
     nodePort: 32076
     protocol: TCP
     targetPort: 32076
-  - name: head-077
+  - name: head-076-udp
+    port: 32076
+    nodePort: 32076
+    protocol: UDP
+    targetPort: 32076
+  - name: head-077-tcp
     port: 32077
     nodePort: 32077
     protocol: TCP
     targetPort: 32077
-  - name: head-078
+  - name: head-077-udp
+    port: 32077
+    nodePort: 32077
+    protocol: UDP
+    targetPort: 32077
+  - name: head-078-tcp
     port: 32078
     nodePort: 32078
     protocol: TCP
     targetPort: 32078
-  - name: head-079
+  - name: head-078-udp
+    port: 32078
+    nodePort: 32078
+    protocol: UDP
+    targetPort: 32078
+  - name: head-079-tcp
     port: 32079
     nodePort: 32079
     protocol: TCP
     targetPort: 32079
-  - name: head-080
+  - name: head-079-udp
+    port: 32079
+    nodePort: 32079
+    protocol: UDP
+    targetPort: 32079
+  - name: head-080-tcp
     port: 32080
     nodePort: 32080
     protocol: TCP
     targetPort: 32080
-  - name: head-081
+  - name: head-080-udp
+    port: 32080
+    nodePort: 32080
+    protocol: UDP
+    targetPort: 32080
+  - name: head-081-tcp
     port: 32081
     nodePort: 32081
     protocol: TCP
     targetPort: 32081
-  - name: head-082
+  - name: head-081-udp
+    port: 32081
+    nodePort: 32081
+    protocol: UDP
+    targetPort: 32081
+  - name: head-082-tcp
     port: 32082
     nodePort: 32082
     protocol: TCP
     targetPort: 32082
-  - name: head-083
+  - name: head-082-udp
+    port: 32082
+    nodePort: 32082
+    protocol: UDP
+    targetPort: 32082
+  - name: head-083-tcp
     port: 32083
     nodePort: 32083
     protocol: TCP
     targetPort: 32083
-  - name: head-084
+  - name: head-083-udp
+    port: 32083
+    nodePort: 32083
+    protocol: UDP
+    targetPort: 32083
+  - name: head-084-tcp
     port: 32084
     nodePort: 32084
     protocol: TCP
     targetPort: 32084
-  - name: head-085
+  - name: head-084-udp
+    port: 32084
+    nodePort: 32084
+    protocol: UDP
+    targetPort: 32084
+  - name: head-085-tcp
     port: 32085
     nodePort: 32085
     protocol: TCP
     targetPort: 32085
-  - name: head-086
+  - name: head-085-udp
+    port: 32085
+    nodePort: 32085
+    protocol: UDP
+    targetPort: 32085
+  - name: head-086-tcp
     port: 32086
     nodePort: 32086
     protocol: TCP
     targetPort: 32086
-  - name: head-087
+  - name: head-086-udp
+    port: 32086
+    nodePort: 32086
+    protocol: UDP
+    targetPort: 32086
+  - name: head-087-tcp
     port: 32087
     nodePort: 32087
     protocol: TCP
     targetPort: 32087
-  - name: head-088
+  - name: head-087-udp
+    port: 32087
+    nodePort: 32087
+    protocol: UDP
+    targetPort: 32087
+  - name: head-088-tcp
     port: 32088
     nodePort: 32088
     protocol: TCP
     targetPort: 32088
-  - name: head-089
+  - name: head-088-udp
+    port: 32088
+    nodePort: 32088
+    protocol: UDP
+    targetPort: 32088
+  - name: head-089-tcp
     port: 32089
     nodePort: 32089
     protocol: TCP
     targetPort: 32089
-  - name: head-090
+  - name: head-089-udp
+    port: 32089
+    nodePort: 32089
+    protocol: UDP
+    targetPort: 32089
+  - name: head-090-tcp
     port: 32090
     nodePort: 32090
     protocol: TCP
     targetPort: 32090
-  - name: head-091
+  - name: head-090-udp
+    port: 32090
+    nodePort: 32090
+    protocol: UDP
+    targetPort: 32090
+  - name: head-091-tcp
     port: 32091
     nodePort: 32091
     protocol: TCP
     targetPort: 32091
-  - name: head-092
+  - name: head-091-udp
+    port: 32091
+    nodePort: 32091
+    protocol: UDP
+    targetPort: 32091
+  - name: head-092-tcp
     port: 32092
     nodePort: 32092
     protocol: TCP
     targetPort: 32092
-  - name: head-093
+  - name: head-092-udp
+    port: 32092
+    nodePort: 32092
+    protocol: UDP
+    targetPort: 32092
+  - name: head-093-tcp
     port: 32093
     nodePort: 32093
     protocol: TCP
     targetPort: 32093
-  - name: head-094
+  - name: head-093-udp
+    port: 32093
+    nodePort: 32093
+    protocol: UDP
+    targetPort: 32093
+  - name: head-094-tcp
     port: 32094
     nodePort: 32094
     protocol: TCP
     targetPort: 32094
-  - name: head-095
+  - name: head-094-udp
+    port: 32094
+    nodePort: 32094
+    protocol: UDP
+    targetPort: 32094
+  - name: head-095-tcp
     port: 32095
     nodePort: 32095
     protocol: TCP
     targetPort: 32095
-  - name: head-096
+  - name: head-095-udp
+    port: 32095
+    nodePort: 32095
+    protocol: UDP
+    targetPort: 32095
+  - name: head-096-tcp
     port: 32096
     nodePort: 32096
     protocol: TCP
     targetPort: 32096
-  - name: head-097
+  - name: head-096-udp
+    port: 32096
+    nodePort: 32096
+    protocol: UDP
+    targetPort: 32096
+  - name: head-097-tcp
     port: 32097
     nodePort: 32097
     protocol: TCP
     targetPort: 32097
-  - name: head-098
+  - name: head-097-udp
+    port: 32097
+    nodePort: 32097
+    protocol: UDP
+    targetPort: 32097
+  - name: head-098-tcp
     port: 32098
     nodePort: 32098
     protocol: TCP
     targetPort: 32098
-  - name: head-099
+  - name: head-098-udp
+    port: 32098
+    nodePort: 32098
+    protocol: UDP
+    targetPort: 32098
+  - name: head-099-tcp
     port: 32099
     nodePort: 32099
     protocol: TCP
     targetPort: 32099
-  - name: head-100
+  - name: head-099-udp
+    port: 32099
+    nodePort: 32099
+    protocol: UDP
+    targetPort: 32099
+  - name: head-100-tcp
     port: 32100
     nodePort: 32100
     protocol: TCP
     targetPort: 32100
-  - name: head-101
+  - name: head-100-udp
+    port: 32100
+    nodePort: 32100
+    protocol: UDP
+    targetPort: 32100
+  - name: head-101-tcp
     port: 32101
     nodePort: 32101
     protocol: TCP
     targetPort: 32101
-  - name: head-102
+  - name: head-101-udp
+    port: 32101
+    nodePort: 32101
+    protocol: UDP
+    targetPort: 32101
+  - name: head-102-tcp
     port: 32102
     nodePort: 32102
     protocol: TCP
     targetPort: 32102
-  - name: head-103
+  - name: head-102-udp
+    port: 32102
+    nodePort: 32102
+    protocol: UDP
+    targetPort: 32102
+  - name: head-103-tcp
     port: 32103
     nodePort: 32103
     protocol: TCP
     targetPort: 32103
-  - name: head-104
+  - name: head-103-udp
+    port: 32103
+    nodePort: 32103
+    protocol: UDP
+    targetPort: 32103
+  - name: head-104-tcp
     port: 32104
     nodePort: 32104
     protocol: TCP
     targetPort: 32104
-  - name: head-105
+  - name: head-104-udp
+    port: 32104
+    nodePort: 32104
+    protocol: UDP
+    targetPort: 32104
+  - name: head-105-tcp
     port: 32105
     nodePort: 32105
     protocol: TCP
     targetPort: 32105
-  - name: head-106
+  - name: head-105-udp
+    port: 32105
+    nodePort: 32105
+    protocol: UDP
+    targetPort: 32105
+  - name: head-106-tcp
     port: 32106
     nodePort: 32106
     protocol: TCP
     targetPort: 32106
-  - name: head-107
+  - name: head-106-udp
+    port: 32106
+    nodePort: 32106
+    protocol: UDP
+    targetPort: 32106
+  - name: head-107-tcp
     port: 32107
     nodePort: 32107
     protocol: TCP
     targetPort: 32107
-  - name: head-108
+  - name: head-107-udp
+    port: 32107
+    nodePort: 32107
+    protocol: UDP
+    targetPort: 32107
+  - name: head-108-tcp
     port: 32108
     nodePort: 32108
     protocol: TCP
     targetPort: 32108
-  - name: head-109
+  - name: head-108-udp
+    port: 32108
+    nodePort: 32108
+    protocol: UDP
+    targetPort: 32108
+  - name: head-109-tcp
     port: 32109
     nodePort: 32109
     protocol: TCP
     targetPort: 32109
-  - name: head-110
+  - name: head-109-udp
+    port: 32109
+    nodePort: 32109
+    protocol: UDP
+    targetPort: 32109
+  - name: head-110-tcp
     port: 32110
     nodePort: 32110
     protocol: TCP
     targetPort: 32110
-  - name: head-111
+  - name: head-110-udp
+    port: 32110
+    nodePort: 32110
+    protocol: UDP
+    targetPort: 32110
+  - name: head-111-tcp
     port: 32111
     nodePort: 32111
     protocol: TCP
     targetPort: 32111
-  - name: head-112
+  - name: head-111-udp
+    port: 32111
+    nodePort: 32111
+    protocol: UDP
+    targetPort: 32111
+  - name: head-112-tcp
     port: 32112
     nodePort: 32112
     protocol: TCP
     targetPort: 32112
-  - name: head-113
+  - name: head-112-udp
+    port: 32112
+    nodePort: 32112
+    protocol: UDP
+    targetPort: 32112
+  - name: head-113-tcp
     port: 32113
     nodePort: 32113
     protocol: TCP
     targetPort: 32113
-  - name: head-114
+  - name: head-113-udp
+    port: 32113
+    nodePort: 32113
+    protocol: UDP
+    targetPort: 32113
+  - name: head-114-tcp
     port: 32114
     nodePort: 32114
     protocol: TCP
     targetPort: 32114
-  - name: head-115
+  - name: head-114-udp
+    port: 32114
+    nodePort: 32114
+    protocol: UDP
+    targetPort: 32114
+  - name: head-115-tcp
     port: 32115
     nodePort: 32115
     protocol: TCP
     targetPort: 32115
-  - name: head-116
+  - name: head-115-udp
+    port: 32115
+    nodePort: 32115
+    protocol: UDP
+    targetPort: 32115
+  - name: head-116-tcp
     port: 32116
     nodePort: 32116
     protocol: TCP
     targetPort: 32116
-  - name: head-117
+  - name: head-116-udp
+    port: 32116
+    nodePort: 32116
+    protocol: UDP
+    targetPort: 32116
+  - name: head-117-tcp
     port: 32117
     nodePort: 32117
     protocol: TCP
     targetPort: 32117
-  - name: head-118
+  - name: head-117-udp
+    port: 32117
+    nodePort: 32117
+    protocol: UDP
+    targetPort: 32117
+  - name: head-118-tcp
     port: 32118
     nodePort: 32118
     protocol: TCP
     targetPort: 32118
-  - name: head-119
+  - name: head-118-udp
+    port: 32118
+    nodePort: 32118
+    protocol: UDP
+    targetPort: 32118
+  - name: head-119-tcp
     port: 32119
     nodePort: 32119
     protocol: TCP
     targetPort: 32119
-  - name: head-120
+  - name: head-119-udp
+    port: 32119
+    nodePort: 32119
+    protocol: UDP
+    targetPort: 32119
+  - name: head-120-tcp
     port: 32120
     nodePort: 32120
     protocol: TCP
     targetPort: 32120
-  - name: head-121
+  - name: head-120-udp
+    port: 32120
+    nodePort: 32120
+    protocol: UDP
+    targetPort: 32120
+  - name: head-121-tcp
     port: 32121
     nodePort: 32121
     protocol: TCP
     targetPort: 32121
-  - name: head-122
+  - name: head-121-udp
+    port: 32121
+    nodePort: 32121
+    protocol: UDP
+    targetPort: 32121
+  - name: head-122-tcp
     port: 32122
     nodePort: 32122
     protocol: TCP
     targetPort: 32122
-  - name: head-123
+  - name: head-122-udp
+    port: 32122
+    nodePort: 32122
+    protocol: UDP
+    targetPort: 32122
+  - name: head-123-tcp
     port: 32123
     nodePort: 32123
     protocol: TCP
     targetPort: 32123
-  - name: head-124
+  - name: head-123-udp
+    port: 32123
+    nodePort: 32123
+    protocol: UDP
+    targetPort: 32123
+  - name: head-124-tcp
     port: 32124
     nodePort: 32124
     protocol: TCP
     targetPort: 32124
-  - name: head-125
+  - name: head-124-udp
+    port: 32124
+    nodePort: 32124
+    protocol: UDP
+    targetPort: 32124
+  - name: head-125-tcp
     port: 32125
     nodePort: 32125
     protocol: TCP
     targetPort: 32125
-  - name: head-126
+  - name: head-125-udp
+    port: 32125
+    nodePort: 32125
+    protocol: UDP
+    targetPort: 32125
+  - name: head-126-tcp
     port: 32126
     nodePort: 32126
     protocol: TCP
     targetPort: 32126
-  - name: head-127
+  - name: head-126-udp
+    port: 32126
+    nodePort: 32126
+    protocol: UDP
+    targetPort: 32126
+  - name: head-127-tcp
     port: 32127
     nodePort: 32127
     protocol: TCP
     targetPort: 32127
-  - name: head-128
+  - name: head-127-udp
+    port: 32127
+    nodePort: 32127
+    protocol: UDP
+    targetPort: 32127
+  - name: head-128-tcp
     port: 32128
     nodePort: 32128
     protocol: TCP
     targetPort: 32128
-  - name: head-129
+  - name: head-128-udp
+    port: 32128
+    nodePort: 32128
+    protocol: UDP
+    targetPort: 32128
+  - name: head-129-tcp
     port: 32129
     nodePort: 32129
     protocol: TCP
     targetPort: 32129
-  - name: head-130
+  - name: head-129-udp
+    port: 32129
+    nodePort: 32129
+    protocol: UDP
+    targetPort: 32129
+  - name: head-130-tcp
     port: 32130
     nodePort: 32130
     protocol: TCP
     targetPort: 32130
-  - name: head-131
+  - name: head-130-udp
+    port: 32130
+    nodePort: 32130
+    protocol: UDP
+    targetPort: 32130
+  - name: head-131-tcp
     port: 32131
     nodePort: 32131
     protocol: TCP
     targetPort: 32131
-  - name: head-132
+  - name: head-131-udp
+    port: 32131
+    nodePort: 32131
+    protocol: UDP
+    targetPort: 32131
+  - name: head-132-tcp
     port: 32132
     nodePort: 32132
     protocol: TCP
     targetPort: 32132
-  - name: head-133
+  - name: head-132-udp
+    port: 32132
+    nodePort: 32132
+    protocol: UDP
+    targetPort: 32132
+  - name: head-133-tcp
     port: 32133
     nodePort: 32133
     protocol: TCP
     targetPort: 32133
-  - name: head-134
+  - name: head-133-udp
+    port: 32133
+    nodePort: 32133
+    protocol: UDP
+    targetPort: 32133
+  - name: head-134-tcp
     port: 32134
     nodePort: 32134
     protocol: TCP
     targetPort: 32134
-  - name: head-135
+  - name: head-134-udp
+    port: 32134
+    nodePort: 32134
+    protocol: UDP
+    targetPort: 32134
+  - name: head-135-tcp
     port: 32135
     nodePort: 32135
     protocol: TCP
     targetPort: 32135
-  - name: head-136
+  - name: head-135-udp
+    port: 32135
+    nodePort: 32135
+    protocol: UDP
+    targetPort: 32135
+  - name: head-136-tcp
     port: 32136
     nodePort: 32136
     protocol: TCP
     targetPort: 32136
-  - name: head-137
+  - name: head-136-udp
+    port: 32136
+    nodePort: 32136
+    protocol: UDP
+    targetPort: 32136
+  - name: head-137-tcp
     port: 32137
     nodePort: 32137
     protocol: TCP
     targetPort: 32137
-  - name: head-138
+  - name: head-137-udp
+    port: 32137
+    nodePort: 32137
+    protocol: UDP
+    targetPort: 32137
+  - name: head-138-tcp
     port: 32138
     nodePort: 32138
     protocol: TCP
     targetPort: 32138
-  - name: head-139
+  - name: head-138-udp
+    port: 32138
+    nodePort: 32138
+    protocol: UDP
+    targetPort: 32138
+  - name: head-139-tcp
     port: 32139
     nodePort: 32139
     protocol: TCP
     targetPort: 32139
-  - name: head-140
+  - name: head-139-udp
+    port: 32139
+    nodePort: 32139
+    protocol: UDP
+    targetPort: 32139
+  - name: head-140-tcp
     port: 32140
     nodePort: 32140
     protocol: TCP
     targetPort: 32140
-  - name: head-141
+  - name: head-140-udp
+    port: 32140
+    nodePort: 32140
+    protocol: UDP
+    targetPort: 32140
+  - name: head-141-tcp
     port: 32141
     nodePort: 32141
     protocol: TCP
     targetPort: 32141
-  - name: head-142
+  - name: head-141-udp
+    port: 32141
+    nodePort: 32141
+    protocol: UDP
+    targetPort: 32141
+  - name: head-142-tcp
     port: 32142
     nodePort: 32142
     protocol: TCP
     targetPort: 32142
-  - name: head-143
+  - name: head-142-udp
+    port: 32142
+    nodePort: 32142
+    protocol: UDP
+    targetPort: 32142
+  - name: head-143-tcp
     port: 32143
     nodePort: 32143
     protocol: TCP
     targetPort: 32143
-  - name: head-144
+  - name: head-143-udp
+    port: 32143
+    nodePort: 32143
+    protocol: UDP
+    targetPort: 32143
+  - name: head-144-tcp
     port: 32144
     nodePort: 32144
     protocol: TCP
     targetPort: 32144
-  - name: head-145
+  - name: head-144-udp
+    port: 32144
+    nodePort: 32144
+    protocol: UDP
+    targetPort: 32144
+  - name: head-145-tcp
     port: 32145
     nodePort: 32145
     protocol: TCP
     targetPort: 32145
-  - name: head-146
+  - name: head-145-udp
+    port: 32145
+    nodePort: 32145
+    protocol: UDP
+    targetPort: 32145
+  - name: head-146-tcp
     port: 32146
     nodePort: 32146
     protocol: TCP
     targetPort: 32146
-  - name: head-147
+  - name: head-146-udp
+    port: 32146
+    nodePort: 32146
+    protocol: UDP
+    targetPort: 32146
+  - name: head-147-tcp
     port: 32147
     nodePort: 32147
     protocol: TCP
     targetPort: 32147
-  - name: head-148
+  - name: head-147-udp
+    port: 32147
+    nodePort: 32147
+    protocol: UDP
+    targetPort: 32147
+  - name: head-148-tcp
     port: 32148
     nodePort: 32148
     protocol: TCP
     targetPort: 32148
-  - name: head-149
+  - name: head-148-udp
+    port: 32148
+    nodePort: 32148
+    protocol: UDP
+    targetPort: 32148
+  - name: head-149-tcp
     port: 32149
     nodePort: 32149
     protocol: TCP
     targetPort: 32149
-  - name: head-150
+  - name: head-149-udp
+    port: 32149
+    nodePort: 32149
+    protocol: UDP
+    targetPort: 32149
+  - name: head-150-tcp
     port: 32150
     nodePort: 32150
     protocol: TCP
     targetPort: 32150
-  - name: head-151
+  - name: head-150-udp
+    port: 32150
+    nodePort: 32150
+    protocol: UDP
+    targetPort: 32150
+  - name: head-151-tcp
     port: 32151
     nodePort: 32151
     protocol: TCP
     targetPort: 32151
-  - name: head-152
+  - name: head-151-udp
+    port: 32151
+    nodePort: 32151
+    protocol: UDP
+    targetPort: 32151
+  - name: head-152-tcp
     port: 32152
     nodePort: 32152
     protocol: TCP
     targetPort: 32152
-  - name: head-153
+  - name: head-152-udp
+    port: 32152
+    nodePort: 32152
+    protocol: UDP
+    targetPort: 32152
+  - name: head-153-tcp
     port: 32153
     nodePort: 32153
     protocol: TCP
     targetPort: 32153
-  - name: head-154
+  - name: head-153-udp
+    port: 32153
+    nodePort: 32153
+    protocol: UDP
+    targetPort: 32153
+  - name: head-154-tcp
     port: 32154
     nodePort: 32154
     protocol: TCP
     targetPort: 32154
-  - name: head-155
+  - name: head-154-udp
+    port: 32154
+    nodePort: 32154
+    protocol: UDP
+    targetPort: 32154
+  - name: head-155-tcp
     port: 32155
     nodePort: 32155
     protocol: TCP
     targetPort: 32155
-  - name: head-156
+  - name: head-155-udp
+    port: 32155
+    nodePort: 32155
+    protocol: UDP
+    targetPort: 32155
+  - name: head-156-tcp
     port: 32156
     nodePort: 32156
     protocol: TCP
     targetPort: 32156
-  - name: head-157
+  - name: head-156-udp
+    port: 32156
+    nodePort: 32156
+    protocol: UDP
+    targetPort: 32156
+  - name: head-157-tcp
     port: 32157
     nodePort: 32157
     protocol: TCP
     targetPort: 32157
-  - name: head-158
+  - name: head-157-udp
+    port: 32157
+    nodePort: 32157
+    protocol: UDP
+    targetPort: 32157
+  - name: head-158-tcp
     port: 32158
     nodePort: 32158
     protocol: TCP
     targetPort: 32158
-  - name: head-159
+  - name: head-158-udp
+    port: 32158
+    nodePort: 32158
+    protocol: UDP
+    targetPort: 32158
+  - name: head-159-tcp
     port: 32159
     nodePort: 32159
     protocol: TCP
     targetPort: 32159
-  - name: head-160
+  - name: head-159-udp
+    port: 32159
+    nodePort: 32159
+    protocol: UDP
+    targetPort: 32159
+  - name: head-160-tcp
     port: 32160
     nodePort: 32160
     protocol: TCP
     targetPort: 32160
-  - name: head-161
+  - name: head-160-udp
+    port: 32160
+    nodePort: 32160
+    protocol: UDP
+    targetPort: 32160
+  - name: head-161-tcp
     port: 32161
     nodePort: 32161
     protocol: TCP
     targetPort: 32161
-  - name: head-162
+  - name: head-161-udp
+    port: 32161
+    nodePort: 32161
+    protocol: UDP
+    targetPort: 32161
+  - name: head-162-tcp
     port: 32162
     nodePort: 32162
     protocol: TCP
     targetPort: 32162
-  - name: head-163
+  - name: head-162-udp
+    port: 32162
+    nodePort: 32162
+    protocol: UDP
+    targetPort: 32162
+  - name: head-163-tcp
     port: 32163
     nodePort: 32163
     protocol: TCP
     targetPort: 32163
-  - name: head-164
+  - name: head-163-udp
+    port: 32163
+    nodePort: 32163
+    protocol: UDP
+    targetPort: 32163
+  - name: head-164-tcp
     port: 32164
     nodePort: 32164
     protocol: TCP
     targetPort: 32164
-  - name: head-165
+  - name: head-164-udp
+    port: 32164
+    nodePort: 32164
+    protocol: UDP
+    targetPort: 32164
+  - name: head-165-tcp
     port: 32165
     nodePort: 32165
     protocol: TCP
     targetPort: 32165
-  - name: head-166
+  - name: head-165-udp
+    port: 32165
+    nodePort: 32165
+    protocol: UDP
+    targetPort: 32165
+  - name: head-166-tcp
     port: 32166
     nodePort: 32166
     protocol: TCP
     targetPort: 32166
-  - name: head-167
+  - name: head-166-udp
+    port: 32166
+    nodePort: 32166
+    protocol: UDP
+    targetPort: 32166
+  - name: head-167-tcp
     port: 32167
     nodePort: 32167
     protocol: TCP
     targetPort: 32167
-  - name: head-168
+  - name: head-167-udp
+    port: 32167
+    nodePort: 32167
+    protocol: UDP
+    targetPort: 32167
+  - name: head-168-tcp
     port: 32168
     nodePort: 32168
     protocol: TCP
     targetPort: 32168
-  - name: head-169
+  - name: head-168-udp
+    port: 32168
+    nodePort: 32168
+    protocol: UDP
+    targetPort: 32168
+  - name: head-169-tcp
     port: 32169
     nodePort: 32169
     protocol: TCP
     targetPort: 32169
-  - name: head-170
+  - name: head-169-udp
+    port: 32169
+    nodePort: 32169
+    protocol: UDP
+    targetPort: 32169
+  - name: head-170-tcp
     port: 32170
     nodePort: 32170
     protocol: TCP
     targetPort: 32170
-  - name: head-171
+  - name: head-170-udp
+    port: 32170
+    nodePort: 32170
+    protocol: UDP
+    targetPort: 32170
+  - name: head-171-tcp
     port: 32171
     nodePort: 32171
     protocol: TCP
     targetPort: 32171
-  - name: head-172
+  - name: head-171-udp
+    port: 32171
+    nodePort: 32171
+    protocol: UDP
+    targetPort: 32171
+  - name: head-172-tcp
     port: 32172
     nodePort: 32172
     protocol: TCP
     targetPort: 32172
-  - name: head-173
+  - name: head-172-udp
+    port: 32172
+    nodePort: 32172
+    protocol: UDP
+    targetPort: 32172
+  - name: head-173-tcp
     port: 32173
     nodePort: 32173
     protocol: TCP
     targetPort: 32173
-  - name: head-174
+  - name: head-173-udp
+    port: 32173
+    nodePort: 32173
+    protocol: UDP
+    targetPort: 32173
+  - name: head-174-tcp
     port: 32174
     nodePort: 32174
     protocol: TCP
     targetPort: 32174
-  - name: head-175
+  - name: head-174-udp
+    port: 32174
+    nodePort: 32174
+    protocol: UDP
+    targetPort: 32174
+  - name: head-175-tcp
     port: 32175
     nodePort: 32175
     protocol: TCP
     targetPort: 32175
-  - name: head-176
+  - name: head-175-udp
+    port: 32175
+    nodePort: 32175
+    protocol: UDP
+    targetPort: 32175
+  - name: head-176-tcp
     port: 32176
     nodePort: 32176
     protocol: TCP
     targetPort: 32176
-  - name: head-177
+  - name: head-176-udp
+    port: 32176
+    nodePort: 32176
+    protocol: UDP
+    targetPort: 32176
+  - name: head-177-tcp
     port: 32177
     nodePort: 32177
     protocol: TCP
     targetPort: 32177
-  - name: head-178
+  - name: head-177-udp
+    port: 32177
+    nodePort: 32177
+    protocol: UDP
+    targetPort: 32177
+  - name: head-178-tcp
     port: 32178
     nodePort: 32178
     protocol: TCP
     targetPort: 32178
-  - name: head-179
+  - name: head-178-udp
+    port: 32178
+    nodePort: 32178
+    protocol: UDP
+    targetPort: 32178
+  - name: head-179-tcp
     port: 32179
     nodePort: 32179
     protocol: TCP
     targetPort: 32179
-  - name: head-180
+  - name: head-179-udp
+    port: 32179
+    nodePort: 32179
+    protocol: UDP
+    targetPort: 32179
+  - name: head-180-tcp
     port: 32180
     nodePort: 32180
     protocol: TCP
     targetPort: 32180
-  - name: head-181
+  - name: head-180-udp
+    port: 32180
+    nodePort: 32180
+    protocol: UDP
+    targetPort: 32180
+  - name: head-181-tcp
     port: 32181
     nodePort: 32181
     protocol: TCP
     targetPort: 32181
-  - name: head-182
+  - name: head-181-udp
+    port: 32181
+    nodePort: 32181
+    protocol: UDP
+    targetPort: 32181
+  - name: head-182-tcp
     port: 32182
     nodePort: 32182
     protocol: TCP
     targetPort: 32182
-  - name: head-183
+  - name: head-182-udp
+    port: 32182
+    nodePort: 32182
+    protocol: UDP
+    targetPort: 32182
+  - name: head-183-tcp
     port: 32183
     nodePort: 32183
     protocol: TCP
     targetPort: 32183
-  - name: head-184
+  - name: head-183-udp
+    port: 32183
+    nodePort: 32183
+    protocol: UDP
+    targetPort: 32183
+  - name: head-184-tcp
     port: 32184
     nodePort: 32184
     protocol: TCP
     targetPort: 32184
-  - name: head-185
+  - name: head-184-udp
+    port: 32184
+    nodePort: 32184
+    protocol: UDP
+    targetPort: 32184
+  - name: head-185-tcp
     port: 32185
     nodePort: 32185
     protocol: TCP
     targetPort: 32185
-  - name: head-186
+  - name: head-185-udp
+    port: 32185
+    nodePort: 32185
+    protocol: UDP
+    targetPort: 32185
+  - name: head-186-tcp
     port: 32186
     nodePort: 32186
     protocol: TCP
     targetPort: 32186
-  - name: head-187
+  - name: head-186-udp
+    port: 32186
+    nodePort: 32186
+    protocol: UDP
+    targetPort: 32186
+  - name: head-187-tcp
     port: 32187
     nodePort: 32187
     protocol: TCP
     targetPort: 32187
-  - name: head-188
+  - name: head-187-udp
+    port: 32187
+    nodePort: 32187
+    protocol: UDP
+    targetPort: 32187
+  - name: head-188-tcp
     port: 32188
     nodePort: 32188
     protocol: TCP
     targetPort: 32188
-  - name: head-189
+  - name: head-188-udp
+    port: 32188
+    nodePort: 32188
+    protocol: UDP
+    targetPort: 32188
+  - name: head-189-tcp
     port: 32189
     nodePort: 32189
     protocol: TCP
     targetPort: 32189
-  - name: head-190
+  - name: head-189-udp
+    port: 32189
+    nodePort: 32189
+    protocol: UDP
+    targetPort: 32189
+  - name: head-190-tcp
     port: 32190
     nodePort: 32190
     protocol: TCP
     targetPort: 32190
-  - name: head-191
+  - name: head-190-udp
+    port: 32190
+    nodePort: 32190
+    protocol: UDP
+    targetPort: 32190
+  - name: head-191-tcp
     port: 32191
     nodePort: 32191
     protocol: TCP
     targetPort: 32191
-  - name: head-192
+  - name: head-191-udp
+    port: 32191
+    nodePort: 32191
+    protocol: UDP
+    targetPort: 32191
+  - name: head-192-tcp
     port: 32192
     nodePort: 32192
     protocol: TCP
     targetPort: 32192
-  - name: head-193
+  - name: head-192-udp
+    port: 32192
+    nodePort: 32192
+    protocol: UDP
+    targetPort: 32192
+  - name: head-193-tcp
     port: 32193
     nodePort: 32193
     protocol: TCP
     targetPort: 32193
-  - name: head-194
+  - name: head-193-udp
+    port: 32193
+    nodePort: 32193
+    protocol: UDP
+    targetPort: 32193
+  - name: head-194-tcp
     port: 32194
     nodePort: 32194
     protocol: TCP
     targetPort: 32194
-  - name: head-195
+  - name: head-194-udp
+    port: 32194
+    nodePort: 32194
+    protocol: UDP
+    targetPort: 32194
+  - name: head-195-tcp
     port: 32195
     nodePort: 32195
     protocol: TCP
     targetPort: 32195
-  - name: head-196
+  - name: head-195-udp
+    port: 32195
+    nodePort: 32195
+    protocol: UDP
+    targetPort: 32195
+  - name: head-196-tcp
     port: 32196
     nodePort: 32196
     protocol: TCP
     targetPort: 32196
-  - name: head-197
+  - name: head-196-udp
+    port: 32196
+    nodePort: 32196
+    protocol: UDP
+    targetPort: 32196
+  - name: head-197-tcp
     port: 32197
     nodePort: 32197
     protocol: TCP
     targetPort: 32197
-  - name: head-198
+  - name: head-197-udp
+    port: 32197
+    nodePort: 32197
+    protocol: UDP
+    targetPort: 32197
+  - name: head-198-tcp
     port: 32198
     nodePort: 32198
     protocol: TCP
     targetPort: 32198
-  - name: head-199
+  - name: head-198-udp
+    port: 32198
+    nodePort: 32198
+    protocol: UDP
+    targetPort: 32198
+  - name: head-199-tcp
     port: 32199
     nodePort: 32199
     protocol: TCP
     targetPort: 32199
-  - name: head-200
+  - name: head-199-udp
+    port: 32199
+    nodePort: 32199
+    protocol: UDP
+    targetPort: 32199
+  - name: head-200-tcp
     port: 32200
     nodePort: 32200
     protocol: TCP
     targetPort: 32200
-  - name: head-201
+  - name: head-200-udp
+    port: 32200
+    nodePort: 32200
+    protocol: UDP
+    targetPort: 32200
+  - name: head-201-tcp
     port: 32201
     nodePort: 32201
     protocol: TCP
     targetPort: 32201
-  - name: head-202
+  - name: head-201-udp
+    port: 32201
+    nodePort: 32201
+    protocol: UDP
+    targetPort: 32201
+  - name: head-202-tcp
     port: 32202
     nodePort: 32202
     protocol: TCP
     targetPort: 32202
-  - name: head-203
+  - name: head-202-udp
+    port: 32202
+    nodePort: 32202
+    protocol: UDP
+    targetPort: 32202
+  - name: head-203-tcp
     port: 32203
     nodePort: 32203
     protocol: TCP
     targetPort: 32203
-  - name: head-204
+  - name: head-203-udp
+    port: 32203
+    nodePort: 32203
+    protocol: UDP
+    targetPort: 32203
+  - name: head-204-tcp
     port: 32204
     nodePort: 32204
     protocol: TCP
     targetPort: 32204
-  - name: head-205
+  - name: head-204-udp
+    port: 32204
+    nodePort: 32204
+    protocol: UDP
+    targetPort: 32204
+  - name: head-205-tcp
     port: 32205
     nodePort: 32205
     protocol: TCP
     targetPort: 32205
-  - name: head-206
+  - name: head-205-udp
+    port: 32205
+    nodePort: 32205
+    protocol: UDP
+    targetPort: 32205
+  - name: head-206-tcp
     port: 32206
     nodePort: 32206
     protocol: TCP
     targetPort: 32206
-  - name: head-207
+  - name: head-206-udp
+    port: 32206
+    nodePort: 32206
+    protocol: UDP
+    targetPort: 32206
+  - name: head-207-tcp
     port: 32207
     nodePort: 32207
     protocol: TCP
     targetPort: 32207
-  - name: head-208
+  - name: head-207-udp
+    port: 32207
+    nodePort: 32207
+    protocol: UDP
+    targetPort: 32207
+  - name: head-208-tcp
     port: 32208
     nodePort: 32208
     protocol: TCP
     targetPort: 32208
-  - name: head-209
+  - name: head-208-udp
+    port: 32208
+    nodePort: 32208
+    protocol: UDP
+    targetPort: 32208
+  - name: head-209-tcp
     port: 32209
     nodePort: 32209
     protocol: TCP
     targetPort: 32209
-  - name: head-210
+  - name: head-209-udp
+    port: 32209
+    nodePort: 32209
+    protocol: UDP
+    targetPort: 32209
+  - name: head-210-tcp
     port: 32210
     nodePort: 32210
     protocol: TCP
     targetPort: 32210
-  - name: head-211
+  - name: head-210-udp
+    port: 32210
+    nodePort: 32210
+    protocol: UDP
+    targetPort: 32210
+  - name: head-211-tcp
     port: 32211
     nodePort: 32211
     protocol: TCP
     targetPort: 32211
-  - name: head-212
+  - name: head-211-udp
+    port: 32211
+    nodePort: 32211
+    protocol: UDP
+    targetPort: 32211
+  - name: head-212-tcp
     port: 32212
     nodePort: 32212
     protocol: TCP
     targetPort: 32212
-  - name: head-213
+  - name: head-212-udp
+    port: 32212
+    nodePort: 32212
+    protocol: UDP
+    targetPort: 32212
+  - name: head-213-tcp
     port: 32213
     nodePort: 32213
     protocol: TCP
     targetPort: 32213
-  - name: head-214
+  - name: head-213-udp
+    port: 32213
+    nodePort: 32213
+    protocol: UDP
+    targetPort: 32213
+  - name: head-214-tcp
     port: 32214
     nodePort: 32214
     protocol: TCP
     targetPort: 32214
-  - name: head-215
+  - name: head-214-udp
+    port: 32214
+    nodePort: 32214
+    protocol: UDP
+    targetPort: 32214
+  - name: head-215-tcp
     port: 32215
     nodePort: 32215
     protocol: TCP
     targetPort: 32215
-  - name: head-216
+  - name: head-215-udp
+    port: 32215
+    nodePort: 32215
+    protocol: UDP
+    targetPort: 32215
+  - name: head-216-tcp
     port: 32216
     nodePort: 32216
     protocol: TCP
     targetPort: 32216
-  - name: head-217
+  - name: head-216-udp
+    port: 32216
+    nodePort: 32216
+    protocol: UDP
+    targetPort: 32216
+  - name: head-217-tcp
     port: 32217
     nodePort: 32217
     protocol: TCP
     targetPort: 32217
-  - name: head-218
+  - name: head-217-udp
+    port: 32217
+    nodePort: 32217
+    protocol: UDP
+    targetPort: 32217
+  - name: head-218-tcp
     port: 32218
     nodePort: 32218
     protocol: TCP
     targetPort: 32218
-  - name: head-219
+  - name: head-218-udp
+    port: 32218
+    nodePort: 32218
+    protocol: UDP
+    targetPort: 32218
+  - name: head-219-tcp
     port: 32219
     nodePort: 32219
     protocol: TCP
     targetPort: 32219
-  - name: head-220
+  - name: head-219-udp
+    port: 32219
+    nodePort: 32219
+    protocol: UDP
+    targetPort: 32219
+  - name: head-220-tcp
     port: 32220
     nodePort: 32220
     protocol: TCP
     targetPort: 32220
-  - name: head-221
+  - name: head-220-udp
+    port: 32220
+    nodePort: 32220
+    protocol: UDP
+    targetPort: 32220
+  - name: head-221-tcp
     port: 32221
     nodePort: 32221
     protocol: TCP
     targetPort: 32221
-  - name: head-222
+  - name: head-221-udp
+    port: 32221
+    nodePort: 32221
+    protocol: UDP
+    targetPort: 32221
+  - name: head-222-tcp
     port: 32222
     nodePort: 32222
     protocol: TCP
     targetPort: 32222
-  - name: head-223
+  - name: head-222-udp
+    port: 32222
+    nodePort: 32222
+    protocol: UDP
+    targetPort: 32222
+  - name: head-223-tcp
     port: 32223
     nodePort: 32223
     protocol: TCP
     targetPort: 32223
-  - name: head-224
+  - name: head-223-udp
+    port: 32223
+    nodePort: 32223
+    protocol: UDP
+    targetPort: 32223
+  - name: head-224-tcp
     port: 32224
     nodePort: 32224
     protocol: TCP
     targetPort: 32224
-  - name: head-225
+  - name: head-224-udp
+    port: 32224
+    nodePort: 32224
+    protocol: UDP
+    targetPort: 32224
+  - name: head-225-tcp
     port: 32225
     nodePort: 32225
     protocol: TCP
     targetPort: 32225
-  - name: head-226
+  - name: head-225-udp
+    port: 32225
+    nodePort: 32225
+    protocol: UDP
+    targetPort: 32225
+  - name: head-226-tcp
     port: 32226
     nodePort: 32226
     protocol: TCP
     targetPort: 32226
-  - name: head-227
+  - name: head-226-udp
+    port: 32226
+    nodePort: 32226
+    protocol: UDP
+    targetPort: 32226
+  - name: head-227-tcp
     port: 32227
     nodePort: 32227
     protocol: TCP
     targetPort: 32227
-  - name: head-228
+  - name: head-227-udp
+    port: 32227
+    nodePort: 32227
+    protocol: UDP
+    targetPort: 32227
+  - name: head-228-tcp
     port: 32228
     nodePort: 32228
     protocol: TCP
     targetPort: 32228
-  - name: head-229
+  - name: head-228-udp
+    port: 32228
+    nodePort: 32228
+    protocol: UDP
+    targetPort: 32228
+  - name: head-229-tcp
     port: 32229
     nodePort: 32229
     protocol: TCP
     targetPort: 32229
-  - name: head-230
+  - name: head-229-udp
+    port: 32229
+    nodePort: 32229
+    protocol: UDP
+    targetPort: 32229
+  - name: head-230-tcp
     port: 32230
     nodePort: 32230
     protocol: TCP
     targetPort: 32230
-  - name: head-231
+  - name: head-230-udp
+    port: 32230
+    nodePort: 32230
+    protocol: UDP
+    targetPort: 32230
+  - name: head-231-tcp
     port: 32231
     nodePort: 32231
     protocol: TCP
     targetPort: 32231
-  - name: head-232
+  - name: head-231-udp
+    port: 32231
+    nodePort: 32231
+    protocol: UDP
+    targetPort: 32231
+  - name: head-232-tcp
     port: 32232
     nodePort: 32232
     protocol: TCP
     targetPort: 32232
-  - name: head-233
+  - name: head-232-udp
+    port: 32232
+    nodePort: 32232
+    protocol: UDP
+    targetPort: 32232
+  - name: head-233-tcp
     port: 32233
     nodePort: 32233
     protocol: TCP
     targetPort: 32233
-  - name: head-234
+  - name: head-233-udp
+    port: 32233
+    nodePort: 32233
+    protocol: UDP
+    targetPort: 32233
+  - name: head-234-tcp
     port: 32234
     nodePort: 32234
     protocol: TCP
     targetPort: 32234
-  - name: head-235
+  - name: head-234-udp
+    port: 32234
+    nodePort: 32234
+    protocol: UDP
+    targetPort: 32234
+  - name: head-235-tcp
     port: 32235
     nodePort: 32235
     protocol: TCP
     targetPort: 32235
-  - name: head-236
+  - name: head-235-udp
+    port: 32235
+    nodePort: 32235
+    protocol: UDP
+    targetPort: 32235
+  - name: head-236-tcp
     port: 32236
     nodePort: 32236
     protocol: TCP
     targetPort: 32236
-  - name: head-237
+  - name: head-236-udp
+    port: 32236
+    nodePort: 32236
+    protocol: UDP
+    targetPort: 32236
+  - name: head-237-tcp
     port: 32237
     nodePort: 32237
     protocol: TCP
     targetPort: 32237
-  - name: head-238
+  - name: head-237-udp
+    port: 32237
+    nodePort: 32237
+    protocol: UDP
+    targetPort: 32237
+  - name: head-238-tcp
     port: 32238
     nodePort: 32238
     protocol: TCP
     targetPort: 32238
-  - name: head-239
+  - name: head-238-udp
+    port: 32238
+    nodePort: 32238
+    protocol: UDP
+    targetPort: 32238
+  - name: head-239-tcp
     port: 32239
     nodePort: 32239
     protocol: TCP
     targetPort: 32239
-  - name: head-240
+  - name: head-239-udp
+    port: 32239
+    nodePort: 32239
+    protocol: UDP
+    targetPort: 32239
+  - name: head-240-tcp
     port: 32240
     nodePort: 32240
     protocol: TCP
     targetPort: 32240
-  - name: head-241
+  - name: head-240-udp
+    port: 32240
+    nodePort: 32240
+    protocol: UDP
+    targetPort: 32240
+  - name: head-241-tcp
     port: 32241
     nodePort: 32241
     protocol: TCP
     targetPort: 32241
-  - name: head-242
+  - name: head-241-udp
+    port: 32241
+    nodePort: 32241
+    protocol: UDP
+    targetPort: 32241
+  - name: head-242-tcp
     port: 32242
     nodePort: 32242
     protocol: TCP
     targetPort: 32242
-  - name: head-243
+  - name: head-242-udp
+    port: 32242
+    nodePort: 32242
+    protocol: UDP
+    targetPort: 32242
+  - name: head-243-tcp
     port: 32243
     nodePort: 32243
     protocol: TCP
     targetPort: 32243
-  - name: head-244
+  - name: head-243-udp
+    port: 32243
+    nodePort: 32243
+    protocol: UDP
+    targetPort: 32243
+  - name: head-244-tcp
     port: 32244
     nodePort: 32244
     protocol: TCP
     targetPort: 32244
-  - name: head-245
+  - name: head-244-udp
+    port: 32244
+    nodePort: 32244
+    protocol: UDP
+    targetPort: 32244
+  - name: head-245-tcp
     port: 32245
     nodePort: 32245
     protocol: TCP
     targetPort: 32245
-  - name: head-246
+  - name: head-245-udp
+    port: 32245
+    nodePort: 32245
+    protocol: UDP
+    targetPort: 32245
+  - name: head-246-tcp
     port: 32246
     nodePort: 32246
     protocol: TCP
     targetPort: 32246
-  - name: head-247
+  - name: head-246-udp
+    port: 32246
+    nodePort: 32246
+    protocol: UDP
+    targetPort: 32246
+  - name: head-247-tcp
     port: 32247
     nodePort: 32247
     protocol: TCP
     targetPort: 32247
-  - name: head-248
+  - name: head-247-udp
+    port: 32247
+    nodePort: 32247
+    protocol: UDP
+    targetPort: 32247
+  - name: head-248-tcp
     port: 32248
     nodePort: 32248
     protocol: TCP
     targetPort: 32248
-  - name: head-249
+  - name: head-248-udp
+    port: 32248
+    nodePort: 32248
+    protocol: UDP
+    targetPort: 32248
+  - name: head-249-tcp
     port: 32249
     nodePort: 32249
     protocol: TCP
+    targetPort: 32249
+  - name: head-249-udp
+    port: 32249
+    nodePort: 32249
+    protocol: UDP
     targetPort: 32249
 ---
 apiVersion: v1
