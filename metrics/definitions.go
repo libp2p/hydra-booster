@@ -38,6 +38,10 @@ var (
 	// "failed" (not found any providers on the network)
 	FindProvsDuration  = stats.Float64("find_provs_duration_seconds", "The time it took find provider attempts from the network to succeed or fail because of timeout or completion", stats.UnitSeconds)
 	FindProvsQueueSize = stats.Int64("find_provs_queue_size", "The current size of the queue for finding providers", stats.UnitDimensionless)
+
+	QUICDialBackPct = stats.Float64("quic_dialback_pct", "Percentage of Successful QUIC Dial backs", stats.UnitDimensionless)
+
+	TCPDialBackPct = stats.Float64("tcp_dialback_pct", "Percentage of Successful TCP Dial backs", stats.UnitDimensionless)
 )
 
 // Views
@@ -56,6 +60,16 @@ var (
 		Measure:     ConnectedPeers,
 		TagKeys:     []tag.Key{KeyName, KeyPeerID},
 		Aggregation: view.Sum(),
+	}
+	QUICDialBacksView = &view.View{
+		Measure:     QUICDialBackPct,
+		TagKeys:     []tag.Key{KeyName},
+		Aggregation: view.LastValue(),
+	}
+	TCPDialBacksView = &view.View{
+		Measure:     TCPDialBackPct,
+		TagKeys:     []tag.Key{KeyName},
+		Aggregation: view.LastValue(),
 	}
 	UniquePeersView = &view.View{
 		Measure:     UniquePeers,

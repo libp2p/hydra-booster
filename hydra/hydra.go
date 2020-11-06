@@ -13,7 +13,10 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	leveldb "github.com/ipfs/go-ds-leveldb"
+	"github.com/libp2p/go-eventbus"
+	"github.com/libp2p/go-libp2p-core/event"
 	"github.com/libp2p/go-libp2p-core/network"
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
 	"github.com/libp2p/go-libp2p-core/routing"
 	"github.com/libp2p/go-libp2p-peerstore/pstoreds"
@@ -24,8 +27,10 @@ import (
 	"github.com/libp2p/hydra-booster/metrics"
 	"github.com/libp2p/hydra-booster/periodictasks"
 	"github.com/multiformats/go-multiaddr"
+	mafmt "github.com/multiformats/go-multiaddr-fmt"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
+	"go.uber.org/atomic"
 )
 
 // Default intervals between periodic task runs, more cpu/memory intensive tasks are run less frequently
@@ -34,6 +39,14 @@ const (
 	providerRecordsTaskInterval  = time.Minute * 5
 	routingTableSizeTaskInterval = time.Second * 5
 	uniquePeersTaskInterval      = time.Second * 5
+)
+
+var (
+	nQUICConns     atomic.Uint32
+	nQUICDialbacks atomic.Uint32
+
+	nTCPConns     atomic.Uint32
+	nTCPDialBacks atomic.Uint32
 )
 
 // Hydra is a container for heads and their shared belly bits.
@@ -192,7 +205,73 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		go handleBootstrapStatus(hdCtx, bsCh)
 
 		hds = append(hds, hd)
+
+		// dial back hooks
+		evts := []interface{}{
+			new(event.EvtPeerIdentificationCompleted),
+		}
+
+		subs, err := hd.Host.EventBus().Subscribe(evts, eventbus.BufSize(256))
+		if err != nil {
+			return nil, fmt.Errorf("head could not subscribe to eventbus events; err: %w", err)
+		}
+		go func(hd *head.Head, subs event.Subscription) {
+			defer subs.Close()
+			for {
+				select {
+				case evt := <-subs.Out():
+					ev := evt.(event.EvtPeerIdentificationCompleted)
+					p := ev.Peer
+					addrs := hd.Host.Peerstore().Addrs(p)
+
+					// dial back on quic if peer advertises a quic address
+					for _, a := range addrs {
+						if mafmt.QUIC.Matches(a) {
+							nQUICConns.Add(1)
+
+							if err := hd.QuicDialBackHost.Connect(hdCtx, peer.AddrInfo{ID: p}); err == nil {
+								nQUICDialbacks.Add(1)
+
+								// close the connection as we don't need it anymore
+								if err := hd.QuicDialBackHost.Network().ClosePeer(p); err != nil {
+									fmt.Fprintf(os.Stderr, "\n quic dial back: failed to close connection to peer %s, err: %s", p.Pretty(),
+										err)
+								}
+							}
+
+							pct := float64(100) * float64(nQUICDialbacks.Load()) / float64(nQUICConns.Load())
+							stats.Record(hdCtx, metrics.QUICDialBackPct.M(pct))
+							break
+						}
+					}
+
+					// dial back on tcp if peer advertises a tcp address
+					for _, a := range addrs {
+						if mafmt.TCP.Matches(a) {
+							nTCPConns.Add(1)
+
+							if err := hd.TcpDialBackHost.Connect(hdCtx, peer.AddrInfo{ID: p}); err == nil {
+								nTCPDialBacks.Add(1)
+
+								// close the connection as we don't need it anymore
+								if err := hd.TcpDialBackHost.Network().ClosePeer(p); err != nil {
+									fmt.Fprintf(os.Stderr, "\n tcp dial back: failed to close connection to peer %s, err: %s", p.Pretty(), err)
+								}
+							}
+
+							pct := float64(100) * float64(nTCPDialBacks.Load()) / float64(nTCPConns.Load())
+							stats.Record(hdCtx, metrics.TCPDialBackPct.M(pct))
+							break
+						}
+					}
+
+				case <-hdCtx.Done():
+					return
+				}
+			}
+		}(hd, subs)
 	}
+
 	fmt.Fprintf(os.Stderr, "\n")
 
 	for _, hd := range hds {
