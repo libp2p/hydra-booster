@@ -160,6 +160,8 @@ var DefaultViews = []*view.View{
 	HeadsView,
 	BootstrappedHeadsView,
 	ConnectedPeersView,
+	QUICDialBacksView,
+	TCPDialBacksView,
 	UniquePeersView,
 	RoutingTableSizeView,
 	ProviderRecordsView,
