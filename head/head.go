@@ -59,9 +59,6 @@ type Head struct {
 	Host      host.Host
 	Datastore datastore.Datastore
 	Routing   routing.Routing
-
-	QuicDialBackHost host.Host
-	TcpDialBackHost  host.Host
 }
 
 // NewHead constructs a new Hydra Booster head node
@@ -144,25 +141,11 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 	// as we'll trigger a boostrap round as soon as we get a connection anyways.
 	dhtNode.Bootstrap(ctx)
 
-	//  create QUIC dial back host
-	qh, err := getDialBackHost(ctx, libp2p.Transport(quic.NewTransport), options...)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create dial back host for quic: %w", err)
-	}
-
-	// create TCP dial back host
-	th, err := getDialBackHost(ctx, libp2p.Transport(tcp.NewTCPTransport), options...)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create dial back host for tcp: %w", err)
-	}
-
 	bsCh := make(chan BootstrapStatus)
 	hd := Head{
-		Host:             node,
-		Datastore:        cfg.Datastore,
-		Routing:          dhtNode,
-		QuicDialBackHost: qh,
-		TcpDialBackHost:  th,
+		Host:      node,
+		Datastore: cfg.Datastore,
+		Routing:   dhtNode,
 	}
 
 	go func() {
@@ -221,36 +204,6 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 	}()
 
 	return &hd, bsCh, nil
-}
-
-func getDialBackHost(ctx context.Context, transportOpt libp2p.Option, options ...opts.Option) (host.Host, error) {
-	cfg := opts.Options{}
-	cfg.Apply(append([]opts.Option{opts.Defaults}, options...)...)
-
-	cmgr := connmgr.NewConnManager(lowWater, highWater, gracePeriod)
-	priv, err := cfg.IDGenerator.AddBalanced()
-	if err != nil {
-		return nil, fmt.Errorf("dialback host: failed to generate balanced private key: %w", err)
-	}
-
-	libp2pOpts := []libp2p.Option{
-		libp2p.UserAgent(version.UserAgent),
-		libp2p.ConnectionManager(cmgr),
-		libp2p.Identity(priv),
-		transportOpt,
-		libp2p.Security(tls.ID, tls.New),
-		libp2p.Security(noise.ID, noise.New),
-	}
-	if cfg.Peerstore != nil {
-		libp2pOpts = append(libp2pOpts, libp2p.Peerstore(cfg.Peerstore))
-	}
-
-	node, err := libp2p.New(ctx, libp2pOpts...)
-	if err != nil {
-		return nil, fmt.Errorf("dialback host: failed to spawn libp2p node: %w", err)
-	}
-
-	return node, err
 }
 
 // RoutingTable returns the underlying RoutingTable for this head
