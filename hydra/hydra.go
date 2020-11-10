@@ -327,6 +327,7 @@ func getDialBackHost(ctx context.Context, transportOpt libp2p.Option) (host.Host
 		libp2p.Security(tls.ID, tls.New),
 		libp2p.Security(noise.ID, noise.New),
 		libp2p.Security(secio.ID, secio.New),
+		libp2p.NoListenAddrs,
 	}
 
 	node, err := libp2p.New(ctx, libp2pOpts...)
