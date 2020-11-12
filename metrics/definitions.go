@@ -66,7 +66,7 @@ var (
 		Aggregation: view.Sum(),
 	}
 
-	QuicConnsView = &view.View{
+	QUICConnsView = &view.View{
 		Measure:     QuicConns,
 		TagKeys:     []tag.Key{KeyName},
 		Aggregation: view.Sum(),
@@ -193,7 +193,7 @@ var DefaultViews = []*view.View{
 	FindProvsView,
 	FindProvsDurationView,
 	FindProvsQueueSizeView,
-	QuicConnsView,
+	QUICConnsView,
 	QUICDialBacksView,
 	QUICDialBackFailuresView,
 	TCPConnsView,
