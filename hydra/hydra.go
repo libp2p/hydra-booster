@@ -275,6 +275,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 							break
 						}
 					}
+					qh.Peerstore().ClearAddrs(p)
 
 					// dial back on tcp if peer advertises a tcp address
 					for _, a := range addrs {
@@ -295,6 +296,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 							break
 						}
 					}
+					th.Peerstore().ClearAddrs(p)
 
 				case <-hd.HeadCtx.Done():
 					return
