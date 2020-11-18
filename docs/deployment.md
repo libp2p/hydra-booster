@@ -66,16 +66,16 @@ We're currently running **10 Hydras** with the following head counts:
 
 |          | Heads | 
 | -------- | ----- | 
-| Alasybil | `250` |
-| Bubbles  | `250` |
-| Chumpy   | `250` |
-| Domino   | `250` |
-| Euclid   | `250` |
-| Flake    | `250` |
-| Grendel  | `250` |
-| Hojo     | `250` |
-| Ibycus   | `250` |
-| Jetta    | `250` |
+| Alasybil | `100` |
+| Bubbles  | `100` |
+| Chumpy   | `100` |
+| Domino   | `100` |
+| Euclid   | `100` |
+| Flake    | `100` |
+| Grendel  | `100` |
+| Hojo     | `100` |
+| Ibycus   | `100` |
+| Jetta    | `100` |
 | ...      | ...   |
 
 ## PostgreSQL datastore
@@ -103,7 +103,7 @@ I used the following script to generate the YAML config for the head ports:
 
 ```js
 const begin = 30200
-for (let i = 0; i < 250; i++) {
+for (let i = 0; i < 100; i++) {
   console.log(`  - name: head-${i.toString().padStart(3, '0')}
     port: ${begin + i}
     nodePort: ${begin + i}
