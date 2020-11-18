@@ -151,6 +151,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		return nil, fmt.Errorf("failed to create dial back host for tcp: %w", err)
 	}
 
+	hdPeerIds := make(map[peer.ID]struct{}, len(hds))
 	for i := 0; i < options.NHeads; i++ {
 		time.Sleep(options.Stagger)
 		fmt.Fprintf(os.Stderr, ".")
@@ -202,6 +203,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		if err != nil {
 			return nil, err
 		}
+		hd.HeadCtx = hdCtx
 
 		stats.Record(hdCtx, metrics.Heads.M(1))
 
@@ -220,6 +222,16 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		go handleBootstrapStatus(hdCtx, bsCh)
 
 		hds = append(hds, hd)
+		hdPeerIds[hd.Host.ID()] = struct{}{}
+	}
+
+	fmt.Fprintf(os.Stderr, "\n")
+
+	for _, hd := range hds {
+		fmt.Fprintf(os.Stderr, "🆔 %v\n", hd.Host.ID())
+		for _, addr := range hd.Host.Addrs() {
+			fmt.Fprintf(os.Stderr, "🐝 Swarm listening on %v\n", addr)
+		}
 
 		// dial back hooks
 		evts := []interface{}{
@@ -237,6 +249,10 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 				case evt := <-subs.Out():
 					ev := evt.(event.EvtPeerIdentificationCompleted)
 					p := ev.Peer
+					// do not dial back our own heads
+					if _, ok := hdPeerIds[p]; ok {
+						continue
+					}
 					addrs := hd.Host.Peerstore().Addrs(p)
 
 					// dial back on quic if peer advertises a quic address
@@ -244,7 +260,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 						if mafmt.QUIC.Matches(a) {
 							stats.Record(ctx, metrics.QuicConns.M(1))
 
-							if err := qh.Connect(hdCtx, peer.AddrInfo{ID: p, Addrs: addrs}); err == nil {
+							if err := qh.Connect(hd.HeadCtx, peer.AddrInfo{ID: p, Addrs: addrs}); err == nil {
 								stats.Record(ctx, metrics.QuicDialBacks.M(1))
 
 								// close the connection as we don't need it anymore
@@ -265,7 +281,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 						if mafmt.TCP.Matches(a) {
 							stats.Record(ctx, metrics.TCPConns.M(1))
 
-							if err := th.Connect(hdCtx, peer.AddrInfo{ID: p, Addrs: addrs}); err == nil {
+							if err := th.Connect(hd.HeadCtx, peer.AddrInfo{ID: p, Addrs: addrs}); err == nil {
 								stats.Record(ctx, metrics.TCPDialBacks.M(1))
 
 								// close the connection as we don't need it anymore
@@ -280,20 +296,11 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 						}
 					}
 
-				case <-hdCtx.Done():
+				case <-hd.HeadCtx.Done():
 					return
 				}
 			}
 		}(hd, subs)
-	}
-
-	fmt.Fprintf(os.Stderr, "\n")
-
-	for _, hd := range hds {
-		fmt.Fprintf(os.Stderr, "🆔 %v\n", hd.Host.ID())
-		for _, addr := range hd.Host.Addrs() {
-			fmt.Fprintf(os.Stderr, "🐝 Swarm listening on %v\n", addr)
-		}
 	}
 
 	hydra := Hydra{
