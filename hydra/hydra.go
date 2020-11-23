@@ -37,6 +37,7 @@ import (
 	"github.com/libp2p/hydra-booster/version"
 	"github.com/multiformats/go-multiaddr"
 	mafmt "github.com/multiformats/go-multiaddr-fmt"
+	"github.com/whyrusleeping/timecache"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 )
@@ -50,6 +51,11 @@ const (
 	lowWater                     = 1200
 	highWater                    = 1800
 	gracePeriod                  = time.Minute
+)
+
+const (
+	agentVersionKey      = "AgentVersion"
+	dialedPeersCacheSpan = 8 * time.Hour
 )
 
 // Hydra is a container for heads and their shared belly bits.
@@ -227,6 +233,9 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 
 	fmt.Fprintf(os.Stderr, "\n")
 
+	var dp sync.Mutex
+	dialedPeers := timecache.NewTimeCache(dialedPeersCacheSpan)
+
 	for _, hd := range hds {
 		fmt.Fprintf(os.Stderr, "🆔 %v\n", hd.Host.ID())
 		for _, addr := range hd.Host.Addrs() {
@@ -249,15 +258,36 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 				case evt := <-subs.Out():
 					ev := evt.(event.EvtPeerIdentificationCompleted)
 					p := ev.Peer
+
+					// do not dial back the peer if we've already dialled it
+					dp.Lock()
+					seen := dialedPeers.Has(p.String())
+					dp.Unlock()
+					if seen {
+						continue
+					}
+
 					// do not dial back our own heads
 					if _, ok := hdPeerIds[p]; ok {
 						continue
 					}
+
+					// do not dial back other Hydras
+					v, err := hd.Host.Peerstore().Get(p, agentVersionKey)
+					if err != nil {
+						continue
+					}
+					if s := v.(string); s == version.UserAgent {
+						continue
+					}
+
 					addrs := hd.Host.Peerstore().Addrs(p)
 
 					// dial back on quic if peer advertises a quic address
 					for _, a := range addrs {
-						if mafmt.QUIC.Matches(a) {
+						// ignore relay addrs
+						_, err := a.ValueForProtocol(multiaddr.P_CIRCUIT)
+						if err != nil && mafmt.QUIC.Matches(a) {
 							stats.Record(ctx, metrics.QuicConns.M(1))
 
 							if err := qh.Connect(hd.HeadCtx, peer.AddrInfo{ID: p, Addrs: addrs}); err == nil {
@@ -279,7 +309,8 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 
 					// dial back on tcp if peer advertises a tcp address
 					for _, a := range addrs {
-						if mafmt.TCP.Matches(a) {
+						_, err := a.ValueForProtocol(multiaddr.P_CIRCUIT)
+						if err != nil && mafmt.TCP.Matches(a) {
 							stats.Record(ctx, metrics.TCPConns.M(1))
 
 							if err := th.Connect(hd.HeadCtx, peer.AddrInfo{ID: p, Addrs: addrs}); err == nil {
@@ -296,6 +327,12 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 							break
 						}
 					}
+
+					// mark peer as seen
+					dp.Lock()
+					dialedPeers.Add(p.String())
+					dp.Unlock()
+
 					th.Peerstore().ClearAddrs(p)
 
 				case <-hd.HeadCtx.Done():
