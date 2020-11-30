@@ -1,26 +1,33 @@
-FROM golang:1.14.2-buster
+FROM golang:1.14.2-alpine AS build
 
-# Install deps
-RUN apt-get update && apt-get install -y \
-  libssl-dev \
-  ca-certificates
+RUN apk add --no-cache openssl-dev git build-base
 
 WORKDIR /hydra-booster
 
 COPY go.mod go.sum ./
-RUN go mod download
+RUN go mod download -x
 
 # Copy the source from the current directory
 # to the Working Directory inside the container
 COPY . .
 
-RUN go build -tags=openssl -o hydra-booster .
+# Run the build and install
+RUN go install -tags=openssl -v ./...
+
+# Create single-layer run image
+FROM alpine
+COPY --from=build /go/bin/hydra-booster /hydra-booster
+
+RUN apk add --no-cache openssl
 
 # HTTP API
 EXPOSE 7779
+
 # Prometheus /metrics
 EXPOSE 8888
+
 # Heads
 EXPOSE 30000-32767
 EXPOSE 30000-32767/udp
+
 CMD ["./hydra-booster", "-metrics-addr=0.0.0.0:8888", "-httpapi-addr=0.0.0.0:7779", "-ui-theme=none"]
