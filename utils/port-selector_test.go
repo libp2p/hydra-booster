@@ -9,7 +9,7 @@ func TestPortSelector(t *testing.T) {
 	getPort := PortSelector(begin)
 	for i := begin; i < begin*1000; i++ {
 		port := getPort()
-		if port != i+1 {
+		if port != i {
 			t.Fatalf("expected next port to be %v but got %v", i+1, port)
 		}
 	}
