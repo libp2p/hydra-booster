@@ -330,7 +330,9 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 
 					// mark peer as seen
 					dp.Lock()
-					dialedPeers.Add(p.String())
+					if !dialedPeers.Has(p.String()) {
+						dialedPeers.Add(p.String())
+					}
 					dp.Unlock()
 
 					th.Peerstore().ClearAddrs(p)
