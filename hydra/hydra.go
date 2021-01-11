@@ -299,6 +299,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 										err)
 								}
 							} else {
+								fmt.Fprintf(os.Stderr, "\n quic dial failed because of error: %+v", err)
 								stats.Record(ctx, metrics.QuicDialBackFailures.M(1))
 							}
 
@@ -321,6 +322,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 									fmt.Fprintf(os.Stderr, "\n tcp dial back: failed to close connection to peer %s, err: %s", p.Pretty(), err)
 								}
 							} else {
+								fmt.Fprintf(os.Stderr, "\n tcp dial failed because of error: %+v", err)
 								stats.Record(ctx, metrics.TCPDialBackFailures.M(1))
 							}
 
