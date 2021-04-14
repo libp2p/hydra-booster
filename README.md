@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://ipfs.io/ipfs/bafykbzacebddch6dpmgdyupxygcbi2pvmzwiz7edmvwbtskseldpu3ofj5xjy/hydra-booster.png" alt="Hydra Booster Mascot" />
+  <img src="https://ipfs.io/ipfs/bafykbzacebddch6dpmgdyupxygcbi2pvmzwiz7edmvwbtskseldpu3ofj5xjy/hydra-booster.png" width="40%" alt="Hydra Booster Mascot" />
 </p>
 <h1 align="center">Hydra Booster</h1>
 
