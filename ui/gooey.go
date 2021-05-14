@@ -45,10 +45,6 @@ const (
 	LightGray
 )
 
-func color(color int, s string) string {
-	return fmt.Sprintf("\x1b[%dm%s\x1b[0m", color, s)
-}
-
 const width = 25
 
 func padPrint(writer io.Writer, line int, label, value string) {
