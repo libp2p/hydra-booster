@@ -156,7 +156,7 @@ func newOnAfterQueryHook(ctx context.Context, getRouting GetRoutingFunc, opts Op
 			}
 
 			pendingLock.Lock()
-			isPending, _ := pending[k.String()]
+			isPending := pending[k.String()]
 			if !isPending {
 				// send to the find provs queue, if channel is full then discard...
 				select {
