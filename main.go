@@ -79,16 +79,16 @@ func main() {
 	if *idgenAddr == "" {
 		*idgenAddr = os.Getenv("HYDRA_IDGEN_ADDR")
 	}
-	if *disableProvGC == false {
+	if !*disableProvGC {
 		*disableProvGC = mustGetEnvBool("HYDRA_DISABLE_PROV_GC", false)
 	}
 	if *bootstrapPeers == "" {
 		*bootstrapPeers = os.Getenv("HYDRA_BOOTSTRAP_PEERS")
 	}
-	if *disablePrefetch == false {
+	if !*disablePrefetch {
 		*disablePrefetch = mustGetEnvBool("HYDRA_DISABLE_PREFETCH", false)
 	}
-	if *disableProvCounts == false {
+	if !*disableProvCounts {
 		*disableProvCounts = mustGetEnvBool("HYDRA_DISABLE_PROV_COUNTS", false)
 	}
 	if *pstorePath == "" {
