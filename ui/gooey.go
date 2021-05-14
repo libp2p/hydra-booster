@@ -5,7 +5,6 @@ import (
 	"io"
 	"strings"
 
-	human "github.com/dustin/go-humanize"
 	net "github.com/libp2p/go-libp2p-core/network"
 	ma "github.com/multiformats/go-multiaddr"
 )
@@ -53,15 +52,6 @@ func padPrint(writer io.Writer, line int, label, value string) {
 
 func putMessage(writer io.Writer, line int, mes string) {
 	fmt.Fprintf(writer, "\033[%d;0H%s%s", line, QClrLine, mes)
-}
-
-func printDataSharedLine(writer io.Writer, line int, bup int, totup int64, rateup float64) {
-	pad := "            "
-	a := fmt.Sprintf("%d            ", bup)[:12]
-	b := (human.Bytes(uint64(totup)) + pad)[:12]
-	c := (human.Bytes(uint64(rateup)) + "/s" + pad)[:12]
-
-	padPrint(writer, line, "", a+b+c)
 }
 
 // GooeyApp ..
