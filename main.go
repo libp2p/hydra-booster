@@ -79,16 +79,16 @@ func main() {
 	if *idgenAddr == "" {
 		*idgenAddr = os.Getenv("HYDRA_IDGEN_ADDR")
 	}
-	if *disableProvGC == false {
+	if !*disableProvGC {
 		*disableProvGC = mustGetEnvBool("HYDRA_DISABLE_PROV_GC", false)
 	}
 	if *bootstrapPeers == "" {
 		*bootstrapPeers = os.Getenv("HYDRA_BOOTSTRAP_PEERS")
 	}
-	if *disablePrefetch == false {
+	if !*disablePrefetch {
 		*disablePrefetch = mustGetEnvBool("HYDRA_DISABLE_PREFETCH", false)
 	}
-	if *disableProvCounts == false {
+	if !*disableProvCounts {
 		*disableProvCounts = mustGetEnvBool("HYDRA_DISABLE_PROV_COUNTS", false)
 	}
 	if *pstorePath == "" {
@@ -178,7 +178,7 @@ func main() {
 	}()
 	fmt.Fprintf(os.Stderr, "🧩 HTTP API listening on http://%s\n", *httpAPIAddr)
 
-	termChan := make(chan os.Signal)
+	termChan := make(chan os.Signal, 1)
 	signal.Notify(termChan, os.Interrupt, syscall.SIGTERM)
 	<-termChan // Blocks here until either SIGINT or SIGTERM is received.
 	fmt.Println("Received interrupt signal, shutting down...")

@@ -3,7 +3,6 @@ package head
 import (
 	"context"
 	"fmt"
-	"math/rand"
 	"sync"
 	"time"
 
@@ -38,15 +37,6 @@ const (
 	provCacheSize          = 256
 	provCacheExpiry        = time.Hour
 )
-
-func randBootstrapAddr(bootstrapPeers []multiaddr.Multiaddr) (*peer.AddrInfo, error) {
-	addr := bootstrapPeers[rand.Intn(len(bootstrapPeers))]
-	ai, err := peer.AddrInfoFromP2pAddr(addr)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert %s to AddrInfo: %w", addr, err)
-	}
-	return ai, nil
-}
 
 // BootstrapStatus describes the status of connecting to a bootstrap node.
 type BootstrapStatus struct {

@@ -129,14 +129,14 @@ func idgenAddHandler() func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		pk, err := idgen.HydraIdentityGenerator.AddBalanced()
 		if err != nil {
-			fmt.Println(fmt.Errorf("Failed to generate Peer ID: %w", err))
+			fmt.Println(fmt.Errorf("failed to generate Peer ID: %w", err))
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
 		b, err := crypto.MarshalPrivateKey(pk)
 		if err != nil {
-			fmt.Println(fmt.Errorf("Failed to extract private key bytes: %w", err))
+			fmt.Println(fmt.Errorf("failed to extract private key bytes: %w", err))
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -169,7 +169,7 @@ func idgenRemoveHandler() func(http.ResponseWriter, *http.Request) {
 
 		err = idgen.HydraIdentityGenerator.Remove(pk)
 		if err != nil {
-			fmt.Println(fmt.Errorf("Failed to remove private key: %w", err))
+			fmt.Println(fmt.Errorf("failed to remove private key: %w", err))
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
