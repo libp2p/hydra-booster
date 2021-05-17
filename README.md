@@ -30,10 +30,10 @@ A new type of DHT node designed to accelerate the Content Resolution & Content P
 
 ```
 [openssl support (lower CPU usage)]
-go get -u -tags=openssl github.com/libp2p/hydra-booster
+go get -tags=openssl github.com/libp2p/hydra-booster
 
 [standard (sub-optimal)]
-go get -u github.com/libp2p/hydra-booster
+go get github.com/libp2p/hydra-booster
 ```
 
 ## Usage
