@@ -60,3 +60,9 @@ kubectl scale deployment/hojo-deployment --replicas=1 -n hydra-boosters
 kubectl scale deployment/ibycus-deployment --replicas=1 -n hydra-boosters
 kubectl scale deployment/jetta-deployment --replicas=1 -n hydra-boosters
 ```
+
+## Deploying a branch
+
+1. Publish a new tagged image to dockerhub. e.g. we use `libp2p/hydra-booster:next` for smoke testing upcoming releases. Add the tag to `docker commit` and `docker push` when [publishing](https://github.com/libp2p/hydra-booster#publish-a-new-image).
+2. Update the `image:` property in the [deployment spec](https://github.com/libp2p/hydra-booster/blob/30b2924b519aeee8f3ff6c3e87e1215ea65e81ad/k8s/alasybil.yaml#L38) for the hydra(s) you want to use the image.
+3. Apply the updated config to the hydra(s) using `kubectl apply -f k8s/HYDRA_NAME.yaml`
