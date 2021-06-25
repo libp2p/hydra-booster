@@ -43,6 +43,8 @@ spec:
           value: "true"
         - name: HYDRA_PSTORE
           value: hydra-pstore
+        - name: HYDRA_DISABLE_DBCREATE
+          value: "true"
         image: docker.io/libp2p/hydra-booster
         resources:
           limits:

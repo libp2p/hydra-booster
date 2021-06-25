@@ -55,6 +55,7 @@ func main() {
 	disableValues := flag.Bool("disable-values", false, "Disable storing and retrieving value records, note that for some protocols, like \"/ipfs\", it MUST be false (default false).")
 	disablePrefetch := flag.Bool("disable-prefetch", false, "Disables pre-fetching of discovered provider records (default false).")
 	disableProvCounts := flag.Bool("disable-prov-counts", false, "Disable counting provider records for metrics reporting (default false).")
+	disableDBCreate := flag.Bool("disable-db-create", false, "Don't create table and index in the target database (default false).")
 	flag.Parse()
 
 	fmt.Fprintf(os.Stderr, "🐉 Hydra Booster starting up...\n")
@@ -87,6 +88,9 @@ func main() {
 	}
 	if !*disablePrefetch {
 		*disablePrefetch = mustGetEnvBool("HYDRA_DISABLE_PREFETCH", false)
+	}
+	if !*disableDBCreate {
+		*disableDBCreate = mustGetEnvBool("HYDRA_DISABLE_DBCREATE", false)
 	}
 	if !*disableProvCounts {
 		*disableProvCounts = mustGetEnvBool("HYDRA_DISABLE_PROV_COUNTS", false)
@@ -135,6 +139,7 @@ func main() {
 		BootstrapPeers:    mustConvertToMultiaddr(*bootstrapPeers),
 		DisablePrefetch:   *disablePrefetch,
 		DisableProvCounts: *disableProvCounts,
+		DisableDBCreate:   *disableDBCreate,
 	}
 
 	go func() {

@@ -41,6 +41,8 @@ spec:
           value: "true"
         - name: HYDRA_DISABLE_PROV_COUNTS
           value: "true"
+        - name: HYDRA_DISABLE_DBCREATE
+          value: "true"
         image: docker.io/libp2p/hydra-booster
         resources:
           limits:
