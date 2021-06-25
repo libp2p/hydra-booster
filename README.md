@@ -70,6 +70,8 @@ Usage of hydra-booster:
         Specify the bucket size, note that for some protocols this must be a specific value i.e. for "/ipfs" it MUST be 20 (default 20)
   -db string
         Datastore directory (for LevelDB store) or postgresql:// connection URI (for PostgreSQL store)
+  -disable-db-create
+        Don't create table and index in the target database (default false).
   -disable-prefetch
         Disables pre-fetching of discovered provider records (default false).
   -disable-prov-counts
@@ -111,13 +113,14 @@ Usage of hydra-booster:
 Alternatively, some flags can be set via environment variables. Note that flags take precedence over environment variables.
 
 ```console
-Usage of hydra-booster:
   HYDRA_BOOTSTRAP_PEERS string
         A CSV list of peer addresses to bootstrap from.
   HYDRA_DB string
         Datastore directory (for LevelDB store) or postgresql:// connection URI (for PostgreSQL store)
   HYDRA_PSTORE string
         Peerstore directory for LevelDB store (defaults to in-memory store)
+  HYDRA_DISABLE_DBCREATE
+        Don't create table and index in the target database (default false).
   HYDRA_DISABLE_PREFETCH
         Disables pre-fetching of discovered provider records (default false).
   HYDRA_DISABLE_PROV_COUNTS
