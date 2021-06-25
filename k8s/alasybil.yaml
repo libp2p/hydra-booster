@@ -36,6 +36,8 @@ spec:
               name: secrets
               key: db
         image: docker.io/libp2p/hydra-booster
+        - name: HYDRA_DISABLE_DBCREATE
+          value: "true"
         resources:
           limits:
             memory: 27Gi
