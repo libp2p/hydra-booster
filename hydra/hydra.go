@@ -13,17 +13,31 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	leveldb "github.com/ipfs/go-ds-leveldb"
+	"github.com/libp2p/go-eventbus"
+	"github.com/libp2p/go-libp2p"
+	connmgr "github.com/libp2p/go-libp2p-connmgr"
+	"github.com/libp2p/go-libp2p-core/event"
+	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/network"
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
 	"github.com/libp2p/go-libp2p-core/routing"
+	noise "github.com/libp2p/go-libp2p-noise"
 	"github.com/libp2p/go-libp2p-peerstore/pstoreds"
+	quic "github.com/libp2p/go-libp2p-quic-transport"
+	secio "github.com/libp2p/go-libp2p-secio"
+	tls "github.com/libp2p/go-libp2p-tls"
+	"github.com/libp2p/go-tcp-transport"
 	hyds "github.com/libp2p/hydra-booster/datastore"
 	"github.com/libp2p/hydra-booster/head"
 	"github.com/libp2p/hydra-booster/head/opts"
 	"github.com/libp2p/hydra-booster/idgen"
 	"github.com/libp2p/hydra-booster/metrics"
 	"github.com/libp2p/hydra-booster/periodictasks"
+	"github.com/libp2p/hydra-booster/version"
 	"github.com/multiformats/go-multiaddr"
+	mafmt "github.com/multiformats/go-multiaddr-fmt"
+	"github.com/whyrusleeping/timecache"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 )
@@ -34,6 +48,14 @@ const (
 	providerRecordsTaskInterval  = time.Minute * 5
 	routingTableSizeTaskInterval = time.Second * 5
 	uniquePeersTaskInterval      = time.Second * 5
+	lowWater                     = 1200
+	highWater                    = 1800
+	gracePeriod                  = time.Minute
+)
+
+const (
+	agentVersionKey      = "AgentVersion"
+	dialedPeersCacheSpan = 8 * time.Hour
 )
 
 // Hydra is a container for heads and their shared belly bits.
@@ -124,6 +146,19 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	// What is a limiter?
 	limiter := make(chan struct{}, options.BsCon)
 
+	//  create QUIC dial back host
+	qh, err := getDialBackHost(ctx, libp2p.Transport(quic.NewTransport))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create dial back host for quic: %w", err)
+	}
+
+	// create TCP dial back host
+	th, err := getDialBackHost(ctx, libp2p.Transport(tcp.NewTCPTransport))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create dial back host for tcp: %w", err)
+	}
+
+	hdPeerIds := make(map[peer.ID]struct{}, len(hds))
 	for i := 0; i < options.NHeads; i++ {
 		time.Sleep(options.Stagger)
 		fmt.Fprintf(os.Stderr, ".")
@@ -175,6 +210,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		if err != nil {
 			return nil, err
 		}
+		hd.HeadCtx = hdCtx
 
 		stats.Record(hdCtx, metrics.Heads.M(1))
 
@@ -193,14 +229,122 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		go handleBootstrapStatus(hdCtx, bsCh)
 
 		hds = append(hds, hd)
+		hdPeerIds[hd.Host.ID()] = struct{}{}
 	}
+
 	fmt.Fprintf(os.Stderr, "\n")
+
+	var dp sync.Mutex
+	dialedPeers := timecache.NewTimeCache(dialedPeersCacheSpan)
 
 	for _, hd := range hds {
 		fmt.Fprintf(os.Stderr, "🆔 %v\n", hd.Host.ID())
 		for _, addr := range hd.Host.Addrs() {
 			fmt.Fprintf(os.Stderr, "🐝 Swarm listening on %v\n", addr)
 		}
+
+		// dial back hooks
+		evts := []interface{}{
+			new(event.EvtPeerIdentificationCompleted),
+		}
+
+		subs, err := hd.Host.EventBus().Subscribe(evts, eventbus.BufSize(256))
+		if err != nil {
+			return nil, fmt.Errorf("head could not subscribe to eventbus events; err: %w", err)
+		}
+		go func(hd *head.Head, subs event.Subscription) {
+			defer subs.Close()
+			for {
+				select {
+				case evt := <-subs.Out():
+					ev := evt.(event.EvtPeerIdentificationCompleted)
+					p := ev.Peer
+
+					// do not dial back the peer if we've already dialled it
+					dp.Lock()
+					seen := dialedPeers.Has(p.String())
+					dp.Unlock()
+					if seen {
+						continue
+					}
+
+					// do not dial back our own heads
+					if _, ok := hdPeerIds[p]; ok {
+						continue
+					}
+
+					// do not dial back other Hydras
+					v, err := hd.Host.Peerstore().Get(p, agentVersionKey)
+					if err != nil {
+						continue
+					}
+					if s := v.(string); s == version.UserAgent {
+						continue
+					}
+
+					addrs := hd.Host.Peerstore().Addrs(p)
+
+					// dial back on quic if peer advertises a quic address
+					for _, a := range addrs {
+						// ignore relay addrs
+						_, err := a.ValueForProtocol(multiaddr.P_CIRCUIT)
+						if err != nil && mafmt.QUIC.Matches(a) {
+							stats.Record(ctx, metrics.QuicConns.M(1))
+
+							if err := qh.Connect(hd.HeadCtx, peer.AddrInfo{ID: p, Addrs: addrs}); err == nil {
+								stats.Record(ctx, metrics.QuicDialBacks.M(1))
+
+								// close the connection as we don't need it anymore
+								if err := qh.Network().ClosePeer(p); err != nil {
+									fmt.Fprintf(os.Stderr, "\n quic dial back: failed to close connection to peer %s, err: %s", p.Pretty(),
+										err)
+								}
+							} else {
+								fmt.Fprintf(os.Stderr, "\n quic dial failed because of error: %+v", err)
+								stats.Record(ctx, metrics.QuicDialBackFailures.M(1))
+							}
+
+							break
+						}
+					}
+					qh.Peerstore().ClearAddrs(p)
+
+					// dial back on tcp if peer advertises a tcp address
+					for _, a := range addrs {
+						_, err := a.ValueForProtocol(multiaddr.P_CIRCUIT)
+						if err != nil && mafmt.TCP.Matches(a) {
+							stats.Record(ctx, metrics.TCPConns.M(1))
+
+							if err := th.Connect(hd.HeadCtx, peer.AddrInfo{ID: p, Addrs: addrs}); err == nil {
+								stats.Record(ctx, metrics.TCPDialBacks.M(1))
+
+								// close the connection as we don't need it anymore
+								if err := th.Network().ClosePeer(p); err != nil {
+									fmt.Fprintf(os.Stderr, "\n tcp dial back: failed to close connection to peer %s, err: %s", p.Pretty(), err)
+								}
+							} else {
+								fmt.Fprintf(os.Stderr, "\n tcp dial failed because of error: %+v", err)
+								stats.Record(ctx, metrics.TCPDialBackFailures.M(1))
+							}
+
+							break
+						}
+					}
+
+					// mark peer as seen
+					dp.Lock()
+					if !dialedPeers.Has(p.String()) {
+						dialedPeers.Add(p.String())
+					}
+					dp.Unlock()
+
+					th.Peerstore().ClearAddrs(p)
+
+				case <-hd.HeadCtx.Done():
+					return
+				}
+			}
+		}(hd, subs)
 	}
 
 	hydra := Hydra{
@@ -222,6 +366,27 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	periodictasks.RunTasks(ctx, tasks)
 
 	return &hydra, nil
+}
+
+func getDialBackHost(ctx context.Context, transportOpt libp2p.Option) (host.Host, error) {
+	cmgr := connmgr.NewConnManager(lowWater, highWater, gracePeriod)
+
+	libp2pOpts := []libp2p.Option{
+		libp2p.UserAgent(version.UserAgent),
+		libp2p.ConnectionManager(cmgr),
+		transportOpt,
+		libp2p.Security(tls.ID, tls.New),
+		libp2p.Security(noise.ID, noise.New),
+		libp2p.Security(secio.ID, secio.New),
+		libp2p.NoListenAddrs,
+	}
+
+	node, err := libp2p.New(ctx, libp2pOpts...)
+	if err != nil {
+		return nil, fmt.Errorf("dialback host: failed to spawn libp2p node: %w", err)
+	}
+
+	return node, err
 }
 
 func handleBootstrapStatus(ctx context.Context, ch chan head.BootstrapStatus) {

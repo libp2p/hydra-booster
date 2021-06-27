@@ -38,6 +38,14 @@ var (
 	// "failed" (not found any providers on the network)
 	FindProvsDuration  = stats.Float64("find_provs_duration_seconds", "The time it took find provider attempts from the network to succeed or fail because of timeout or completion", stats.UnitSeconds)
 	FindProvsQueueSize = stats.Int64("find_provs_queue_size", "The current size of the queue for finding providers", stats.UnitDimensionless)
+
+	QuicConns            = stats.Int64("quic_conns", "Number of Incoming QUIC Connections", stats.UnitDimensionless)
+	QuicDialBacks        = stats.Int64("quic_dialbacks", "Number of successful QUIC dial backs", stats.UnitDimensionless)
+	QuicDialBackFailures = stats.Int64("quic_failures", "Number of QUIC dial back failures", stats.UnitDimensionless)
+
+	TCPConns            = stats.Int64("tcp_conns", "Number of Incoming TCP Connections", stats.UnitDimensionless)
+	TCPDialBacks        = stats.Int64("tcp_dialbacks", "Number of successful TCP dial backs", stats.UnitDimensionless)
+	TCPDialBackFailures = stats.Int64("tcp_failures", "Number of TCP dial back failures", stats.UnitDimensionless)
 )
 
 // Views
@@ -57,6 +65,39 @@ var (
 		TagKeys:     []tag.Key{KeyName, KeyPeerID},
 		Aggregation: view.Sum(),
 	}
+
+	QUICConnsView = &view.View{
+		Measure:     QuicConns,
+		TagKeys:     []tag.Key{KeyName},
+		Aggregation: view.Sum(),
+	}
+	QUICDialBacksView = &view.View{
+		Measure:     QuicDialBacks,
+		TagKeys:     []tag.Key{KeyName},
+		Aggregation: view.Sum(),
+	}
+	QUICDialBackFailuresView = &view.View{
+		Measure:     QuicDialBackFailures,
+		TagKeys:     []tag.Key{KeyName},
+		Aggregation: view.Sum(),
+	}
+
+	TCPConnsView = &view.View{
+		Measure:     TCPConns,
+		TagKeys:     []tag.Key{KeyName},
+		Aggregation: view.Sum(),
+	}
+	TCPDialBacksView = &view.View{
+		Measure:     TCPDialBacks,
+		TagKeys:     []tag.Key{KeyName},
+		Aggregation: view.Sum(),
+	}
+	TCPDialBackFailuresView = &view.View{
+		Measure:     TCPDialBackFailures,
+		TagKeys:     []tag.Key{KeyName},
+		Aggregation: view.Sum(),
+	}
+
 	UniquePeersView = &view.View{
 		Measure:     UniquePeers,
 		TagKeys:     []tag.Key{KeyName},
@@ -152,6 +193,13 @@ var DefaultViews = []*view.View{
 	FindProvsView,
 	FindProvsDurationView,
 	FindProvsQueueSizeView,
+	QUICConnsView,
+	QUICDialBacksView,
+	QUICDialBackFailuresView,
+	TCPConnsView,
+	TCPDialBacksView,
+	TCPDialBackFailuresView,
+
 	// DHT views
 	ReceivedMessagesView,
 	ReceivedMessageErrorsView,

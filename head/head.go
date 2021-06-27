@@ -46,6 +46,7 @@ type BootstrapStatus struct {
 
 // Head is a container for ipfs/libp2p components used by a Hydra head.
 type Head struct {
+	HeadCtx   context.Context
 	Host      host.Host
 	Datastore datastore.Datastore
 	Routing   routing.Routing
