@@ -3,6 +3,7 @@ package head
 import (
 	"context"
 	"fmt"
+	"net"
 	"sync"
 	"time"
 
@@ -51,6 +52,43 @@ type Head struct {
 	Routing   routing.Routing
 }
 
+func getAddrFilters() ([]*net.IPNet, error) {
+	// Block internal subnets by default.
+	// Source https://github.com/ipfs/go-ipfs-config/blob/0a474258a95d8d9436a49539ad9d7da357b015ab/profile.go#L27
+	// https://pkg.go.dev/github.com/ipfs/go-ipfs@v0.9.0/core/node/libp2p#AddrFilters
+	defaultAddrFilters := []string{
+		"/ip4/10.0.0.0/ipcidr/8",
+		"/ip4/100.64.0.0/ipcidr/10",
+		"/ip4/169.254.0.0/ipcidr/16",
+		"/ip4/172.16.0.0/ipcidr/12",
+		"/ip4/192.0.0.0/ipcidr/24",
+		"/ip4/192.0.2.0/ipcidr/24",
+		"/ip4/192.168.0.0/ipcidr/16",
+		"/ip4/198.18.0.0/ipcidr/15",
+		"/ip4/198.51.100.0/ipcidr/24",
+		"/ip4/203.0.113.0/ipcidr/24",
+		"/ip4/240.0.0.0/ipcidr/4",
+		"/ip6/100::/ipcidr/64",
+		"/ip6/2001:2::/ipcidr/48",
+		"/ip6/2001:db8::/ipcidr/32",
+		"/ip6/fc00::/ipcidr/7",
+		"/ip6/fe80::/ipcidr/10",
+	}
+
+	var addrs []*net.IPNet
+
+	for _, s := range defaultAddrFilters {
+		_, ipv4Net, err := net.ParseCIDR(s)
+		if err != nil {
+			return addrs, err
+		}
+
+		addrs = append(addrs, ipv4Net)
+	}
+
+	return addrs, nil
+}
+
 // NewHead constructs a new Hydra Booster head node
 func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan BootstrapStatus, error) {
 	cfg := opts.Options{}
@@ -68,7 +106,13 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		ua += "+relay"
 	}
 
+	addrFilters, err := getAddrFilters()
+	if err != nil {
+		panic("This is a programming error (for now).")
+	}
+
 	libp2pOpts := []libp2p.Option{
+		libp2p.FilterAddresses(addrFilters...),
 		libp2p.UserAgent(version.UserAgent),
 		libp2p.ListenAddrs(cfg.Addrs...),
 		libp2p.ConnectionManager(cmgr),
