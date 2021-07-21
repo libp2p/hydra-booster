@@ -1,0 +1,3 @@
+build_DO.sh
+k8s/*
+Dockerfile

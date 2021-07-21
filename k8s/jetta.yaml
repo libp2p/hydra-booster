@@ -45,10 +45,10 @@ spec:
           value: hydra-pstore
         - name: HYDRA_DISABLE_DBCREATE
           value: "true"
-        image: docker.io/libp2p/hydra-booster
+        image: registry.digitalocean.com/protocol/libp2p/hydra-booster
         resources:
           limits:
-            memory: 27Gi
+            memory: 57Gi
 ---
 apiVersion: v1
 kind: Service
