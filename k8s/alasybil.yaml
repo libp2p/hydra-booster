@@ -37,10 +37,17 @@ spec:
               key: db
         - name: HYDRA_DISABLE_DBCREATE
           value: "true"
-        image: docker.io/libp2p/hydra-booster
+        - name: HYDRA_RANDOM_SEED
+          valueFrom:
+            secretKeyRef:
+              name: secrets
+              key: seed
+        - name: HYDRA_ID_OFFSET
+          value: "0"
+        image: registry.digitalocean.com/protocol/libp2p/hydra-booster
         resources:
           limits:
-            memory: 27Gi
+            memory: 57Gi
 ---
 apiVersion: v1
 kind: Service
