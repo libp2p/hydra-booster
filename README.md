@@ -102,6 +102,8 @@ Usage of hydra-booster:
         Specify the DHT protocol prefix (default "/ipfs") (default "/ipfs")
   -pstore string
         Peerstore directory for LevelDB store (defaults to in-memory store)
+  -random-seed string
+        Seed to use to generate IDs (useful if you want to have persistent IDs). Should be Base64 encoded and 256bits
   -stagger duration
         Duration to stagger nodes starts by
   -ui-theme string
@@ -135,6 +137,8 @@ Alternatively, some flags can be set via environment variables. Note that flags 
         Specify the number of Hydra heads to create. (default -1)
   HYDRA_PORT_BEGIN int
         If set, begin port allocation here (default -1)
+  HYDRA_RANDOM_SEED string
+        Seed to use to generate IDs (useful if you want to have persistent IDs). Should be Base64 encoded and 256bits   
 ```
 
 ### Best Practices

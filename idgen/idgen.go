@@ -1,13 +1,17 @@
 package idgen
 
 import (
+	"crypto/rand"
+	"crypto/sha256"
 	"fmt"
+	"io"
 	"math/bits"
 	"sync"
 
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	kbucket "github.com/libp2p/go-libp2p-kbucket"
+	"golang.org/x/crypto/hkdf"
 )
 
 // HydraIdentityGenerator is a shared balanced ID generator.
@@ -34,12 +38,25 @@ type BalancedIdentityGenerator struct {
 	sync.Mutex
 	xorTrie *XorTrie
 	count   int
+	reader  io.Reader
 }
 
 // NewBalancedIdentityGenerator creates a new balanced identity generator.
 func NewBalancedIdentityGenerator() *BalancedIdentityGenerator {
 	return &BalancedIdentityGenerator{
 		xorTrie: NewXorTrie(),
+		reader:  rand.Reader,
+	}
+}
+
+func NewBalancedIdentityGeneratorFromSeed(seed []byte) *BalancedIdentityGenerator {
+	hash := sha256.New
+	info := []byte("hydra keys")
+	hkdf := hkdf.New(hash, seed, nil, info)
+
+	return &BalancedIdentityGenerator{
+		xorTrie: NewXorTrie(),
+		reader:  hkdf,
 	}
 }
 
@@ -85,7 +102,7 @@ func (bg *BalancedIdentityGenerator) AddBalanced() (crypto.PrivKey, error) {
 
 func (bg *BalancedIdentityGenerator) genUniqueID() (privKey crypto.PrivKey, trieKey TrieKey, depth int, err error) {
 	for {
-		if privKey, trieKey, err = genID(); err != nil {
+		if privKey, trieKey, err = bg.genID(); err != nil {
 			return nil, nil, 0, err
 		}
 		if depth, ok := bg.xorTrie.Insert(trieKey); ok {
@@ -121,8 +138,8 @@ func (bg *BalancedIdentityGenerator) Depth() int {
 	return bg.xorTrie.Depth()
 }
 
-func genID() (crypto.PrivKey, TrieKey, error) {
-	privKey, _, err := crypto.GenerateKeyPair(crypto.Ed25519, 0)
+func (bg *BalancedIdentityGenerator) genID() (crypto.PrivKey, TrieKey, error) {
+	privKey, _, err := crypto.GenerateKeyPairWithReader(crypto.Ed25519, 0, bg.reader)
 	if err != nil {
 		return nil, nil, fmt.Errorf("generating private key for trie, %w", err)
 	}
