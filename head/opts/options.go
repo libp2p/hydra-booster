@@ -5,11 +5,11 @@ import (
 
 	ds "github.com/ipfs/go-datastore"
 	dssync "github.com/ipfs/go-datastore/sync"
+	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/peerstore"
 	"github.com/libp2p/go-libp2p-core/protocol"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	kbucket "github.com/libp2p/go-libp2p-kbucket"
-	"github.com/libp2p/hydra-booster/idgen"
 	"github.com/multiformats/go-multiaddr"
 )
 
@@ -24,7 +24,7 @@ type Options struct {
 	BucketSize       int
 	Limiter          chan struct{}
 	BootstrapPeers   []multiaddr.Multiaddr
-	IDGenerator      idgen.IdentityGenerator
+	ID               crypto.PrivKey
 	DisableProvGC    bool
 	DisableProviders bool
 	DisableValues    bool
@@ -53,7 +53,6 @@ var Defaults = func(o *Options) error {
 	o.ProtocolPrefix = dht.DefaultPrefix
 	o.BucketSize = 20
 	o.BootstrapPeers = dht.DefaultBootstrapPeers
-	o.IDGenerator = idgen.HydraIdentityGenerator
 	return nil
 }
 
@@ -144,12 +143,11 @@ func BootstrapPeers(addrs []multiaddr.Multiaddr) Option {
 	}
 }
 
-// IDGenerator configures the identity generator.
-// The default value is `idgen.HydraIdentityGenerator`.
-func IDGenerator(g idgen.IdentityGenerator) Option {
+// ID for the head
+func ID(id crypto.PrivKey) Option {
 	return func(o *Options) error {
-		if g != nil {
-			o.IDGenerator = g
+		if id != nil {
+			o.ID = id
 		}
 		return nil
 	}

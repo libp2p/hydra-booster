@@ -116,6 +116,9 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		fmt.Fprintf(os.Stderr, "🥞 Using LevelDB peerstore (EXPERIMENTAL)\n")
 	}
 
+	if options.IDGenerator == nil {
+		options.IDGenerator = idgen.HydraIdentityGenerator
+	}
 	fmt.Fprintf(os.Stderr, "🐲 Spawning %d heads: ", options.NHeads)
 
 	var hyperLock sync.Mutex
@@ -131,14 +134,17 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		port := options.GetPort()
 		tcpAddr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", port))
 		quicAddr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/udp/%d/quic", port))
-
+		priv, err := options.IDGenerator.AddBalanced()
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate balanced private key %w", err)
+		}
 		hdOpts := []opts.Option{
 			opts.Datastore(ds),
 			opts.Addrs([]multiaddr.Multiaddr{tcpAddr, quicAddr}),
 			opts.ProtocolPrefix(options.ProtocolPrefix),
 			opts.BucketSize(options.BucketSize),
 			opts.Limiter(limiter),
-			opts.IDGenerator(options.IDGenerator),
+			opts.ID(priv),
 			opts.BootstrapPeers(options.BootstrapPeers),
 		}
 		if options.EnableRelay {

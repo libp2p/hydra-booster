@@ -58,11 +58,6 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 
 	cmgr := connmgr.NewConnManager(lowWater, highWater, gracePeriod)
 
-	priv, err := cfg.IDGenerator.AddBalanced()
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to generate balanced private key: %w", err)
-	}
-
 	ua := version.UserAgent
 	if cfg.EnableRelay {
 		ua += "+relay"
@@ -72,7 +67,7 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		libp2p.UserAgent(version.UserAgent),
 		libp2p.ListenAddrs(cfg.Addrs...),
 		libp2p.ConnectionManager(cmgr),
-		libp2p.Identity(priv),
+		libp2p.Identity(cfg.ID),
 		libp2p.EnableNATService(),
 		libp2p.AutoNATServiceRateLimit(0, 3, time.Minute),
 		libp2p.DefaultMuxers,
