@@ -104,6 +104,8 @@ Usage of hydra-booster:
         Peerstore directory for LevelDB store (defaults to in-memory store)
   -random-seed string
         Seed to use to generate IDs (useful if you want to have persistent IDs). Should be Base64 encoded and 256bits
+  -id-offset
+        What offset in the sequence of keys generated from random-seed to start from
   -stagger duration
         Duration to stagger nodes starts by
   -ui-theme string
@@ -139,6 +141,8 @@ Alternatively, some flags can be set via environment variables. Note that flags 
         If set, begin port allocation here (default -1)
   HYDRA_RANDOM_SEED string
         Seed to use to generate IDs (useful if you want to have persistent IDs). Should be Base64 encoded and 256bits   
+  HYDRA_ID_OFFSET int
+        What offset in the sequence of keys generated from random-seed to start from
 ```
 
 ### Best Practices
