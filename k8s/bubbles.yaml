@@ -46,7 +46,7 @@ spec:
           image: registry.digitalocean.com/protocol/libp2p/hydra-booster:2021-07-21-195055
           resources:
             limits:
-              memory: 27Gi
+              memory: 57Gi
 ---
 apiVersion: v1
 kind: Service
