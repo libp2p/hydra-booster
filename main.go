@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"flag"
 	"fmt"
 	"log"
@@ -35,6 +36,8 @@ const (
 func main() {
 	start := time.Now()
 	nheads := flag.Int("nheads", -1, "Specify the number of Hydra heads to create.")
+	randomSeed := flag.String("random-seed", "", "Seed to use to generate IDs (useful if you want to have persistent IDs). Should be Base64 encoded and 256bits")
+	idOffset := flag.Int("id-offset", -1, "What offset in the sequence of keys generated from random-seed to start from")
 	dbpath := flag.String("db", "", "Datastore directory (for LevelDB store) or postgresql:// connection URI (for PostgreSQL store)")
 	pstorePath := flag.String("pstore", "", "Peerstore directory for LevelDB store (defaults to in-memory store)")
 	httpAPIAddr := flag.String("httpapi-addr", defaultHTTPAPIAddr, "Specify an IP and port to run the HTTP API server on")
@@ -70,6 +73,12 @@ func main() {
 	}
 	if *nheads == -1 {
 		*nheads = mustGetEnvInt("HYDRA_NHEADS", 1)
+	}
+	if *randomSeed == "" {
+		*randomSeed = os.Getenv("HYDRA_RANDOM_SEED")
+	}
+	if *idOffset == -1 {
+		*idOffset = mustGetEnvInt("HYDRA_ID_OFFSET", 0)
 	}
 	if *portBegin == -1 {
 		*portBegin = mustGetEnvInt("HYDRA_PORT_BEGIN", 0)
@@ -110,6 +119,22 @@ func main() {
 	defer cancel()
 
 	var idGenerator idgen.IdentityGenerator
+	if *randomSeed != "" && *idgenAddr != "" {
+		log.Fatalln("error: Should not set both idgen-addr and random-seed")
+	}
+	if *randomSeed != "" {
+		seed, err := base64.StdEncoding.DecodeString(*randomSeed)
+		if err != nil {
+			log.Fatalln("error: Could not base64 decode seed")
+		}
+		if len(seed) != 32 {
+			log.Fatalln("error: Seed should be 256bit in base64")
+		}
+		idGenerator = idgen.NewBalancedIdentityGeneratorFromSeed(seed)
+		for i := 0; i < *idOffset; i++ {
+			idGenerator.AddBalanced()
+		}
+	}
 	if *idgenAddr != "" {
 		dg := idgen.NewCleaningIDGenerator(idgen.NewDelegatedIDGenerator(*idgenAddr))
 		defer func() {

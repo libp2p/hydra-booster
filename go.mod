@@ -33,6 +33,7 @@ require (
 	github.com/prometheus/client_golang v1.7.1
 	github.com/whyrusleeping/timecache v0.0.0-20160911033111-cfcb2f1abfee
 	go.opencensus.io v0.22.5
+	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 // indirect
 )
 
 go 1.14
