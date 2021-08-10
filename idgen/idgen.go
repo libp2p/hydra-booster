@@ -3,22 +3,17 @@ package idgen
 import (
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/binary"
 	"fmt"
-	"io"
 	"math/bits"
 	"sync"
+	"sync/atomic"
 
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	kbucket "github.com/libp2p/go-libp2p-kbucket"
 	"golang.org/x/crypto/hkdf"
 )
-
-func GenRandomBytes(size int) (blk []byte) {
-	blk = make([]byte, size)
-	rand.Read(blk)
-	return blk
-}
 
 // HydraIdentityGenerator is a shared balanced ID generator.
 var HydraIdentityGenerator = NewBalancedIdentityGenerator()
@@ -42,26 +37,33 @@ type IdentityGenerator interface {
 // form an almost-perfectly balanced set.
 type BalancedIdentityGenerator struct {
 	sync.Mutex
-	xorTrie *XorTrie
-	count   int
-	reader  io.Reader
+	xorTrie    *XorTrie
+	count      int
+	idgenCount uint32
+	seed       []byte
+}
+
+func RandomSeed() (blk []byte) {
+	blk = make([]byte, 32)
+	rand.Read(blk)
+	return blk
 }
 
 // NewBalancedIdentityGenerator creates a new balanced identity generator.
 func NewBalancedIdentityGenerator() *BalancedIdentityGenerator {
-	seed := GenRandomBytes(256)
-	return NewBalancedIdentityGeneratorFromSeed(seed)
+	seed := RandomSeed()
+	return NewBalancedIdentityGeneratorFromSeed(seed, 0)
 }
 
-func NewBalancedIdentityGeneratorFromSeed(seed []byte) *BalancedIdentityGenerator {
-	hash := sha256.New
-	info := []byte("hydra keys")
-	hkdf := hkdf.New(hash, seed, nil, info)
-
-	return &BalancedIdentityGenerator{
+func NewBalancedIdentityGeneratorFromSeed(seed []byte, idOffset int) *BalancedIdentityGenerator {
+	idGenerator := &BalancedIdentityGenerator{
 		xorTrie: NewXorTrie(),
-		reader:  hkdf,
+		seed:    seed,
 	}
+	for i := 0; i < idOffset; i++ {
+		idGenerator.AddBalanced()
+	}
+	return idGenerator
 }
 
 // AddUnbalanced is used for testing purposes. It generates a purely random identity,
@@ -143,7 +145,13 @@ func (bg *BalancedIdentityGenerator) Depth() int {
 }
 
 func (bg *BalancedIdentityGenerator) genID() (crypto.PrivKey, TrieKey, error) {
-	privKey, _, err := crypto.GenerateKeyPairWithReader(crypto.Ed25519, 0, bg.reader)
+	hash := sha256.New
+	info := []byte("hydra keys")
+	seed := bg.seed
+	salt := atomic.AddUint32(&bg.idgenCount, 1)
+	salt_bytes := make([]byte, 4)
+	binary.LittleEndian.PutUint32(salt_bytes, salt)
+	privKey, _, err := crypto.GenerateKeyPairWithReader(crypto.Ed25519, 0, hkdf.New(hash, seed, salt_bytes, info))
 	if err != nil {
 		return nil, nil, fmt.Errorf("generating private key for trie, %w", err)
 	}

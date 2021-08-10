@@ -130,10 +130,7 @@ func main() {
 		if len(seed) != 32 {
 			log.Fatalln("error: Seed should be 256bit in base64")
 		}
-		idGenerator = idgen.NewBalancedIdentityGeneratorFromSeed(seed)
-		for i := 0; i < *idOffset; i++ {
-			idGenerator.AddBalanced()
-		}
+		idGenerator = idgen.NewBalancedIdentityGeneratorFromSeed(seed, *idOffset)
 	}
 	if *idgenAddr != "" {
 		dg := idgen.NewCleaningIDGenerator(idgen.NewDelegatedIDGenerator(*idgenAddr))
