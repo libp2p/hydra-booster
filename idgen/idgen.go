@@ -14,6 +14,12 @@ import (
 	"golang.org/x/crypto/hkdf"
 )
 
+func GenRandomBytes(size int) (blk []byte) {
+	blk = make([]byte, size)
+	rand.Read(blk)
+	return blk
+}
+
 // HydraIdentityGenerator is a shared balanced ID generator.
 var HydraIdentityGenerator = NewBalancedIdentityGenerator()
 
@@ -43,10 +49,8 @@ type BalancedIdentityGenerator struct {
 
 // NewBalancedIdentityGenerator creates a new balanced identity generator.
 func NewBalancedIdentityGenerator() *BalancedIdentityGenerator {
-	return &BalancedIdentityGenerator{
-		xorTrie: NewXorTrie(),
-		reader:  rand.Reader,
-	}
+	seed := GenRandomBytes(256)
+	return NewBalancedIdentityGeneratorFromSeed(seed)
 }
 
 func NewBalancedIdentityGeneratorFromSeed(seed []byte) *BalancedIdentityGenerator {
