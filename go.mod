@@ -2,7 +2,7 @@ module github.com/libp2p/hydra-booster
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.2.0
-	github.com/alanshaw/ipfs-ds-postgres v0.1.0
+	github.com/alanshaw/ipfs-ds-postgres v0.1.1-0.20211011213059-ca335a9db26b
 	github.com/alanshaw/ipfs-hookds v0.3.0
 	github.com/alanshaw/prom-metrics-client v0.3.0
 	github.com/axiomhq/hyperloglog v0.0.0-20191112132149-a4c4c47bc57f
@@ -33,7 +33,7 @@ require (
 	github.com/prometheus/client_golang v1.7.1
 	github.com/whyrusleeping/timecache v0.0.0-20160911033111-cfcb2f1abfee
 	go.opencensus.io v0.22.5
-	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 // indirect
+	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 )
 
 go 1.14
