@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-const tableName = "records"
+const TableName = "records"
 
 // NewPostgreSQLDatastore creates a new pgds.Datastore that talks to a PostgreSQL database
 func NewPostgreSQLDatastore(ctx context.Context, connstr string, createDB bool) (*pgds.Datastore, error) {
@@ -23,19 +23,19 @@ func NewPostgreSQLDatastore(ctx context.Context, connstr string, createDB bool) 
 			return nil, err
 		}
 		fmt.Fprintf(os.Stderr, "Creating Table\n")
-		_, err = pool.Exec(ctx, fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (key TEXT NOT NULL UNIQUE, data BYTEA)", tableName))
+		_, err = pool.Exec(ctx, fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (key TEXT NOT NULL UNIQUE, data BYTEA)", TableName))
 		if err != nil {
 			return nil, err
 		}
 		fmt.Fprintf(os.Stderr, "Creating Index\n")
-		_, err = pool.Exec(ctx, fmt.Sprintf("CREATE INDEX IF NOT EXISTS %s_key_text_pattern_ops_idx ON %s (key text_pattern_ops)", tableName, tableName))
+		_, err = pool.Exec(ctx, fmt.Sprintf("CREATE INDEX IF NOT EXISTS %s_key_text_pattern_ops_idx ON %s (key text_pattern_ops)", TableName, TableName))
 		if err != nil {
 			return nil, err
 		}
 		pool.Close()
 	}
 	fmt.Fprintf(os.Stderr, "Connecting to Database\n")
-	ds, err := pgds.NewDatastore(ctx, connstr, pgds.Table(tableName))
+	ds, err := pgds.NewDatastore(ctx, connstr, pgds.Table(TableName))
 	if err != nil {
 		return nil, err
 	}
