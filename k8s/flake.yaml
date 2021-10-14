@@ -26,8 +26,6 @@ spec:
           value: "31250"
         - name: HYDRA_NAME
           value: Flake
-        - name: HYDRA_IDGEN_ADDR
-          value: http://10.245.198.164:7779
         - name: HYDRA_BOOTSTRAP_PEERS
           value: "/dnsaddr/sjc-2.bootstrap.libp2p.io/p2p/QmZa1sAxajnQjVM8WjWXoMbmPd7NsWhfKsPkErzpm9wGkp,/dnsaddr/bootstrap.libp2p.io/p2p/QmNnooDu7bfjPFoTZYxMNLWUQJyrVwtbZg5gBMjTezGAJN,/dnsaddr/bootstrap.libp2p.io/p2p/QmQCU2EcMqAqQPR2i9bChDtGNJchTbq5TbXJJ16u19uLTa,/dnsaddr/bootstrap.libp2p.io/p2p/QmbLHAnMoJPWSCR5Zhtx6BHJX9KiKNN6tpvbUcqanj75Nb,/dnsaddr/bootstrap.libp2p.io/p2p/QmcZf59bWwK5XFi76CZX8cbJ4BhTzzA3gU1ZjYZcYW3dwt,/ip4/104.131.131.82/tcp/4001/p2p/QmaCpDMGvV2BGHeYERUEnRQAwe3N8SzbUtfsmvsqQLuvuJ"
         - name: HYDRA_DISABLE_PREFETCH
@@ -43,10 +41,17 @@ spec:
           value: "true"
         - name: HYDRA_DISABLE_DBCREATE
           value: "true"
-        image: docker.io/libp2p/hydra-booster
+        - name: HYDRA_RANDOM_SEED
+          valueFrom:
+            secretKeyRef:
+              name: secrets
+              key: seed
+        - name: HYDRA_ID_OFFSET
+          value: "500"        
+        image: registry.digitalocean.com/protocol/libp2p/hydra-booster
         resources:
           limits:
-            memory: 27Gi
+            memory: 57Gi
 ---
 apiVersion: v1
 kind: Service
