@@ -40,10 +40,10 @@ func countProviderRecordsExactly(ctx context.Context, hy *Hydra) error {
 func countProviderRecordsApproximately(ctx context.Context, pgxPool *pgxpool.Pool) error {
 	var approxCountSql = `SELECT
 	(reltuples/relpages) * (
-	  pg_relation_size(%s) /
+	  pg_relation_size($1) /
 	  (current_setting('block_size')::integer)
 	)
-	FROM pg_class where relname = %s;`
+	FROM pg_class where relname = $2;`
 	row := pgxPool.QueryRow(ctx, approxCountSql, datastore.TableName, datastore.TableName)
 	var numProvRecords float64
 	err := row.Scan(&numProvRecords)
