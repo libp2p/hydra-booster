@@ -2,6 +2,7 @@ package hydra
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/ipfs/go-datastore/query"
@@ -13,6 +14,7 @@ import (
 )
 
 func countProviderRecordsExactly(ctx context.Context, hy *Hydra) error {
+	fmt.Println("counting provider records")
 	prs, err := hy.SharedDatastore.Query(query.Query{Prefix: "/providers", KeysOnly: true})
 	if err != nil {
 		return err
@@ -44,23 +46,21 @@ func countProviderRecordsApproximately(ctx context.Context, pgxPool *pgxpool.Poo
 	  (current_setting('block_size')::integer)
 	)
 	FROM pg_class where relname = $2;`
+	fmt.Println("approximating provider records")
 	row := pgxPool.QueryRow(ctx, approxCountSql, datastore.TableName, datastore.TableName)
 	var numProvRecords float64
 	err := row.Scan(&numProvRecords)
 	if err != nil {
 		return err
 	}
+	fmt.Printf("found %v provider records\n", int64(numProvRecords))
 	stats.Record(ctx, metrics.ProviderRecords.M(int64(numProvRecords)))
 	return nil
 }
 
-type withPostgresBackend interface {
-	PgxPool() *pgxpool.Pool
-}
-
 func newProviderRecordsTask(hy *Hydra, d time.Duration) periodictasks.PeriodicTask {
 	var task func(ctx context.Context) error
-	if pgBackend, ok := hy.SharedDatastore.(withPostgresBackend); ok {
+	if pgBackend, ok := hy.SharedDatastore.(datastore.WithPgxPool); ok {
 		task = func(ctx context.Context) error { return countProviderRecordsApproximately(ctx, pgBackend.PgxPool()) }
 	} else {
 		task = func(ctx context.Context) error { return countProviderRecordsExactly(ctx, hy) }

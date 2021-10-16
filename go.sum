@@ -20,6 +20,8 @@ github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAE
 github.com/aead/siphash v1.0.1/go.mod h1:Nywa3cDsYNNK3gaciGTWPwHt0wlpNV15vwmswBAUSII=
 github.com/alanshaw/ipfs-ds-postgres v0.1.1-0.20211011213059-ca335a9db26b h1:0iSkhJ2rwQRB5Tckz9xIxORnhj7vB2wXqnhPFMEXbfc=
 github.com/alanshaw/ipfs-ds-postgres v0.1.1-0.20211011213059-ca335a9db26b/go.mod h1:YYESBYOGnX1/LHOm7J6sJknfgq4KAirF8ZMYIn4+6sU=
+github.com/alanshaw/ipfs-ds-postgres v0.1.1 h1:N5vFJKqRzw7MOeq2H6yGBLTukvW6NxVbbw7dU+q5usM=
+github.com/alanshaw/ipfs-ds-postgres v0.1.1/go.mod h1:YYESBYOGnX1/LHOm7J6sJknfgq4KAirF8ZMYIn4+6sU=
 github.com/alanshaw/ipfs-hookds v0.3.0 h1:lpETxiwyVQ9kmBbCJz2KDTXoS3YNC6o4XQdL32t/zlA=
 github.com/alanshaw/ipfs-hookds v0.3.0/go.mod h1:cnRH5J+8w/VpM+D+BD//zxtAKeLI5wMj1zo9krt85fU=
 github.com/alanshaw/prom-metrics-client v0.3.0 h1:HfkAEmViUMyL4L6dSA2uR3+d+2Fw+yZUAPpRXV5ju0I=
