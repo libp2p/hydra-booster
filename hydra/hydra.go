@@ -94,7 +94,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	var hds []*head.Head
 
 	if !options.DisablePrefetch {
-		ds = hyds.NewProxy(ctx, ds, func(_ cid.Cid) (routing.Routing, hyds.AddProviderFunc, error) {
+		dsProxy := hyds.NewProxy(ctx, ds, func(_ cid.Cid) (routing.Routing, hyds.AddProviderFunc, error) {
 			if len(hds) == 0 {
 				return nil, nil, fmt.Errorf("no heads available")
 			}
@@ -108,6 +108,11 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 			FindProvidersTimeout:        time.Second * 20,
 			FindProvidersFailureBackoff: time.Hour,
 		})
+		if withPgxPool, ok := ds.(hyds.WithPgxPool); ok {
+			ds = hyds.BatchingWithPgxPool{Pool: withPgxPool, Batching: dsProxy}
+		} else {
+			ds = dsProxy
+		}
 	}
 
 	if options.PeerstorePath == "" {
