@@ -1,4 +1,4 @@
-package delegated
+package providers
 
 import (
 	"context"
