@@ -97,12 +97,13 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		dht.RoutingTableFilter(dht.PublicRoutingTableFilter),
 	}
 
+	var providerManagerOpts []providers.Option
 	if cfg.DisableProvGC {
 		cache, _ := simplelru.NewLRUWithExpire(provCacheSize, provCacheExpiry, nil)
-		dhtOpts = append(dhtOpts, dht.ProvidersOptions([]providers.Option{
+		providerManagerOpts = []providers.Option{
 			providers.CleanupInterval(provDisabledGCInterval),
 			providers.Cache(cache),
-		}))
+		}
 	}
 	if cfg.DisableValues {
 		dhtOpts = append(dhtOpts, dht.DisableValues())
@@ -115,6 +116,12 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 	if cfg.DisableProviders {
 		dhtOpts = append(dhtOpts, dht.DisableProviders())
 	}
+
+	providerManager, err := providers.NewProviderManager(ctx, node.ID(), node.Peerstore(), cfg.Datastore, providerManagerOpts...)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to instantiate provider manager (%w)", err)
+	}
+	dhtOpts = append(dhtOpts, dht.ProviderStore(providerManager))
 
 	dhtNode, err := dht.New(ctx, node, dhtOpts...)
 	if err != nil {

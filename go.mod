@@ -12,7 +12,7 @@ require (
 	github.com/hnlq715/golang-lru v0.2.1-0.20200422024707-82ba7badf9a6
 	github.com/ipfs/go-cid v0.0.7
 	github.com/ipfs/go-datastore v0.4.5
-	github.com/ipfs/go-delegated-routing v0.0.0-20211021152046-8cd926f685fb
+	github.com/ipfs/go-delegated-routing v0.0.0-20211013183913-b6add69868f2
 	github.com/ipfs/go-ds-leveldb v0.4.2
 	github.com/ipfs/go-ipns v0.1.2
 	github.com/jackc/pgx/v4 v4.9.0
@@ -20,7 +20,7 @@ require (
 	github.com/libp2p/go-libp2p-circuit v0.4.0
 	github.com/libp2p/go-libp2p-connmgr v0.2.4
 	github.com/libp2p/go-libp2p-core v0.9.0
-	github.com/libp2p/go-libp2p-kad-dht v0.13.2-0.20211020232845-0e473c3a776b
+	github.com/libp2p/go-libp2p-kad-dht v0.13.1
 	github.com/libp2p/go-libp2p-kbucket v0.4.7
 	github.com/libp2p/go-libp2p-noise v0.2.0
 	github.com/libp2p/go-libp2p-peerstore v0.2.8
