@@ -207,5 +207,5 @@ func (s *Head) RoutingTable() *kbucket.RoutingTable {
 // AddProvider adds the given provider to the datastore
 func (s *Head) AddProvider(ctx context.Context, c cid.Cid, id peer.ID) {
 	dht, _ := s.Routing.(*dht.IpfsDHT)
-	dht.ProviderManager.AddProvider(ctx, c.Bytes(), id)
+	dht.ProviderStore().AddProvider(ctx, c.Bytes(), peer.AddrInfo{ID: id})
 }
