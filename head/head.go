@@ -128,7 +128,7 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to instantiate delegation client (%w)", err)
 		}
-		providerStore = hproviders.CombineProviders(providerStore, delegateProvider)
+		providerStore = hproviders.CombineProviders(providerStore, hproviders.AddProviderNotSupported(delegateProvider))
 	}
 	dhtOpts = append(dhtOpts, dht.ProviderStore(providerStore))
 

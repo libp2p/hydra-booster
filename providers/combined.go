@@ -3,6 +3,7 @@ package providers
 import (
 	"context"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/ipfs/go-delegated-routing/client"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-kad-dht/providers"
@@ -23,10 +24,13 @@ func (s *CombinedProviderStore) AddProvider(ctx context.Context, key []byte, pro
 			ch <- backend.AddProvider(ctx, key, prov)
 		}(b)
 	}
+	var errs error
 	for range s.backends {
-		<-ch
+		if e := <-ch; e != nil {
+			multierror.Append(errs, e)
+		}
 	}
-	return nil
+	return errs
 }
 
 func (s *CombinedProviderStore) GetProviders(ctx context.Context, key []byte) ([]peer.AddrInfo, error) {
@@ -38,11 +42,14 @@ func (s *CombinedProviderStore) GetProviders(ctx context.Context, key []byte) ([
 		}(b)
 	}
 	infos := []peer.AddrInfo{}
+	var errs error
 	for range s.backends {
 		r := <-ch
 		if r.Err == nil {
 			infos = append(infos, r.AddrInfo...)
+		} else {
+			multierror.Append(errs, r.Err)
 		}
 	}
-	return infos, nil
+	return infos, errs
 }
