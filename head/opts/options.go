@@ -17,6 +17,7 @@ import (
 type Options struct {
 	Datastore        ds.Batching
 	Peerstore        peerstore.Peerstore
+	DelegateAddr     string
 	RoutingTable     *kbucket.RoutingTable
 	EnableRelay      bool
 	Addrs            []multiaddr.Multiaddr
@@ -70,6 +71,15 @@ func Datastore(ds ds.Batching) Option {
 func Peerstore(ps peerstore.Peerstore) Option {
 	return func(o *Options) error {
 		o.Peerstore = ps
+		return nil
+	}
+}
+
+// Delegate configures the Hydra Head to delegate routing also to this addr.
+// Defaults to empty string which indicates no delegation.
+func Delegate(addr string) Option {
+	return func(o *Options) error {
+		o.DelegateAddr = addr
 		return nil
 	}
 }

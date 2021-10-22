@@ -25,6 +25,7 @@ import (
 	tls "github.com/libp2p/go-libp2p-tls"
 	"github.com/libp2p/go-tcp-transport"
 	"github.com/libp2p/hydra-booster/head/opts"
+	hproviders "github.com/libp2p/hydra-booster/providers"
 	"github.com/libp2p/hydra-booster/version"
 	"github.com/multiformats/go-multiaddr"
 )
@@ -117,11 +118,19 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		dhtOpts = append(dhtOpts, dht.DisableProviders())
 	}
 
-	providerManager, err := providers.NewProviderManager(ctx, node.ID(), node.Peerstore(), cfg.Datastore, providerManagerOpts...)
+	var providerStore providers.ProviderStore
+	providerStore, err = providers.NewProviderManager(ctx, node.ID(), node.Peerstore(), cfg.Datastore, providerManagerOpts...)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to instantiate provider manager (%w)", err)
 	}
-	dhtOpts = append(dhtOpts, dht.ProviderStore(providerManager))
+	if cfg.DelegateAddr != "" {
+		delegateProvider, err := hproviders.DelegateProvider(cfg.DelegateAddr)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to instantiate delegation client (%w)", err)
+		}
+		providerStore = hproviders.CombineProviders(providerStore, delegateProvider)
+	}
+	dhtOpts = append(dhtOpts, dht.ProviderStore(providerStore))
 
 	dhtNode, err := dht.New(ctx, node, dhtOpts...)
 	if err != nil {

@@ -3,12 +3,22 @@ package providers
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-delegated-routing/client"
 	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p-kad-dht/providers"
 	"github.com/multiformats/go-multihash"
 )
+
+func DelegateProvider(endpointURL string) (providers.ProviderStore, error) {
+	c, err := client.New(endpointURL, client.WithHTTPClient(&http.Client{}))
+	if err != nil {
+		return nil, err
+	}
+	return &DelegatedProviderStore{c: c}, nil
+}
 
 type DelegatedProviderStore struct {
 	c client.Client
