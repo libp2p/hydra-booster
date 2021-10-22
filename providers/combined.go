@@ -7,6 +7,7 @@ import (
 	"github.com/ipfs/go-delegated-routing/client"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-kad-dht/providers"
+	"github.com/multiformats/go-multiaddr"
 )
 
 func CombineProviders(backend ...providers.ProviderStore) providers.ProviderStore {
@@ -55,9 +56,34 @@ func (s *CombinedProviderStore) GetProviders(ctx context.Context, key []byte) ([
 			multierror.Append(errs, r.Err)
 		}
 	}
+	infos = mergeAddrInfos(infos)
 	if len(errs.WrappedErrors()) == len(s.backends) {
 		return infos, errs
 	} else {
 		return infos, nil
 	}
+}
+
+func mergeAddrInfos(infos []peer.AddrInfo) []peer.AddrInfo {
+	m := map[peer.ID][]multiaddr.Multiaddr{}
+	for _, info := range infos {
+		m[info.ID] = mergeMultiaddrs(append(m[info.ID], info.Addrs...))
+	}
+	var r []peer.AddrInfo
+	for k, v := range m {
+		r = append(r, peer.AddrInfo{ID: k, Addrs: v})
+	}
+	return r
+}
+
+func mergeMultiaddrs(addrs []multiaddr.Multiaddr) []multiaddr.Multiaddr {
+	m := map[string]multiaddr.Multiaddr{}
+	for _, addr := range addrs {
+		m[addr.String()] = addr
+	}
+	var r []multiaddr.Multiaddr
+	for _, v := range m {
+		r = append(r, v)
+	}
+	return r
 }
