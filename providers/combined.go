@@ -24,13 +24,17 @@ func (s *CombinedProviderStore) AddProvider(ctx context.Context, key []byte, pro
 			ch <- backend.AddProvider(ctx, key, prov)
 		}(b)
 	}
-	var errs error
+	var errs *multierror.Error
 	for range s.backends {
 		if e := <-ch; e != nil {
 			multierror.Append(errs, e)
 		}
 	}
-	return errs
+	if len(errs.WrappedErrors()) == len(s.backends) {
+		return errs
+	} else {
+		return nil
+	}
 }
 
 func (s *CombinedProviderStore) GetProviders(ctx context.Context, key []byte) ([]peer.AddrInfo, error) {
@@ -42,7 +46,7 @@ func (s *CombinedProviderStore) GetProviders(ctx context.Context, key []byte) ([
 		}(b)
 	}
 	infos := []peer.AddrInfo{}
-	var errs error
+	var errs *multierror.Error
 	for range s.backends {
 		r := <-ch
 		if r.Err == nil {
@@ -51,5 +55,9 @@ func (s *CombinedProviderStore) GetProviders(ctx context.Context, key []byte) ([
 			multierror.Append(errs, r.Err)
 		}
 	}
-	return infos, errs
+	if len(errs.WrappedErrors()) == len(s.backends) {
+		return infos, errs
+	} else {
+		return infos, nil
+	}
 }
