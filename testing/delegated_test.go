@@ -10,10 +10,13 @@ import (
 	"github.com/ipfs/go-delegated-routing/client"
 	"github.com/ipfs/go-delegated-routing/server"
 	ipfsutil "github.com/ipfs/go-ipfs-util"
+	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/peer"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
-	swarmt "github.com/libp2p/go-libp2p-swarm/testing"
-	bhost "github.com/libp2p/go-libp2p/p2p/host/basic"
+	noise "github.com/libp2p/go-libp2p-noise"
+	quic "github.com/libp2p/go-libp2p-quic-transport"
+	tls "github.com/libp2p/go-libp2p-tls"
+	"github.com/libp2p/go-tcp-transport"
 	"github.com/libp2p/hydra-booster/head/opts"
 	"github.com/multiformats/go-multiaddr"
 	"github.com/stretchr/testify/require"
@@ -43,7 +46,13 @@ func TestDelegatedRoutingEndToEnd(t *testing.T) {
 		dht.DisableAutoRefresh(),
 		dht.Mode(dht.ModeClient),
 	}
-	host, err := bhost.NewHost(dhtCtx, swarmt.GenSwarm(t, dhtCtx, swarmt.OptDisableReuseport), new(bhost.HostOpts))
+	host, err := libp2p.New(
+		dhtCtx,
+		libp2p.Transport(quic.NewTransport),
+		libp2p.Transport(tcp.NewTCPTransport),
+		libp2p.Security(tls.ID, tls.New),
+		libp2p.Security(noise.ID, noise.New),
+	)
 	require.NoError(t, err)
 
 	d, err := dht.New(dhtCtx, host, dhtOpts...)
@@ -59,6 +68,7 @@ func TestDelegatedRoutingEndToEnd(t *testing.T) {
 	if !ok || err != nil {
 		t.Fatalf("cannot add peer to table")
 	}
+	t.Logf("connected dht to hydra")
 
 	// query hydra head
 	key := cid.NewCidV1(cid.Raw, ipfsutil.Hash([]byte("testkey")))
