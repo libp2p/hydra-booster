@@ -32,7 +32,7 @@ func TestDelegatedRoutingEndToEnd(t *testing.T) {
 	head, err := SpawnHead(
 		context.Background(),
 		opts.Addrs([]multiaddr.Multiaddr{headTcpAddr}),
-		opts.Delegate(s.URL),
+		opts.DelegateAddr(s.URL),
 	)
 	if err != nil {
 		t.Fatal(err)

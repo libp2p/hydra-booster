@@ -124,7 +124,7 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		return nil, nil, fmt.Errorf("failed to instantiate provider manager (%w)", err)
 	}
 	if cfg.DelegateAddr != "" {
-		delegateProvider, err := hproviders.DelegateProvider(cfg.DelegateAddr)
+		delegateProvider, err := hproviders.DelegateProvider(cfg.DelegateAddr, cfg.DelegateTimeout)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to instantiate delegation client (%w)", err)
 		}

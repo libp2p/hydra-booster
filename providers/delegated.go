@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-delegated-routing/client"
@@ -12,8 +13,8 @@ import (
 	"github.com/multiformats/go-multihash"
 )
 
-func DelegateProvider(endpointURL string) (providers.ProviderStore, error) {
-	c, err := client.New(endpointURL, client.WithHTTPClient(&http.Client{}))
+func DelegateProvider(endpointURL string, timeout time.Duration) (providers.ProviderStore, error) {
+	c, err := client.New(endpointURL, client.WithHTTPClient(&http.Client{Timeout: timeout}))
 	if err != nil {
 		return nil, err
 	}

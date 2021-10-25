@@ -41,7 +41,8 @@ func main() {
 	dbpath := flag.String("db", "", "Datastore directory (for LevelDB store) or postgresql:// connection URI (for PostgreSQL store)")
 	pstorePath := flag.String("pstore", "", "Peerstore directory for LevelDB store (defaults to in-memory store)")
 	httpAPIAddr := flag.String("httpapi-addr", defaultHTTPAPIAddr, "Specify an IP and port to run the HTTP API server on")
-	delegateAddr := flag.String("delegate", "", "API endpoint for delegated routing")
+	delegateAddr := flag.String("delegate-addr", "", "API endpoint for delegated routing")
+	delegateTimeout := flag.Int("delegate-timeout", 0, "Timeout for delegated routing in seconds")
 	inmem := flag.Bool("mem", false, "Use an in-memory database. This overrides the -db option")
 	metricsAddr := flag.String("metrics-addr", defaultMetricsAddr, "Specify an IP and port to run Prometheus metrics and pprof HTTP server on")
 	enableRelay := flag.Bool("enable-relay", false, "Enable libp2p circuit relaying for this node (default false).")
@@ -111,6 +112,9 @@ func main() {
 	if *delegateAddr == "" {
 		*delegateAddr = os.Getenv("HYDRA_DELEGATED_ROUTING_ADDR")
 	}
+	if *delegateTimeout == 0 {
+		*delegateTimeout = mustGetEnvInt("HYDRA_DELEGATED_ROUTING_TIMEOUT", 0)
+	}
 
 	// Allow short keys. Otherwise, we'll refuse connections from the bootsrappers and break the network.
 	// TODO: Remove this when we shut those bootstrappers down.
@@ -152,6 +156,7 @@ func main() {
 		DatastorePath:     *dbpath,
 		PeerstorePath:     *pstorePath,
 		DelegateAddr:      *delegateAddr,
+		DelegateTimeout:   time.Second * time.Duration(*delegateTimeout),
 		EnableRelay:       *enableRelay,
 		ProtocolPrefix:    protocol.ID(*protocolPrefix),
 		BucketSize:        *bucketSize,
