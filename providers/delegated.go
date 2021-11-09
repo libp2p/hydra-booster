@@ -40,7 +40,7 @@ func (s *DelegatedProviderStore) GetProviders(ctx context.Context, key []byte) (
 	t0 := time.Now()
 	infos, err := s.c.FindProviders(ctx, cid.NewCidV1(cid.Raw, h))
 	dur := time.Now().Sub(t0)
-	recordFindProvsComplete(ctx, statusFromErr(err), metrics.FindProvsDuration.M(float64(dur)))
+	recordFindProvsComplete(ctx, statusFromErr(err), metrics.DelegatedFindProvsDuration.M(float64(dur)))
 	return infos, err
 }
 

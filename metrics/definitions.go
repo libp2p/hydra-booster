@@ -36,14 +36,14 @@ var (
 	// Augmented with "status" label:
 	// "succeeded" (found at least 1 provider on the network)
 	// "failed" (not found any providers on the network)
-	FindProvsDuration  = stats.Float64("find_provs_duration_seconds", "The time it took find provider attempts from the network to succeed or fail because of timeout or completion", stats.UnitSeconds)
+	FindProvsDuration  = stats.Float64("find_provs_duration_nanoseconds", "The time it took find provider attempts from the network to succeed or fail because of timeout or completion", stats.UnitSeconds)
 	FindProvsQueueSize = stats.Int64("find_provs_queue_size", "The current size of the queue for finding providers", stats.UnitDimensionless)
 
 	// Augmented with "status" label:
 	// "succeeded" if a response with no error was received from the source.
 	// "failed" if an error was encountered and the request failed.
-	DelegatedFindProvs         = stats.Int64("find_provs_total", "Total delegated find provider attempts that were found locally, or not found locally and succeeded, failed or were discarded", stats.UnitDimensionless)
-	DelegatedFindProvsDuration = stats.Float64("delegated_find_provs_duration_seconds", "The time it took delegated find provider attempts from the network to succeed or fail because of timeout or completion", stats.UnitSeconds)
+	DelegatedFindProvs         = stats.Int64("delegated_find_provs_total", "Total delegated find provider attempts that were found locally, or not found locally and succeeded, failed or were discarded", stats.UnitDimensionless)
+	DelegatedFindProvsDuration = stats.Float64("delegated_find_provs_duration_nanoseconds", "The time it took delegated find provider attempts from the network to succeed or fail because of timeout or completion", stats.UnitSeconds)
 )
 
 // Views

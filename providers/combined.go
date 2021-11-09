@@ -5,10 +5,13 @@ import (
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/ipfs/go-delegated-routing/client"
+	logging "github.com/ipfs/go-log"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-kad-dht/providers"
 	"github.com/multiformats/go-multiaddr"
 )
+
+var log = logging.Logger("hydra/providers")
 
 func CombineProviders(backend ...providers.ProviderStore) providers.ProviderStore {
 	return &CombinedProviderStore{backends: backend}
@@ -30,6 +33,9 @@ func (s *CombinedProviderStore) AddProvider(ctx context.Context, key []byte, pro
 		if e := <-ch; e != nil {
 			multierror.Append(errs, e)
 		}
+	}
+	if len(errs.WrappedErrors()) > 0 {
+		log.Errorf("some providers returned errors (%v)", errs)
 	}
 	if len(errs.WrappedErrors()) == len(s.backends) {
 		return errs
