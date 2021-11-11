@@ -27,6 +27,7 @@ RUN go install -tags=openssl -v ./...
 # Create single-layer run image
 FROM alpine
 COPY --from=build /go/bin/hydra-booster /hydra-booster
+COPY --from=build /go/bin/mock-routing-server /mock-routing-server
 
 RUN apk add --no-cache openssl
 
@@ -40,4 +41,5 @@ EXPOSE 8888
 EXPOSE 30000-32767
 EXPOSE 30000-32767/udp
 
-CMD ["./hydra-booster", "-metrics-addr=0.0.0.0:8888", "-httpapi-addr=0.0.0.0:7779", "-ui-theme=none"]
+# CMD ["./hydra-booster", "-metrics-addr=0.0.0.0:8888", "-httpapi-addr=0.0.0.0:7779", "-ui-theme=none"]
+CMD ["./entrypoint.sh"]

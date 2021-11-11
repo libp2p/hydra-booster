@@ -14,7 +14,7 @@ import (
 var log = logging.Logger("hydra/test-routing-server")
 
 const (
-	defaultHTTPAPIAddr = "127.0.0.1:7779"
+	defaultHTTPAPIAddr = "127.0.0.1:9999"
 	defaultHTTPAPIPath = "/"
 )
 
