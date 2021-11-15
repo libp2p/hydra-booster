@@ -19,6 +19,8 @@ COPY utils ./utils
 COPY version ./version
 COPY metrics ./metrics
 COPY periodictasks ./periodictasks
+COPY providers ./providers
+COPY testing ./testing
 COPY main.go promconfig.yaml ./
 
 # Run the build and install
@@ -26,12 +28,12 @@ RUN go install -tags=openssl -v ./...
 
 # Create single-layer run image
 FROM alpine
+RUN apk add --no-cache openssl
 COPY --from=build /go/bin/hydra-booster /hydra-booster
 COPY --from=build /go/bin/mock-routing-server /mock-routing-server
-
-RUN apk add --no-cache openssl
-
 # HTTP API
+COPY entrypoint.sh ./
+RUN chmod a+x entrypoint.sh
 EXPOSE 7779
 
 # Prometheus /metrics
