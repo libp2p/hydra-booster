@@ -7,3 +7,5 @@ secrets.yaml
 k8s/*
 Dockerfile
 README.md
+*.sh
+.git
