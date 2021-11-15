@@ -20,6 +20,8 @@ spec:
       containers:
         - name: alasybil-container
           env:
+            - name: GOLOG_LOG_LEVEL
+              value: "error"
             - name: HYDRA_NHEADS
               value: "100"
             - name: HYDRA_PORT_BEGIN
@@ -48,7 +50,7 @@ spec:
               value: "localhost:9999"
             - name: HYDRA_DELEGATED_ROUTING_TIMEOUT
               value: "2"
-          image: registry.digitalocean.com/protocol/libp2p/hydra-booster:2021-11-15-065802
+          image: registry.digitalocean.com/protocol/libp2p/hydra-booster:2021-11-15-100323
           resources:
             limits:
               memory: 57Gi
