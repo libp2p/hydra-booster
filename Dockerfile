@@ -9,7 +9,17 @@ RUN go mod download -x
 
 # Copy the source from the current directory
 # to the Working Directory inside the container
-COPY . .
+COPY datastore ./datastore
+COPY head ./head
+COPY httpapi ./httpapi
+COPY hydra ./hydra
+COPY idgen ./idgen
+COPY ui ./ui
+COPY utils ./utils
+COPY version ./version
+COPY metrics ./metrics
+COPY periodictasks ./periodictasks
+COPY main.go promconfig.yaml ./
 
 # Run the build and install
 RUN go install -tags=openssl -v ./...
