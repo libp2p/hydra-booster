@@ -10,6 +10,7 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-ipns"
+	logging "github.com/ipfs/go-log"
 	"github.com/libp2p/go-libp2p"
 	circuit "github.com/libp2p/go-libp2p-circuit"
 	connmgr "github.com/libp2p/go-libp2p-connmgr"
@@ -38,6 +39,8 @@ const (
 	provCacheSize          = 256
 	provCacheExpiry        = time.Hour
 )
+
+var log = logging.Logger("hydra/hydra")
 
 // BootstrapStatus describes the status of connecting to a bootstrap node.
 type BootstrapStatus struct {
@@ -124,6 +127,7 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		return nil, nil, fmt.Errorf("failed to instantiate provider manager (%w)", err)
 	}
 	if cfg.DelegateAddr != "" {
+		log.Infof("will delegate to %v with timeout %v", cfg.DelegateAddr, cfg.DelegateTimeout)
 		delegateProvider, err := hproviders.DelegateProvider(cfg.DelegateAddr, cfg.DelegateTimeout)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to instantiate delegation client (%w)", err)

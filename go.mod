@@ -13,7 +13,7 @@ require (
 	github.com/hnlq715/golang-lru v0.2.1-0.20200422024707-82ba7badf9a6
 	github.com/ipfs/go-cid v0.0.7
 	github.com/ipfs/go-datastore v0.4.6
-	github.com/ipfs/go-delegated-routing v0.1.0
+	github.com/ipfs/go-delegated-routing v0.1.3
 	github.com/ipfs/go-ds-leveldb v0.4.2
 	github.com/ipfs/go-ipfs-util v0.0.2
 	github.com/ipfs/go-ipns v0.1.2

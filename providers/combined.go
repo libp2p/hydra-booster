@@ -63,6 +63,9 @@ func (s *CombinedProviderStore) GetProviders(ctx context.Context, key []byte) ([
 		}
 	}
 	infos = mergeAddrInfos(infos)
+	if len(errs.WrappedErrors()) > 0 {
+		log.Errorf("some providers returned errors (%v)", errs)
+	}
 	if len(errs.WrappedErrors()) == len(s.backends) {
 		return infos, errs
 	} else {
