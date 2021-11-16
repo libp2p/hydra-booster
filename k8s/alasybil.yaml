@@ -21,7 +21,7 @@ spec:
         - name: alasybil-container
           env:
             - name: GOLOG_LOG_LEVEL
-              value: "info"
+              value: "error"
             - name: HYDRA_NHEADS
               value: "100"
             - name: HYDRA_PORT_BEGIN
