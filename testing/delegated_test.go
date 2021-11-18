@@ -64,8 +64,8 @@ func TestDelegatedRoutingEndToEnd(t *testing.T) {
 	if err != nil {
 		t.Fatalf("connecting dht to head (%v)", err)
 	}
-	ok, err := d.RoutingTable().TryAddPeer(head.Host.ID(), true, false)
-	if !ok || err != nil {
+	_, err = d.RoutingTable().TryAddPeer(head.Host.ID(), true, false)
+	if /*!ok ||*/ err != nil {
 		t.Fatalf("cannot add peer to table")
 	}
 	t.Logf("connected dht to hydra")
