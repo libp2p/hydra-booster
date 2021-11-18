@@ -1,4 +1,4 @@
-FROM golang:1.14.2-alpine AS build
+FROM golang:1.16-alpine AS build
 
 RUN apk add --no-cache openssl-dev git build-base
 
@@ -19,6 +19,8 @@ COPY utils ./utils
 COPY version ./version
 COPY metrics ./metrics
 COPY periodictasks ./periodictasks
+COPY providers ./providers
+COPY testing ./testing
 COPY main.go promconfig.yaml ./
 
 # Run the build and install
@@ -26,11 +28,12 @@ RUN go install -tags=openssl -v ./...
 
 # Create single-layer run image
 FROM alpine
-COPY --from=build /go/bin/hydra-booster /hydra-booster
-
 RUN apk add --no-cache openssl
-
+COPY --from=build /go/bin/hydra-booster /hydra-booster
+COPY --from=build /go/bin/mock-routing-server /mock-routing-server
 # HTTP API
+COPY entrypoint.sh ./
+RUN chmod a+x entrypoint.sh
 EXPOSE 7779
 
 # Prometheus /metrics
@@ -40,4 +43,5 @@ EXPOSE 8888
 EXPOSE 30000-32767
 EXPOSE 30000-32767/udp
 
-CMD ["./hydra-booster", "-metrics-addr=0.0.0.0:8888", "-httpapi-addr=0.0.0.0:7779", "-ui-theme=none"]
+# CMD ["./hydra-booster", "-metrics-addr=0.0.0.0:8888", "-httpapi-addr=0.0.0.0:7779", "-ui-theme=none"]
+CMD ["./entrypoint.sh"]
