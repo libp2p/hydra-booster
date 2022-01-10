@@ -46,7 +46,7 @@ type Options struct {
 
 // option defaults
 const (
-	findProvidersQueueSize   = 1000
+	findProvidersQueueSize   = 10000
 	findProvidersCount       = 1
 	findProvidersConcurrency = 1
 	findProvidersTimeout     = time.Second * 10
