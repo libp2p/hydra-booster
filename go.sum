@@ -18,10 +18,6 @@ github.com/Kubuxu/go-os-helper v0.0.1/go.mod h1:N8B+I7vPCT80IcP58r50u4+gEEcsZETF
 github.com/OneOfOne/xxhash v1.2.2 h1:KMrpdQIwFcEqXDklaen+P1axHaj9BSKzvpUUfnHldSE=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/aead/siphash v1.0.1/go.mod h1:Nywa3cDsYNNK3gaciGTWPwHt0wlpNV15vwmswBAUSII=
-github.com/alanshaw/ipfs-ds-postgres v0.1.1-0.20211011213059-ca335a9db26b h1:0iSkhJ2rwQRB5Tckz9xIxORnhj7vB2wXqnhPFMEXbfc=
-github.com/alanshaw/ipfs-ds-postgres v0.1.1-0.20211011213059-ca335a9db26b/go.mod h1:YYESBYOGnX1/LHOm7J6sJknfgq4KAirF8ZMYIn4+6sU=
-github.com/alanshaw/ipfs-ds-postgres v0.1.1 h1:N5vFJKqRzw7MOeq2H6yGBLTukvW6NxVbbw7dU+q5usM=
-github.com/alanshaw/ipfs-ds-postgres v0.1.1/go.mod h1:YYESBYOGnX1/LHOm7J6sJknfgq4KAirF8ZMYIn4+6sU=
 github.com/alanshaw/ipfs-hookds v0.3.0 h1:lpETxiwyVQ9kmBbCJz2KDTXoS3YNC6o4XQdL32t/zlA=
 github.com/alanshaw/ipfs-hookds v0.3.0/go.mod h1:cnRH5J+8w/VpM+D+BD//zxtAKeLI5wMj1zo9krt85fU=
 github.com/alanshaw/prom-metrics-client v0.3.0 h1:HfkAEmViUMyL4L6dSA2uR3+d+2Fw+yZUAPpRXV5ju0I=
@@ -236,6 +232,8 @@ github.com/ipfs/go-log/v2 v2.0.3/go.mod h1:O7P1lJt27vWHhOwQmcFEvlmo49ry2VY2+JfBW
 github.com/ipfs/go-log/v2 v2.0.5/go.mod h1:eZs4Xt4ZUJQFM3DlanGhy7TkwwawCZcSByscwkWG+dw=
 github.com/ipfs/go-log/v2 v2.1.1 h1:G4TtqN+V9y9HY9TA6BwbCVyyBZ2B9MbCjR2MtGx8FR0=
 github.com/ipfs/go-log/v2 v2.1.1/go.mod h1:2v2nsGfZsvvAJz13SyFzf9ObaqwHiHxsPLEHntrv9KM=
+github.com/ipfs/ipfs-ds-postgres v0.1.2-0.20220112191604-6b447a9e9b27 h1:iwhDQkTG+BsLzdu6eMkgmH0sQ9ypXmRxpLUReHVDy5U=
+github.com/ipfs/ipfs-ds-postgres v0.1.2-0.20220112191604-6b447a9e9b27/go.mod h1:pLrn2I2fGp7zgXqbq7L30dI6RnDG7Ou2mx4ruTJKsVs=
 github.com/jackc/chunkreader v1.0.0 h1:4s39bBR8ByfqH+DKm8rQA3E1LHZWB9XWcrz8fqaZbe0=
 github.com/jackc/chunkreader v1.0.0/go.mod h1:RT6O25fNZIuasFJRyZ4R/Y2BbhasbmZXF9QQ7T3kePo=
 github.com/jackc/chunkreader/v2 v2.0.0/go.mod h1:odVSm741yZoC3dpHEUXIqA9tQRhFrgOHwnPIn9lDKlk=
