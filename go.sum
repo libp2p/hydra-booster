@@ -54,8 +54,6 @@ github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMx
 github.com/VividCortex/gohistogram v1.0.0/go.mod h1:Pf5mBqqDxYaXu3hDrrU+w6nw50o/4+TcAqDqk/vUH7g=
 github.com/aead/siphash v1.0.1/go.mod h1:Nywa3cDsYNNK3gaciGTWPwHt0wlpNV15vwmswBAUSII=
 github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5/go.mod h1:SkGFH1ia65gfNATL8TAiHDNxPzPdmEL5uirI2Uyuz6c=
-github.com/alanshaw/ipfs-ds-postgres v0.1.1 h1:N5vFJKqRzw7MOeq2H6yGBLTukvW6NxVbbw7dU+q5usM=
-github.com/alanshaw/ipfs-ds-postgres v0.1.1/go.mod h1:YYESBYOGnX1/LHOm7J6sJknfgq4KAirF8ZMYIn4+6sU=
 github.com/alanshaw/ipfs-hookds v0.3.0 h1:lpETxiwyVQ9kmBbCJz2KDTXoS3YNC6o4XQdL32t/zlA=
 github.com/alanshaw/ipfs-hookds v0.3.0/go.mod h1:cnRH5J+8w/VpM+D+BD//zxtAKeLI5wMj1zo9krt85fU=
 github.com/alanshaw/prom-metrics-client v0.3.0 h1:HfkAEmViUMyL4L6dSA2uR3+d+2Fw+yZUAPpRXV5ju0I=
@@ -409,6 +407,10 @@ github.com/ipfs/go-log/v2 v2.1.1/go.mod h1:2v2nsGfZsvvAJz13SyFzf9ObaqwHiHxsPLEHn
 github.com/ipfs/go-log/v2 v2.1.3/go.mod h1:/8d0SH3Su5Ooc31QlL1WysJhvyOTDCjcCZ9Axpmri6g=
 github.com/ipfs/go-log/v2 v2.3.0 h1:31Re/cPqFHpsRHgyVwjWADPoF0otB1WrjTy8ZFYwEZU=
 github.com/ipfs/go-log/v2 v2.3.0/go.mod h1:QqGoj30OTpnKaG/LKTGTxoP2mmQtjVMEnK72gynbe/g=
+github.com/ipfs/ipfs-ds-postgres v0.1.2-0.20220111143902-6d004a7b2bdf h1:12CArTqgDGyRLkbeMZUkfRvMHrqJc+p+mEA+rOKHBZk=
+github.com/ipfs/ipfs-ds-postgres v0.1.2-0.20220111143902-6d004a7b2bdf/go.mod h1:pLrn2I2fGp7zgXqbq7L30dI6RnDG7Ou2mx4ruTJKsVs=
+github.com/ipfs/ipfs-ds-postgres v0.1.2-0.20220112191604-6b447a9e9b27 h1:iwhDQkTG+BsLzdu6eMkgmH0sQ9ypXmRxpLUReHVDy5U=
+github.com/ipfs/ipfs-ds-postgres v0.1.2-0.20220112191604-6b447a9e9b27/go.mod h1:pLrn2I2fGp7zgXqbq7L30dI6RnDG7Ou2mx4ruTJKsVs=
 github.com/ipld/go-ipld-prime v0.9.0/go.mod h1:KvBLMr4PX1gWptgkzRjVZCrLmSGcZCb/jioOQwCqZN8=
 github.com/ipld/go-ipld-prime v0.12.3 h1:furVobw7UBLQZwlEwfE26tYORy3PAK8VYSgZOSr3JMQ=
 github.com/ipld/go-ipld-prime v0.12.3/go.mod h1:PaeLYq8k6dJLmDUSLrzkEpoGV4PEfe/1OtFN/eALOc8=
