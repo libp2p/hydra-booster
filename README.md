@@ -70,6 +70,8 @@ Usage of hydra-booster:
         Specify the bucket size, note that for some protocols this must be a specific value i.e. for "/ipfs" it MUST be 20 (default 20)
   -db string
         Datastore directory (for LevelDB store) or postgresql:// connection URI (for PostgreSQL store)
+  -provider-store
+        A non-default provider store to use (currently only supports "dynamodb,table=<string>,ttl=<ttl-in-seconds>,queryLimit=<int>").
   -disable-db-create
         Don't create table and index in the target database (default false).
   -disable-prefetch
@@ -123,6 +125,8 @@ Alternatively, some flags can be set via environment variables. Note that flags 
         Datastore directory (for LevelDB store) or postgresql:// connection URI (for PostgreSQL store)
   HYDRA_PSTORE string
         Peerstore directory for LevelDB store (defaults to in-memory store)
+  HYDRA_PROVIDER_STORE string
+        A non-default provider store to use (currently only supports "dynamodb,table=<string>,ttl=<ttl-in-seconds>,queryLimit=<int>").
   HYDRA_DISABLE_DBCREATE
         Don't create table and index in the target database (default false).
   HYDRA_DISABLE_PREFETCH
@@ -158,6 +162,38 @@ The total number of heads a single Hydra can have depends on the resources of th
 * Peer IDs of Hydra heads are balanced in the DHT. When running multiple Hydras it's necessary to designate one of the Hydras to be the "idgen server" and the rest to be "idgen clients" so that all Peer IDs in the Hydra swarm are balanced. Use the `-idgen-addr` flag or `HYDRA_IDGEN_ADDR` environment variable to ensure all Peer IDs in the Hydra swarm are balanced perfectly.
 * A datastore is shared by all Hydra heads but not by all Hydras. Use the `-db` flag or `HYDRA_DB` environment variable to specify a PostgreSQL database connection string that can be shared by all Hydras in the swarm.
 * When sharing a datastore between multiple _Hydras_, ensure only one Hydra in the swarm is performing GC on provider records by using the `-disable-prov-gc` flag or `HYDRA_DISABLE_PROV_GC` environment variable, and ensure only one Hydra is counting the provider records in the datastore by using the `-disable-prov-counts` flag or `HYDRA_DISABLE_PROV_COUNTS` environment variable.
+
+### DynamoDB Provider Store
+If the "dynamodb" provider store is specified, then provider records will not be stored in the datastore, but in a DynamoDB table that must conform with the following schema:
+
+* `key`
+  * type: bytes
+  * primary key
+* `ttl`
+  * type: int
+  * sort key
+  
+The command line / environment variable requires various arguments for configuring the provider store:
+
+* table
+  * string, required
+  * the DynamoDB table name
+* ttl
+  * int, required
+  * the duration in seconds for the provider record TTL, after which DynamoDB will evict the entry
+* queryLimit
+  * int, required
+  * limit for the # records to retrieve from DynamoDB for a single GET_PROVIDERS DHT query
+
+A GET_PROVIDERS DHT query will result in >=1 DynamoDB queries. The provider store will follow the pagination until the query limit is reached, or no more records are available. DynamoDB will return up to 1 MB of records in a single query page. The providers are sorted by descending TTL, so the most-recently-added providers will be returned first. When the query limit is reached, the remaining providers are truncated.
+
+The provider store uses the default AWS SDK credential store, which will search for credentials in environment variables, ~/.aws, the EC2 instance metadata service, ECS agent, etc.
+
+Some notes and caveats:
+
+* This does not use consistent reads, so read-after-write is eventually consistent. Consistency is usually achieved so quickly that it's unnoticeable.
+* If the system receives two ADD_PROVIDER messages for the same multihash in the same millisecond, they will race and only one will win, since records are keyed on (multihash, ttl). This should be rare. The `prov_ddb_collisions` counter is incremented when this happens.
+
 
 ## Developers
 

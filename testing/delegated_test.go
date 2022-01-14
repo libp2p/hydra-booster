@@ -17,6 +17,7 @@ import (
 	quic "github.com/libp2p/go-libp2p-quic-transport"
 	tls "github.com/libp2p/go-libp2p-tls"
 	"github.com/libp2p/go-tcp-transport"
+	"github.com/libp2p/hydra-booster/head"
 	"github.com/libp2p/hydra-booster/head/opts"
 	"github.com/multiformats/go-multiaddr"
 	"github.com/stretchr/testify/require"
@@ -29,7 +30,7 @@ func TestDelegatedRoutingEndToEnd(t *testing.T) {
 
 	// start hydra head
 	headTcpAddr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", 35121))
-	head, err := SpawnHead(
+	head, err := head.SpawnTestHead(
 		context.Background(),
 		opts.Addrs([]multiaddr.Multiaddr{headTcpAddr}),
 		opts.DelegateAddr(s.URL),

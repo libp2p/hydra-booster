@@ -14,16 +14,16 @@ import (
 	dsq "github.com/ipfs/go-datastore/query"
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/hydra-booster/head"
 	"github.com/libp2p/hydra-booster/hydra"
 	"github.com/libp2p/hydra-booster/idgen"
-	hytesting "github.com/libp2p/hydra-booster/testing"
 )
 
 func TestHTTPAPIHeads(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	hds, err := hytesting.SpawnHeads(ctx, 2)
+	hds, err := head.SpawnTestHeads(ctx, 2)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -74,7 +74,7 @@ func TestHTTPAPIRecordsListWithoutRecords(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	hds, err := hytesting.SpawnHeads(ctx, 1)
+	hds, err := head.SpawnTestHeads(ctx, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -116,7 +116,7 @@ func TestHTTPAPIRecordsFetch(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	hds, err := hytesting.SpawnHeads(ctx, 1)
+	hds, err := head.SpawnTestHeads(ctx, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -198,7 +198,7 @@ func TestHTTPAPIRecordsFetchErrorStates(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	hds, err := hytesting.SpawnHeads(ctx, 1)
+	hds, err := head.SpawnTestHeads(ctx, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -386,7 +386,7 @@ func TestHTTPAPISwarmPeers(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	hds, err := hytesting.SpawnHeads(ctx, 2)
+	hds, err := head.SpawnTestHeads(ctx, 2)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -444,7 +444,7 @@ func TestHTTPAPISwarmPeersHeadFilter(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	hds, err := hytesting.SpawnHeads(ctx, 2)
+	hds, err := head.SpawnTestHeads(ctx, 2)
 	if err != nil {
 		t.Fatal(err)
 	}
