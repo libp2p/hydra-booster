@@ -1,4 +1,4 @@
-# Hydra Boosters Kubenetes Configuration
+# Example Kubenetes Configuration
 
 These are the configuration files used to deploy the Hydra Booster nodes that operate on the IPFS network.
 
@@ -27,7 +27,7 @@ kubectl apply -f k8s/jetta.yaml
 
 ## Updating a deployment
 
-The config uses the latest `libp2p/hydra-booster` image, so if you've tagged and pushed a new version all you need to do is scale down and up each deployment:
+The config uses the latest `libp2p/hydra-booster:master` image, so if you've tagged and pushed a new version all you need to do is scale down and up each deployment:
 
 ```sh
 # Scale down all deployments

@@ -44,7 +44,7 @@ spec:
                   key: seed
             - name: HYDRA_ID_OFFSET
               value: "0"
-          image: registry.digitalocean.com/protocol/libp2p/hydra-booster:2021-10-15-164944
+          image: libp2p/hydra-booster:master
           resources:
             limits:
               memory: 57Gi
