@@ -4,8 +4,10 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -20,6 +22,20 @@ import (
 	"github.com/libp2p/hydra-booster/hydra"
 	"github.com/libp2p/hydra-booster/idgen"
 )
+
+type providerRecord struct {
+	CID cid.Cid
+	PeerID peer.ID
+}
+
+type rawProviderRecord struct {
+	CID string
+	PeerID string
+}
+
+type apiError struct {
+	Error string `json:Error`
+}
 
 // ListenAndServe instructs a Hydra HTTP API server to listen and serve on the passed address
 func ListenAndServe(hy *hydra.Hydra, addr string) error {
@@ -40,6 +56,7 @@ func NewRouter(hy *hydra.Hydra) *mux.Router {
 	mux.HandleFunc("/heads", headsHandler(hy))
 	mux.HandleFunc("/records/fetch/{key}", recordFetchHandler(hy))
 	mux.HandleFunc("/records/list", recordListHandler(hy))
+	mux.HandleFunc("/records/add", recordAddHandler(hy)).Methods("POST")
 	mux.HandleFunc("/idgen/add", idgenAddHandler()).Methods("POST")
 	mux.HandleFunc("/idgen/remove", idgenRemoveHandler()).Methods("POST")
 	mux.HandleFunc("/swarm/peers", swarmPeersHandler(hy))
@@ -122,6 +139,65 @@ func recordListHandler(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request)
 			enc.Encode(result.Entry)
 		}
 		results.Close()
+	}
+}
+
+// "/records/add" Add new records
+func recordAddHandler(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Verify the Content-Type matches
+		contentTypes := r.Header["Content-Type"]
+
+		if len(contentTypes) < 1 || !strings.HasPrefix(contentTypes[0], "application/json") {			
+			writeApiErrorResponse(
+				w, http.StatusUnsupportedMediaType, "Request must specify the Content-Type header as \"application/json\".",
+			)
+			return
+		}
+
+		// Decode the body as JSON
+		body, err := ioutil.ReadAll(r.Body) 
+		if err != nil { 
+			fmt.Printf("Error on adding provider records while reading the request payload: %s\n", err)
+			writeApiErrorResponse(w, http.StatusInternalServerError, "")
+			return
+		}
+
+		var rawRecords []rawProviderRecord
+		err = json.Unmarshal(body, &rawRecords)
+		
+		if err != nil {
+			writeApiErrorResponse(w, http.StatusBadRequest, "Invalid request payload.")
+			return
+		}
+
+		// Prepare the records to add - We don't add directly as we want to operation to fail if any of the record is invalid
+		records := make([]providerRecord, len(rawRecords))
+		for i, rawRecord := range(rawRecords) {
+			cid, err := cid.Decode(rawRecord.CID)
+
+			if err != nil {
+				writeApiErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("Invalid CID provided on record[%d].", i))
+				return
+			}
+
+			peerId, err := peer.Decode(rawRecord.PeerID)
+
+			if err != nil {
+				writeApiErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("Invalid PeerID provided on record[%d].", i))
+				return
+			}
+
+			records[i] = providerRecord{cid, peerId}
+		}
+
+		// Store the new records locally
+		ctx := r.Context()
+		for _, record := range(records) {
+			hy.Heads[0].AddProvider(ctx, record.CID, record.PeerID)
+		}
+
+		w.WriteHeader(http.StatusAccepted)
 	}
 }
 
@@ -212,5 +288,15 @@ func swarmPeersHandler(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request)
 			}
 
 		}
+	}
+}
+
+func writeApiErrorResponse(w http.ResponseWriter, status int, message string) {
+	if message != "" {
+		w.Header().Add("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(status)
+		json.NewEncoder(w).Encode(apiError{Error: message})
+	} else {
+		w.WriteHeader(status)
 	}
 }

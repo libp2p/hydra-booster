@@ -220,6 +220,29 @@ Returns an ndjson list of peers created by the Hydra: their IDs and mulitaddrs. 
 
 Returns an ndjson list of provider records stored by the Hydra Booster node.
 
+#### `POST /records/add`
+
+Adds new providers records to the Hydra Booster node's database. Will return HTTP status code 202 if all records were accepted and added to the node.
+
+If there is an error in the request payload then the entire payload is rejected with a HTTP status code 400.
+
+The request body must be a JSON formatted list of records containing the `CID` and and `PeerID` fields. All other fields are ignored.
+
+Example input:
+
+```json
+[
+  {
+    "CID": "QmdmQXB2mzChmMeKY47C43LxUdg1NDJ5MWcKMKxDu7RgQm",
+    "PeerID": "12D3KooWHacdCMnm4YKDJHn72HPTxc6LRGNzbrbyVEnuLFA3FXCZ"
+  },
+  {
+    "CID": "QmbQDovX7wRe9ek7u6QXe9zgCXkTzoUSsTFJEkrYV1HrVR",
+    "PeerID": "12D3KooWHacdCMnm4YKDJHn72HPTxc6LRGNzbrbyVEnuLFA3FXCZ"
+  }
+]
+```
+
 #### `GET /records/fetch/{cid}?nProviders=1`
 
 Fetches provider record(s) available on the network by CID. Use the `nProviders` query string parameter to signal the number of provider records to find. Returns an ndjson list of provider peers: their IDs and mulitaddrs. Will return HTTP status code 404 if no records were found.
