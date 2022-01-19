@@ -24,17 +24,17 @@ import (
 )
 
 type providerRecord struct {
-	CID cid.Cid
+	CID    cid.Cid
 	PeerID peer.ID
 }
 
 type rawProviderRecord struct {
-	CID string
+	CID    string
 	PeerID string
 }
 
-type apiError struct {
-	Error string `json:Error`
+type ApiError struct {
+	Error string `json:"Error"`
 }
 
 // ListenAndServe instructs a Hydra HTTP API server to listen and serve on the passed address
@@ -148,7 +148,7 @@ func recordAddHandler(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request) 
 		// Verify the Content-Type matches
 		contentTypes := r.Header["Content-Type"]
 
-		if len(contentTypes) < 1 || !strings.HasPrefix(contentTypes[0], "application/json") {			
+		if len(contentTypes) < 1 || !strings.HasPrefix(contentTypes[0], "application/json") {
 			writeApiErrorResponse(
 				w, http.StatusUnsupportedMediaType, "Request must specify the Content-Type header as \"application/json\".",
 			)
@@ -156,8 +156,8 @@ func recordAddHandler(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request) 
 		}
 
 		// Decode the body as JSON
-		body, err := ioutil.ReadAll(r.Body) 
-		if err != nil { 
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
 			fmt.Printf("Error on adding provider records while reading the request payload: %s\n", err)
 			writeApiErrorResponse(w, http.StatusInternalServerError, "")
 			return
@@ -165,7 +165,7 @@ func recordAddHandler(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request) 
 
 		var rawRecords []rawProviderRecord
 		err = json.Unmarshal(body, &rawRecords)
-		
+
 		if err != nil {
 			writeApiErrorResponse(w, http.StatusBadRequest, "Invalid request payload.")
 			return
@@ -173,7 +173,7 @@ func recordAddHandler(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request) 
 
 		// Prepare the records to add - We don't add directly as we want to operation to fail if any of the record is invalid
 		records := make([]providerRecord, len(rawRecords))
-		for i, rawRecord := range(rawRecords) {
+		for i, rawRecord := range rawRecords {
 			cid, err := cid.Decode(rawRecord.CID)
 
 			if err != nil {
@@ -193,7 +193,7 @@ func recordAddHandler(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request) 
 
 		// Store the new records locally
 		ctx := r.Context()
-		for _, record := range(records) {
+		for _, record := range records {
 			hy.Heads[0].AddProvider(ctx, record.CID, record.PeerID)
 		}
 
@@ -295,7 +295,7 @@ func writeApiErrorResponse(w http.ResponseWriter, status int, message string) {
 	if message != "" {
 		w.Header().Add("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(status)
-		json.NewEncoder(w).Encode(apiError{Error: message})
+		json.NewEncoder(w).Encode(ApiError{Error: message})
 	} else {
 		w.WriteHeader(status)
 	}

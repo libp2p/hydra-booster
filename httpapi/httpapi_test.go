@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"testing"
@@ -14,6 +15,7 @@ import (
 	dsq "github.com/ipfs/go-datastore/query"
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/peer"
+	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/hydra-booster/hydra"
 	"github.com/libp2p/hydra-booster/idgen"
 	hytesting "github.com/libp2p/hydra-booster/testing"
@@ -239,6 +241,268 @@ func TestHTTPAPIRecordsFetchErrorStates(t *testing.T) {
 	}
 	if res.StatusCode != 400 {
 		t.Fatal(fmt.Errorf("Should have got a 400, got %d: %s", res.StatusCode, url))
+	}
+}
+
+func TestHTTPAPIRecordsAdd(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hds, err := hytesting.SpawnHeads(ctx, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	listener, err := net.Listen("tcp", ":0")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cidStr := "QmVBEq6nnXQR2Ueb6etMFMUVhGM5vu34Y2KfHW5FVdGFok"
+	cid, err := cid.Decode(cidStr)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	peerIdStr := "12D3KooWHacdCMnm4YKDJHn72HPTxc6LRGNzbrbyVEnuLFA3FXCZ"
+	peerId, err := peer.Decode(peerIdStr)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	providerRouter := hds[0].Routing.(*dht.IpfsDHT)
+
+	results := providerRouter.ProviderManager.GetProviders(ctx, cid.Bytes())
+	if len(results) > 0 {
+		t.Fatal("The node datastore is not empty at the beginning of the test.")
+	}
+
+	go http.Serve(listener, NewRouter(&hydra.Hydra{Heads: hds, SharedDatastore: hds[0].Datastore}))
+	defer listener.Close()
+
+	url := fmt.Sprintf("http://%s/records/add", listener.Addr().String())
+	res, err := http.Post(
+		url, "application/json",
+		bytes.NewReader([]byte(fmt.Sprintf("[{\"CID\": \"%s\", \"PeerID\": \"%s\"}]", cidStr, peerIdStr))))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res.StatusCode != 202 {
+		t.Fatal(fmt.Errorf("Should have got a 202, got %d: %s", res.StatusCode, url))
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		t.Fatal(err)
+	} else if len(body) > 0 {
+		t.Fatal(fmt.Errorf("The response has non empty body: %s", string(body)))
+	}
+
+	results = providerRouter.ProviderManager.GetProviders(ctx, cid.Bytes())
+	if len(results) == 0 {
+		t.Fatal("The node datastore is empty at the beginning of the test.")
+	}
+
+	if results[0] != peerId {
+		t.Fatal(fmt.Sprintf("Should have received PeerID %s, got %s", results[0], peerIdStr))
+	}
+}
+
+func TestHTTPAPIRecordsAddInvalidContentType(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hds, err := hytesting.SpawnHeads(ctx, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	listener, err := net.Listen("tcp", ":0")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	go http.Serve(listener, NewRouter(&hydra.Hydra{Heads: hds, SharedDatastore: hds[0].Datastore}))
+	defer listener.Close()
+
+	url := fmt.Sprintf("http://%s/records/add", listener.Addr().String())
+	res, err := http.Post(url, "text/plain", bytes.NewReader([]byte("{{")))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res.StatusCode != 415 {
+		t.Fatal(fmt.Errorf("Should have got a 415, got %d: %s", res.StatusCode, url))
+	}
+
+	dec := json.NewDecoder(res.Body)
+	var apiError ApiError
+
+	if err := dec.Decode(&apiError); err != nil {
+		t.Fatal(err)
+	}
+
+	if apiError.Error != "Request must specify the Content-Type header as \"application/json\"." {
+		t.Fatal(fmt.Errorf("Found unexpected API Error: %s", apiError.Error))
+	}
+}
+
+func TestHTTPAPIRecordsAddMalformedJSON(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hds, err := hytesting.SpawnHeads(ctx, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	listener, err := net.Listen("tcp", ":0")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	go http.Serve(listener, NewRouter(&hydra.Hydra{Heads: hds, SharedDatastore: hds[0].Datastore}))
+	defer listener.Close()
+
+	url := fmt.Sprintf("http://%s/records/add", listener.Addr().String())
+	res, err := http.Post(url, "application/json", bytes.NewReader([]byte("{{")))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res.StatusCode != 400 {
+		t.Fatal(fmt.Errorf("Should have got a 400, got %d: %s", res.StatusCode, url))
+	}
+
+	dec := json.NewDecoder(res.Body)
+	var apiError ApiError
+
+	if err := dec.Decode(&apiError); err != nil {
+		t.Fatal(err)
+	}
+
+	if apiError.Error != "Invalid request payload." {
+		t.Fatal(fmt.Errorf("Found unexpected API Error: %s", apiError.Error))
+	}
+}
+
+func TestHTTPAPIRecordsAddInvalidJSON(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hds, err := hytesting.SpawnHeads(ctx, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	listener, err := net.Listen("tcp", ":0")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	go http.Serve(listener, NewRouter(&hydra.Hydra{Heads: hds, SharedDatastore: hds[0].Datastore}))
+	defer listener.Close()
+
+	url := fmt.Sprintf("http://%s/records/add", listener.Addr().String())
+	res, err := http.Post(url, "application/json", bytes.NewReader([]byte("{}")))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res.StatusCode != 400 {
+		t.Fatal(fmt.Errorf("Should have got a 400, got %d: %s", res.StatusCode, url))
+	}
+
+	dec := json.NewDecoder(res.Body)
+	var apiError ApiError
+
+	if err := dec.Decode(&apiError); err != nil {
+		t.Fatal(err)
+	}
+
+	if apiError.Error != "Invalid request payload." {
+		t.Fatal(fmt.Errorf("Found unexpected API Error: %s", apiError))
+	}
+}
+
+func TestHTTPAPIRecordsAddInvalidCID(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hds, err := hytesting.SpawnHeads(ctx, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	listener, err := net.Listen("tcp", ":0")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	go http.Serve(listener, NewRouter(&hydra.Hydra{Heads: hds, SharedDatastore: hds[0].Datastore}))
+	defer listener.Close()
+
+	url := fmt.Sprintf("http://%s/records/add", listener.Addr().String())
+	res, err := http.Post(url, "application/json", bytes.NewReader([]byte("[{\"CID\": \"INVALID\"}]")))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res.StatusCode != 400 {
+		t.Fatal(fmt.Errorf("Should have got a 400, got %d: %s", res.StatusCode, url))
+	}
+
+	dec := json.NewDecoder(res.Body)
+	var apiError ApiError
+
+	if err := dec.Decode(&apiError); err != nil {
+		t.Fatal(err)
+	}
+
+	if apiError.Error != "Invalid CID provided on record[0]." {
+		t.Fatal(fmt.Errorf("Found unexpected API Error: %s", apiError.Error))
+	}
+}
+
+func TestHTTPAPIRecordsAddInvalidPeerID(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hds, err := hytesting.SpawnHeads(ctx, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	listener, err := net.Listen("tcp", ":0")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	go http.Serve(listener, NewRouter(&hydra.Hydra{Heads: hds, SharedDatastore: hds[0].Datastore}))
+	defer listener.Close()
+
+	url := fmt.Sprintf("http://%s/records/add", listener.Addr().String())
+	res, err := http.Post(
+		url, "application/json",
+		bytes.NewReader([]byte("[{\"CID\": \"QmdmQXB2mzChmMeKY47C43LxUdg1NDJ5MWcKMKxDu7RgQm\", \"PeerID\": \"12D3KooWHacdCMnm4YKDJHn72HPTxc6LRGNzbrbyVEnuLFA3FXCZ\"}, {\"CID\": \"QmdmQXB2mzChmMeKY47C43LxUdg1NDJ5MWcKMKxDu7RgQm\", \"PeerID\": \"INVALID\"}]")))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res.StatusCode != 400 {
+		t.Fatal(fmt.Errorf("Should have got a 400, got %d: %s", res.StatusCode, url))
+	}
+
+	dec := json.NewDecoder(res.Body)
+	var apiError ApiError
+
+	if err := dec.Decode(&apiError); err != nil {
+		t.Fatal(err)
+	}
+
+	if apiError.Error != "Invalid PeerID provided on record[1]." {
+		t.Fatal(fmt.Errorf("Found unexpected API Error: %s", apiError.Error))
 	}
 }
 

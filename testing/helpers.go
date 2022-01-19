@@ -9,15 +9,18 @@ import (
 	"github.com/libp2p/hydra-booster/head/opts"
 )
 
-// Defaults are the SpawnNode defaults
-var defaults = []opts.Option{
-	opts.Datastore(datastore.NewMapDatastore()),
-	opts.BootstrapPeers(nil),
-}
-
 // SpawnHead creates a new Hydra head with an in memory datastore and 0 bootstrap peers by default.
 // It also waits for bootstrapping to complete.
 func SpawnHead(ctx context.Context, options ...opts.Option) (*head.Head, error) {
+	/*
+		Defaults are the SpawnNode defaults.
+		It is not defined as a global so that the datastore is not shared between tests.
+	*/
+	defaults := []opts.Option{
+		opts.Datastore(datastore.NewMapDatastore()),
+		opts.BootstrapPeers(nil),
+	}
+
 	hd, bsCh, err := head.NewHead(ctx, append(defaults, options...)...)
 	if err != nil {
 		return nil, err
