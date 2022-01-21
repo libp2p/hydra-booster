@@ -264,7 +264,7 @@ func TestHTTPAPIRecordsAdd(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	peerIdStr := "12D3KooWHacdCMnm4YKDJHn72HPTxc6LRGNzbrbyVEnuLFA3FXCZ"
+	peerIdStr := "QmQzqxhK82kAmKvARFZSkUVS6fo9sySaiogAnx5EnZ6ZmC"
 	peerId, err := peer.Decode(peerIdStr)
 	if err != nil {
 		t.Fatal(err)
@@ -301,7 +301,7 @@ func TestHTTPAPIRecordsAdd(t *testing.T) {
 
 	results = providerRouter.ProviderManager.GetProviders(ctx, cid.Bytes())
 	if len(results) == 0 {
-		t.Fatal("The node datastore is empty at the beginning of the test.")
+		t.Fatal("The node datastore is empty at the end of the test.")
 	}
 
 	if results[0] != peerId {

@@ -182,7 +182,6 @@ func recordAddHandler(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request) 
 			}
 
 			peerId, err := peer.Decode(rawRecord.PeerID)
-
 			if err != nil {
 				writeApiErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("Invalid PeerID provided on record[%d].", i))
 				return

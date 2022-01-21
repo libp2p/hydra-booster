@@ -41,9 +41,14 @@ func SpawnHead(ctx context.Context, options ...opts.Option) (*head.Head, error) 
 
 // SpawnHeads creates n new Hydra nodes with an in memory datastore and 0 bootstrap peers by default
 func SpawnHeads(ctx context.Context, n int, options ...opts.Option) ([]*head.Head, error) {
+	defaults := []opts.Option{
+		opts.Datastore(datastore.NewMapDatastore()),
+		opts.BootstrapPeers(nil),
+	}
+
 	var hds []*head.Head
 	for i := 0; i < n; i++ {
-		hd, err := SpawnHead(ctx, options...)
+		hd, err := SpawnHead(ctx, append(defaults, options...)...)
 		if err != nil {
 			for _, nd := range hds {
 				nd.Host.Close()
