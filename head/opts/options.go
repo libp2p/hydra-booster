@@ -16,21 +16,22 @@ import (
 
 // Options are Hydra Head options
 type Options struct {
-	Datastore        ds.Batching
-	Peerstore        peerstore.Peerstore
-	DelegateAddr     string
-	DelegateTimeout  time.Duration
-	RoutingTable     *kbucket.RoutingTable
-	EnableRelay      bool
-	Addrs            []multiaddr.Multiaddr
-	ProtocolPrefix   protocol.ID
-	BucketSize       int
-	Limiter          chan struct{}
-	BootstrapPeers   []multiaddr.Multiaddr
-	ID               crypto.PrivKey
-	DisableProvGC    bool
-	DisableProviders bool
-	DisableValues    bool
+	Datastore         ds.Batching
+	Peerstore         peerstore.Peerstore
+	DelegateAddr      string
+	StoreTheIndexAddr string
+	DelegateTimeout   time.Duration
+	RoutingTable      *kbucket.RoutingTable
+	EnableRelay       bool
+	Addrs             []multiaddr.Multiaddr
+	ProtocolPrefix    protocol.ID
+	BucketSize        int
+	Limiter           chan struct{}
+	BootstrapPeers    []multiaddr.Multiaddr
+	ID                crypto.PrivKey
+	DisableProvGC     bool
+	DisableProviders  bool
+	DisableValues     bool
 }
 
 // Option is the Hydra Head option type.
@@ -82,6 +83,15 @@ func Peerstore(ps peerstore.Peerstore) Option {
 func DelegateAddr(addr string) Option {
 	return func(o *Options) error {
 		o.DelegateAddr = addr
+		return nil
+	}
+}
+
+// StoreTheIndexAddr configures the Hydra Head to delegate routing also to this storetheindex addr.
+// Defaults to empty string which indicates no delegation.
+func StoreTheIndexAddr(addr string) Option {
+	return func(o *Options) error {
+		o.StoreTheIndexAddr = addr
 		return nil
 	}
 }

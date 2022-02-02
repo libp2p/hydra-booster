@@ -134,6 +134,15 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		}
 		providerStore = hproviders.CombineProviders(providerStore, hproviders.AddProviderNotSupported(delegateProvider))
 	}
+	if cfg.StoreTheIndexAddr != "" {
+		log.Infof("will delegate to %v with timeout %v", cfg.StoreTheIndexAddr, cfg.DelegateTimeout)
+		delegateProvider, err := hproviders.DelegateProvider(cfg.DelegateAddr, cfg.DelegateTimeout)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to instantiate delegation client (%w)", err)
+		}
+		providerStore = hproviders.CombineProviders(providerStore, hproviders.AddProviderNotSupported(delegateProvider))
+
+	}
 	dhtOpts = append(dhtOpts, dht.ProviderStore(providerStore))
 
 	dhtNode, err := dht.New(ctx, node, dhtOpts...)

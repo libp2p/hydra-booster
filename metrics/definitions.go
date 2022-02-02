@@ -44,6 +44,9 @@ var (
 	// "failed" if an error was encountered and the request failed.
 	DelegatedFindProvs         = stats.Int64("delegated_find_provs_total", "Total delegated find provider attempts that were found locally, or not found locally and succeeded, failed or were discarded", stats.UnitDimensionless)
 	DelegatedFindProvsDuration = stats.Float64("delegated_find_provs_duration_nanoseconds", "The time it took delegated find provider attempts from the network to succeed or fail because of timeout or completion", stats.UnitSeconds)
+
+	STIFindProvs         = stats.Int64("sti_find_provs_total", "Total store the index find provider attempts that were found locally, or not found locally and succeeded, failed or were discarded", stats.UnitDimensionless)
+	STIFindProvsDuration = stats.Float64("sti_find_provs_duration_nanoseconds", "The time it took storetheindex finds from the network to succeed or fail because of timeout or completion", stats.UnitSeconds)
 )
 
 // Views
@@ -91,6 +94,16 @@ var (
 	FindProvsQueueSizeView = &view.View{
 		Measure:     FindProvsQueueSize,
 		TagKeys:     []tag.Key{KeyName},
+		Aggregation: view.Sum(),
+	}
+	STIFindProvsView = &view.View{
+		Measure:     STIFindProvs,
+		TagKeys:     []tag.Key{KeyName, KeyStatus},
+		Aggregation: view.Sum(),
+	}
+	STIFindProvsDurationView = &view.View{
+		Measure:     STIFindProvsDuration,
+		TagKeys:     []tag.Key{KeyName, KeyStatus},
 		Aggregation: view.Sum(),
 	}
 	// DHT views
@@ -158,6 +171,8 @@ var DefaultViews = []*view.View{
 	FindProvsView,
 	FindProvsDurationView,
 	FindProvsQueueSizeView,
+	STIFindProvsView,
+	STIFindProvsDurationView,
 	// DHT views
 	ReceivedMessagesView,
 	ReceivedMessageErrorsView,
