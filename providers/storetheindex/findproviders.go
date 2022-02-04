@@ -12,7 +12,7 @@ import (
 	"github.com/multiformats/go-multihash"
 )
 
-var logger = logging.Logger("delegated/client")
+var logger = logging.Logger("sti/client")
 
 func (c *client) FindProviders(ctx context.Context, mh multihash.Multihash) ([]peer.AddrInfo, error) {
 	// encode request in URL

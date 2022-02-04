@@ -136,7 +136,7 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 	}
 	if cfg.StoreTheIndexAddr != "" {
 		log.Infof("will delegate to %v with timeout %v", cfg.StoreTheIndexAddr, cfg.DelegateTimeout)
-		stiProvider, err := hproviders.StoreTheIndexProvider(cfg.DelegateAddr, cfg.DelegateTimeout)
+		stiProvider, err := hproviders.StoreTheIndexProvider(cfg.StoreTheIndexAddr, cfg.DelegateTimeout)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to instantiate delegation client (%w)", err)
 		}
