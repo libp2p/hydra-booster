@@ -160,7 +160,7 @@ func main() {
 		DatastorePath:     *dbpath,
 		PeerstorePath:     *pstorePath,
 		DelegateAddr:      *delegateAddr,
-		DelegateTimeout:   time.Second * time.Duration(*delegateTimeout),
+		DelegateTimeout:   time.Millisecond * time.Duration(*delegateTimeout),
 		StoreTheIndexAddr: *stiAddr,
 		EnableRelay:       *enableRelay,
 		ProtocolPrefix:    protocol.ID(*protocolPrefix),
