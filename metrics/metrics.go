@@ -5,9 +5,14 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/pprof"
+	"os"
 
 	"contrib.go.opencensus.io/exporter/prometheus"
+	"github.com/go-kit/log"
+	"github.com/ncabatoff/process-exporter/collector"
+	"github.com/ncabatoff/process-exporter/config"
 	prom "github.com/prometheus/client_golang/prometheus"
+	necoll "github.com/prometheus/node_exporter/collector"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/zpages"
 )
@@ -15,13 +20,45 @@ import (
 // PrometheusNamespace is the unique prefix for metrics exported from the app
 var PrometheusNamespace = "hydrabooster"
 
+func buildProcCollector() (*collector.NamedProcessCollector, error) {
+	rules := config.MatcherRules{{
+		ExeRules: []string{os.Args[0]},
+	}}
+	config, err := rules.ToConfig()
+	if err != nil {
+		return nil, fmt.Errorf("building process collector config: %w", err)
+	}
+	proc1Collector, err := collector.NewProcessCollector(collector.ProcessCollectorOption{
+		ProcFSPath:  "/proc",
+		Children:    true,
+		Threads:     true,
+		GatherSMaps: false,
+		Namer:       config.MatchNamers,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("creating process collector: %w", err)
+	}
+	return proc1Collector, nil
+}
+
 // ListenAndServe sets up an endpoint to collect process metrics (e.g. pprof).
 func ListenAndServe(address string) error {
 	// setup Prometheus
 	registry := prom.NewRegistry()
 	goCollector := prom.NewGoCollector()
 	procCollector := prom.NewProcessCollector(prom.ProcessCollectorOpts{})
-	registry.MustRegister(goCollector, procCollector)
+
+	nodeCollector, err := necoll.NewNodeCollector(log.NewNopLogger())
+	if err != nil {
+		return err
+	}
+
+	proc1Collector, err := buildProcCollector()
+	if err != nil {
+		return err
+	}
+
+	registry.MustRegister(goCollector, procCollector, nodeCollector, proc1Collector)
 	pe, err := prometheus.NewExporter(prometheus.Options{
 		Namespace: PrometheusNamespace,
 		Registry:  registry,

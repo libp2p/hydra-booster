@@ -5,8 +5,15 @@ require (
 	github.com/alanshaw/ipfs-ds-postgres v0.1.1
 	github.com/alanshaw/ipfs-hookds v0.3.0
 	github.com/alanshaw/prom-metrics-client v0.3.0
+	github.com/aws/aws-sdk-go-v2 v1.13.0
+	github.com/aws/aws-sdk-go-v2/config v1.12.0
+	github.com/aws/aws-sdk-go-v2/credentials v1.7.0
+	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.13.0
+	github.com/aws/smithy-go v1.10.0
 	github.com/axiomhq/hyperloglog v0.0.0-20191112132149-a4c4c47bc57f
+	github.com/benbjohnson/clock v1.3.0
 	github.com/dustin/go-humanize v1.0.0
+	github.com/go-kit/log v0.2.0
 	github.com/gopherjs/gopherjs v0.0.0-20190812055157-5d271430af9f // indirect
 	github.com/gorilla/mux v1.8.0
 	github.com/hashicorp/go-multierror v1.1.1
@@ -33,8 +40,11 @@ require (
 	github.com/libp2p/go-tcp-transport v0.2.8
 	github.com/multiformats/go-base32 v0.0.3
 	github.com/multiformats/go-multiaddr v0.4.0
+	github.com/multiformats/go-multicodec v0.4.0
 	github.com/multiformats/go-multihash v0.0.15
+	github.com/ncabatoff/process-exporter v0.7.10
 	github.com/prometheus/client_golang v1.11.0
+	github.com/prometheus/node_exporter v1.3.1
 	github.com/prometheus/statsd_exporter v0.21.0 // indirect
 	github.com/smartystreets/assertions v1.0.1 // indirect
 	github.com/stretchr/testify v1.7.0
@@ -42,6 +52,7 @@ require (
 	go.opencensus.io v0.23.0
 	golang.org/x/crypto v0.0.0-20210813211128-0a44fdfbc16e
 	golang.org/x/lint v0.0.0-20201208152925-83fdc39ff7b5 // indirect
+	golang.org/x/net v0.0.0-20211216030914-fe4d6282115f // indirect
 )
 
 go 1.16

@@ -2,27 +2,35 @@ package hydra
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"math/rand"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/aws/retry"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/axiomhq/hyperloglog"
-	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	leveldb "github.com/ipfs/go-ds-leveldb"
+	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/protocol"
-	"github.com/libp2p/go-libp2p-core/routing"
+	"github.com/libp2p/go-libp2p-kad-dht/providers"
 	"github.com/libp2p/go-libp2p-peerstore/pstoreds"
 	hyds "github.com/libp2p/hydra-booster/datastore"
 	"github.com/libp2p/hydra-booster/head"
 	"github.com/libp2p/hydra-booster/head/opts"
 	"github.com/libp2p/hydra-booster/idgen"
 	"github.com/libp2p/hydra-booster/metrics"
+	"github.com/libp2p/hydra-booster/metricstasks"
 	"github.com/libp2p/hydra-booster/periodictasks"
+	hproviders "github.com/libp2p/hydra-booster/providers"
+	"github.com/libp2p/hydra-booster/utils"
 	"github.com/multiformats/go-multiaddr"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
@@ -31,7 +39,6 @@ import (
 // Default intervals between periodic task runs, more cpu/memory intensive tasks are run less frequently
 // TODO: expose these as command line options?
 const (
-	providerRecordsTaskInterval  = time.Minute * 5
 	routingTableSizeTaskInterval = time.Second * 5
 	uniquePeersTaskInterval      = time.Second * 5
 )
@@ -51,6 +58,7 @@ type Options struct {
 	Name              string
 	DatastorePath     string
 	PeerstorePath     string
+	ProviderStore     string
 	DelegateAddr      string
 	DelegateTimeout   time.Duration
 	GetPort           func() int
@@ -95,28 +103,6 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 
 	var hds []*head.Head
 
-	if !options.DisablePrefetch {
-		dsProxy := hyds.NewProxy(ctx, ds, func(_ cid.Cid) (routing.Routing, hyds.AddProviderFunc, error) {
-			if len(hds) == 0 {
-				return nil, nil, fmt.Errorf("no heads available")
-			}
-			s := hds[rand.Intn(len(hds))]
-			// we should ask the closest head, but later they'll all share the same routing table so it won't matter which one we pick
-			return s.Routing, s.AddProvider, nil
-		}, hyds.Options{
-			FindProvidersConcurrency:    options.NHeads,
-			FindProvidersCount:          1,
-			FindProvidersQueueSize:      options.NHeads * 10,
-			FindProvidersTimeout:        time.Second * 20,
-			FindProvidersFailureBackoff: time.Hour,
-		})
-		if withPgxPool, ok := ds.(hyds.WithPgxPool); ok {
-			ds = hyds.BatchingWithPgxPool{Pool: withPgxPool, Batching: dsProxy}
-		} else {
-			ds = dsProxy
-		}
-	}
-
 	if options.PeerstorePath == "" {
 		fmt.Fprintf(os.Stderr, "💭 Using in-memory peerstore\n")
 	} else {
@@ -126,13 +112,21 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	if options.IDGenerator == nil {
 		options.IDGenerator = idgen.HydraIdentityGenerator
 	}
-	fmt.Fprintf(os.Stderr, "🐲 Spawning %d heads: ", options.NHeads)
+	fmt.Fprintf(os.Stderr, "🐲 Spawning %d heads: \n", options.NHeads)
 
 	var hyperLock sync.Mutex
 	hyperlog := hyperloglog.New()
 
 	// What is a limiter?
 	limiter := make(chan struct{}, options.BsCon)
+
+	providerStoreBuilder, err := newProviderStoreBuilder(ctx, options)
+	if err != nil {
+		return nil, err
+	}
+
+	providersFinder := hproviders.NewAsyncProvidersFinder(10*time.Second, options.NHeads, 1*time.Hour)
+	providersFinder.Run(ctx, 1000)
 
 	for i := 0; i < options.NHeads; i++ {
 		time.Sleep(options.Stagger)
@@ -147,6 +141,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		}
 		hdOpts := []opts.Option{
 			opts.Datastore(ds),
+			opts.ProviderStoreBuilder(providerStoreBuilder),
 			opts.Addrs([]multiaddr.Multiaddr{tcpAddr, quicAddr}),
 			opts.ProtocolPrefix(options.ProtocolPrefix),
 			opts.BucketSize(options.BucketSize),
@@ -159,15 +154,22 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		if options.EnableRelay {
 			hdOpts = append(hdOpts, opts.EnableRelay())
 		}
-		// only the first head should GC, or none of them if it's disabled
-		if options.DisableProvGC || i > 0 {
-			hdOpts = append(hdOpts, opts.DisableProvGC())
-		}
 		if options.DisableProviders {
 			hdOpts = append(hdOpts, opts.DisableProviders())
 		}
 		if options.DisableValues {
 			hdOpts = append(hdOpts, opts.DisableValues())
+		}
+		if options.DisableProvGC || i > 0 {
+			// the first head GCs, if it's enabled
+			hdOpts = append(hdOpts, opts.DisableProvGC())
+		}
+		if options.DisableProvCounts || i > 0 {
+			// the first head counts providers, if it's enabled
+			hdOpts = append(hdOpts, opts.DisableProvCounts())
+		}
+		if !options.DisablePrefetch {
+			hdOpts = append(hdOpts, opts.ProvidersFinder(providersFinder))
 		}
 		if options.PeerstorePath != "" {
 			pstoreDs, err := leveldb.NewDatastore(fmt.Sprintf("%s/head-%d", options.PeerstorePath, i), nil)
@@ -226,17 +228,63 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	}
 
 	tasks := []periodictasks.PeriodicTask{
-		newRoutingTableSizeTask(&hydra, routingTableSizeTaskInterval),
-		newUniquePeersTask(&hydra, uniquePeersTaskInterval),
-	}
-
-	if !options.DisableProvCounts {
-		tasks = append(tasks, newProviderRecordsTask(&hydra, providerRecordsTaskInterval))
+		metricstasks.NewRoutingTableSizeTask(hydra.GetRoutingTableSize, routingTableSizeTaskInterval),
+		metricstasks.NewUniquePeersTask(hydra.GetUniquePeersCount, uniquePeersTaskInterval),
 	}
 
 	periodictasks.RunTasks(ctx, tasks)
 
 	return &hydra, nil
+}
+
+func newProviderStoreBuilder(ctx context.Context, options Options) (opts.ProviderStoreBuilderFunc, error) {
+	if strings.HasPrefix(options.ProviderStore, "dynamodb,") {
+		// dynamodb,table=<table>,ttl=<ttl>,queryLimit=<queryLimit>
+		ddbOpts, err := utils.ParseOptsString(strings.TrimPrefix(options.ProviderStore, "dynamodb,"))
+		if err != nil {
+			return nil, fmt.Errorf("parsing DynamoDB config string: %w", err)
+		}
+		table := ddbOpts["table"]
+		if table == "" {
+			return nil, errors.New("DynamoDB table must be specified")
+		}
+		ttlStr := ddbOpts["ttl"]
+		if ttlStr == "" {
+			return nil, errors.New("DynamoDB TTL must be specified")
+		}
+		ttl, err := time.ParseDuration(ttlStr)
+		if err != nil {
+			return nil, fmt.Errorf("parsing DynamoDB TTL: %w", err)
+		}
+
+		queryLimitStr := ddbOpts["queryLimit"]
+		if queryLimitStr == "" {
+			return nil, errors.New("DynamoDB query limit must be specified")
+		}
+		queryLimit64, err := strconv.ParseInt(queryLimitStr, 10, 32)
+		if err != nil {
+			return nil, fmt.Errorf("parsing DynamoDB query limit: %w", err)
+		}
+		queryLimit := int32(queryLimit64)
+
+		fmt.Fprintf(os.Stderr, "🥞 Using DynamoDB providerstore with table=%s, ttl=%s, queryLimit=%d\n", table, ttl, queryLimit)
+		awsCfg, err := config.LoadDefaultConfig(ctx,
+			config.WithRetryer(func() aws.Retryer {
+				return retry.NewStandard(func(so *retry.StandardOptions) { so.MaxAttempts = 1 })
+			}))
+		if err != nil {
+			return nil, fmt.Errorf("loading AWS config: %w", err)
+		}
+		awsCfg.APIOptions = append(awsCfg.APIOptions, metrics.AddAWSSDKMiddleware)
+
+		// reuse the client across all the heads
+		ddbClient := dynamodb.NewFromConfig(awsCfg)
+
+		return func(opts opts.Options, h host.Host) (providers.ProviderStore, error) {
+			return hproviders.NewDynamoDBProviderStore(h.ID(), h.Peerstore(), ddbClient, table, ttl, queryLimit), nil
+		}, nil
+	}
+	return nil, nil
 }
 
 func handleBootstrapStatus(ctx context.Context, ch chan head.BootstrapStatus) {
@@ -255,4 +303,12 @@ func (hy *Hydra) GetUniquePeersCount() uint64 {
 	hy.hyperLock.Lock()
 	defer hy.hyperLock.Unlock()
 	return hy.hyperlog.Estimate()
+}
+
+func (hy *Hydra) GetRoutingTableSize() int {
+	var rts int
+	for i := range hy.Heads {
+		rts += hy.Heads[i].RoutingTable().Size()
+	}
+	return rts
 }
