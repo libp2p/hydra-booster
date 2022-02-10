@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	pgds "github.com/alanshaw/ipfs-ds-postgres"
+	pgds "github.com/ipfs/ipfs-ds-postgres"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 

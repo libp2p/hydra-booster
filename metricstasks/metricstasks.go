@@ -18,7 +18,7 @@ import (
 
 func countProviderRecordsExactly(ctx context.Context, datastore ds.Datastore) error {
 	fmt.Println("counting provider records")
-	prs, err := datastore.Query(query.Query{Prefix: "/providers", KeysOnly: true})
+	prs, err := datastore.Query(ctx, query.Query{Prefix: "/providers", KeysOnly: true})
 	if err != nil {
 		return err
 	}
