@@ -23,7 +23,7 @@ func TestNewProviderRecordsTask(t *testing.T) {
 	count := rand.Intn(100) + 1
 
 	for i := 0; i < count; i++ {
-		err := ds.Put(datastore.NewKey(fmt.Sprintf("/providers/%d", i)), []byte{})
+		err := ds.Put(ctx, datastore.NewKey(fmt.Sprintf("/providers/%d", i)), []byte{})
 		if err != nil {
 			t.Fatal(err)
 		}

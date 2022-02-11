@@ -48,13 +48,13 @@ func TestDelegatedRoutingEndToEnd(t *testing.T) {
 		dht.Mode(dht.ModeClient),
 	}
 	host, err := libp2p.New(
-		dhtCtx,
 		libp2p.Transport(quic.NewTransport),
 		libp2p.Transport(tcp.NewTCPTransport),
 		libp2p.Security(tls.ID, tls.New),
 		libp2p.Security(noise.ID, noise.New),
 	)
 	require.NoError(t, err)
+	defer host.Close()
 
 	d, err := dht.New(dhtCtx, host, dhtOpts...)
 	require.NoError(t, err)

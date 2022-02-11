@@ -107,9 +107,8 @@ func recordListHandler(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request)
 		// TODO Improve this handler once ProvideManager gets exposed
 		// https://discuss.libp2p.io/t/list-provider-records/450
 		// for now, enumerate the Provider Records in the datastore
-
 		ds := hy.SharedDatastore
-		results, err := ds.Query(dsq.Query{Prefix: providers.ProvidersKeyPrefix})
+		results, err := ds.Query(r.Context(), dsq.Query{Prefix: providers.ProvidersKeyPrefix})
 		if err != nil {
 			fmt.Printf("Error on retrieving provider records: %s\n", err)
 			w.WriteHeader(500)

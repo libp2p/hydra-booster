@@ -13,7 +13,6 @@ import (
 	"github.com/ipfs/go-ipns"
 	logging "github.com/ipfs/go-log"
 	"github.com/libp2p/go-libp2p"
-	circuit "github.com/libp2p/go-libp2p-circuit"
 	connmgr "github.com/libp2p/go-libp2p-connmgr"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -88,13 +87,17 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		libp2pOpts = append(libp2pOpts, libp2p.Peerstore(cfg.Peerstore))
 	}
 	if cfg.EnableRelay {
-		libp2pOpts = append(libp2pOpts, libp2p.EnableRelay(circuit.OptHop))
+		libp2pOpts = append(libp2pOpts, libp2p.EnableRelay())
 	}
 
-	node, err := libp2p.New(ctx, libp2pOpts...)
+	node, err := libp2p.New(libp2pOpts...)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to spawn libp2p node: %w", err)
 	}
+	go func() {
+		<-ctx.Done()
+		node.Close()
+	}()
 
 	dhtOpts := []dht.Option{
 		dht.Mode(dht.ModeServer),
