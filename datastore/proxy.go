@@ -99,7 +99,7 @@ func newOnAfterQueryHook(ctx context.Context, getRouting GetRoutingFunc, opts Op
 			case r := <-foundC:
 				pendingLock.Lock()
 				delete(pending, r.key.String())
-				stats.Record(ctx, metrics.FindProvsQueueSize.M(-1))
+				stats.Record(ctx, metrics.PrefetchesPending.M(int64(len(pending))))
 				pendingLock.Unlock()
 
 				if r.err != nil {
@@ -107,7 +107,7 @@ func newOnAfterQueryHook(ctx context.Context, getRouting GetRoutingFunc, opts Op
 					continue
 				}
 
-				recordFindProvsComplete(ctx, r.status, metrics.FindProvsDuration.M(float64(r.duration)))
+				recordFindProvsComplete(ctx, r.status, metrics.PrefetchDuration.M(float64(r.duration)))
 
 				// if we failed to find this key, add to the failure cache so we don't try again for a bit
 				if r.status == "failed" {
@@ -162,7 +162,7 @@ func newOnAfterQueryHook(ctx context.Context, getRouting GetRoutingFunc, opts Op
 				select {
 				case findC <- k:
 					pending[k.String()] = true
-					stats.Record(ctx, metrics.FindProvsQueueSize.M(1))
+					stats.Record(ctx, metrics.PrefetchesPending.M(int64(len(pending))))
 				case <-ctx.Done():
 				default:
 					recordFindProvsComplete(ctx, "discarded")
@@ -242,6 +242,6 @@ func recordFindProvsComplete(ctx context.Context, status string, extraMeasures .
 	stats.RecordWithTags(
 		ctx,
 		[]tag.Mutator{tag.Upsert(metrics.KeyStatus, status)},
-		append([]stats.Measurement{metrics.FindProvs.M(1)}, extraMeasures...)...,
+		append([]stats.Measurement{metrics.Prefetches.M(1)}, extraMeasures...)...,
 	)
 }

@@ -3,6 +3,7 @@ package head
 import (
 	"context"
 	"fmt"
+	"os"
 	"sync"
 	"time"
 
@@ -26,18 +27,21 @@ import (
 	tls "github.com/libp2p/go-libp2p-tls"
 	"github.com/libp2p/go-tcp-transport"
 	"github.com/libp2p/hydra-booster/head/opts"
+	"github.com/libp2p/hydra-booster/metricstasks"
+	"github.com/libp2p/hydra-booster/periodictasks"
 	hproviders "github.com/libp2p/hydra-booster/providers"
 	"github.com/libp2p/hydra-booster/version"
 	"github.com/multiformats/go-multiaddr"
 )
 
 const (
-	lowWater               = 1200
-	highWater              = 1800
-	gracePeriod            = time.Minute
-	provDisabledGCInterval = time.Hour * 24 * 365 * 100 // set really high to be "disabled"
-	provCacheSize          = 256
-	provCacheExpiry        = time.Hour
+	providerRecordsTaskInterval = time.Minute * 5
+	lowWater                    = 1200
+	highWater                   = 1800
+	gracePeriod                 = time.Minute
+	provDisabledGCInterval      = time.Hour * 24 * 365 * 100 // set really high to be "disabled"
+	provCacheSize               = 256
+	provCacheExpiry             = time.Hour
 )
 
 var log = logging.Logger("hydra/hydra")
@@ -101,14 +105,6 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		dht.RoutingTableFilter(dht.PublicRoutingTableFilter),
 	}
 
-	var providerManagerOpts []providers.Option
-	if cfg.DisableProvGC {
-		cache, _ := simplelru.NewLRUWithExpire(provCacheSize, provCacheExpiry, nil)
-		providerManagerOpts = []providers.Option{
-			providers.CleanupInterval(provDisabledGCInterval),
-			providers.Cache(cache),
-		}
-	}
 	if cfg.DisableValues {
 		dhtOpts = append(dhtOpts, dht.DisableValues())
 	} else {
@@ -122,10 +118,30 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 	}
 
 	var providerStore providers.ProviderStore
-	providerStore, err = providers.NewProviderManager(ctx, node.ID(), node.Peerstore(), cfg.Datastore, providerManagerOpts...)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to instantiate provider manager (%w)", err)
+	if cfg.ProviderStoreBuilder == nil {
+		ps, err := newDefaultProviderStore(ctx, cfg, node)
+		if err != nil {
+			return nil, nil, err
+		}
+		providerStore = ps
+	} else {
+		ps, err := cfg.ProviderStoreBuilder(cfg, node)
+		if err != nil {
+			return nil, nil, err
+		}
+		providerStore = ps
 	}
+
+	if !cfg.DisableProvCounts {
+		periodictasks.RunTasks(ctx, []periodictasks.PeriodicTask{metricstasks.NewProviderRecordsTask(cfg.Datastore, providerStore, providerRecordsTaskInterval)})
+	}
+
+	var cachingProviderStore *hproviders.CachingProviderStore
+	if cfg.ProvidersFinder != nil {
+		cachingProviderStore = hproviders.NewCachingProviderStore(providerStore, cfg.ProvidersFinder, nil)
+		providerStore = cachingProviderStore
+	}
+
 	if cfg.DelegateAddr != "" {
 		log.Infof("will delegate to %v with timeout %v", cfg.DelegateAddr, cfg.DelegateTimeout)
 		delegateProvider, err := hproviders.DelegateProvider(cfg.DelegateAddr, cfg.DelegateTimeout)
@@ -148,6 +164,11 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 	dhtNode, err := dht.New(ctx, node, dhtOpts...)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to instantiate DHT: %w", err)
+	}
+
+	// if we are using the caching provider store, we need to give it the content router to use (the DHT)
+	if cachingProviderStore != nil {
+		cachingProviderStore.Router = dhtNode
 	}
 
 	// bootstrap in the background
@@ -218,6 +239,27 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 	}()
 
 	return &hd, bsCh, nil
+}
+
+func newDefaultProviderStore(ctx context.Context, options opts.Options, h host.Host) (providers.ProviderStore, error) {
+	fmt.Fprintf(os.Stderr, "🥞 Using default providerstore\n")
+	var provMgrOpts []providers.Option
+	if options.DisableProvGC {
+		cache, err := simplelru.NewLRUWithExpire(provCacheSize, provCacheExpiry, nil)
+		if err != nil {
+			return nil, err
+		}
+		provMgrOpts = append(provMgrOpts,
+			providers.CleanupInterval(provDisabledGCInterval),
+			providers.Cache(cache),
+		)
+	}
+	var ps providers.ProviderStore
+	ps, err := providers.NewProviderManager(ctx, h.ID(), h.Peerstore(), options.Datastore, provMgrOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return ps, nil
 }
 
 // RoutingTable returns the underlying RoutingTable for this head

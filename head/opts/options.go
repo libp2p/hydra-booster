@@ -7,31 +7,39 @@ import (
 	ds "github.com/ipfs/go-datastore"
 	dssync "github.com/ipfs/go-datastore/sync"
 	"github.com/libp2p/go-libp2p-core/crypto"
+	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peerstore"
 	"github.com/libp2p/go-libp2p-core/protocol"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
+	"github.com/libp2p/go-libp2p-kad-dht/providers"
 	kbucket "github.com/libp2p/go-libp2p-kbucket"
+	hproviders "github.com/libp2p/hydra-booster/providers"
 	"github.com/multiformats/go-multiaddr"
 )
 
+type ProviderStoreBuilderFunc func(opts Options, host host.Host) (providers.ProviderStore, error)
+
 // Options are Hydra Head options
 type Options struct {
-	Datastore         ds.Batching
-	Peerstore         peerstore.Peerstore
-	DelegateAddr      string
-	StoreTheIndexAddr string
-	DelegateTimeout   time.Duration
-	RoutingTable      *kbucket.RoutingTable
-	EnableRelay       bool
-	Addrs             []multiaddr.Multiaddr
-	ProtocolPrefix    protocol.ID
-	BucketSize        int
-	Limiter           chan struct{}
-	BootstrapPeers    []multiaddr.Multiaddr
-	ID                crypto.PrivKey
-	DisableProvGC     bool
-	DisableProviders  bool
-	DisableValues     bool
+	Datastore            ds.Batching
+	Peerstore            peerstore.Peerstore
+	ProviderStoreBuilder ProviderStoreBuilderFunc
+	DelegateAddr         string
+	StoreTheIndexAddr    string
+	DelegateTimeout      time.Duration
+	RoutingTable         *kbucket.RoutingTable
+	EnableRelay          bool
+	Addrs                []multiaddr.Multiaddr
+	ProtocolPrefix       protocol.ID
+	BucketSize           int
+	Limiter              chan struct{}
+	BootstrapPeers       []multiaddr.Multiaddr
+	ID                   crypto.PrivKey
+	DisableProvGC        bool
+	DisableProvCounts    bool
+	DisableProviders     bool
+	DisableValues        bool
+	ProvidersFinder      hproviders.ProvidersFinder
 }
 
 // Option is the Hydra Head option type.
@@ -74,6 +82,13 @@ func Datastore(ds ds.Batching) Option {
 func Peerstore(ps peerstore.Peerstore) Option {
 	return func(o *Options) error {
 		o.Peerstore = ps
+		return nil
+	}
+}
+
+func ProviderStoreBuilder(builder func(Options, host.Host) (providers.ProviderStore, error)) Option {
+	return func(o *Options) error {
+		o.ProviderStoreBuilder = builder
 		return nil
 	}
 }
@@ -206,6 +221,21 @@ func DisableProviders() Option {
 func DisableValues() Option {
 	return func(o *Options) error {
 		o.DisableValues = true
+		return nil
+	}
+}
+
+// DisableProvCounts disables counting the number of providers in the provider store.
+func DisableProvCounts() Option {
+	return func(o *Options) error {
+		o.DisableProvCounts = true
+		return nil
+	}
+}
+
+func ProvidersFinder(f hproviders.ProvidersFinder) Option {
+	return func(o *Options) error {
+		o.ProvidersFinder = f
 		return nil
 	}
 }

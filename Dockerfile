@@ -18,6 +18,7 @@ COPY ui ./ui
 COPY utils ./utils
 COPY version ./version
 COPY metrics ./metrics
+COPY metricstasks ./metricstasks
 COPY periodictasks ./periodictasks
 COPY providers ./providers
 COPY testing ./testing

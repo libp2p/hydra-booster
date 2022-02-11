@@ -1,19 +1,14 @@
-package hydra
+package metricstasks
 
 import (
 	"context"
 	"fmt"
 	"math/rand"
-	"sync"
 	"testing"
 	"time"
 
-	"github.com/axiomhq/hyperloglog"
 	"github.com/ipfs/go-datastore"
-	"github.com/libp2p/hydra-booster/head"
-	"github.com/libp2p/hydra-booster/head/opts"
 	"github.com/libp2p/hydra-booster/metrics"
-	"github.com/multiformats/go-multiaddr"
 	"go.opencensus.io/stats/view"
 )
 
@@ -34,8 +29,7 @@ func TestNewProviderRecordsTask(t *testing.T) {
 		}
 	}
 
-	hy := Hydra{SharedDatastore: ds}
-	pt := newProviderRecordsTask(&hy, time.Second)
+	pt := NewProviderRecordsTask(ds, nil, time.Second)
 
 	if pt.Interval != time.Second {
 		t.Fatal("invalid interval")
@@ -75,14 +69,7 @@ func TestNewRoutingTableSizeTask(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	hd, _, err := head.NewHead(ctx, opts.Datastore(datastore.NewMapDatastore()), opts.BootstrapPeers([]multiaddr.Multiaddr{}))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	hy := Hydra{Heads: []*head.Head{hd}}
-
-	rt := newRoutingTableSizeTask(&hy, time.Second)
+	rt := NewRoutingTableSizeTask(func() int { return 1 }, time.Second)
 
 	if rt.Interval != time.Second {
 		t.Fatal("invalid interval")
@@ -93,7 +80,7 @@ func TestNewRoutingTableSizeTask(t *testing.T) {
 	}
 	defer view.Unregister(metrics.RoutingTableSizeView)
 
-	err = rt.Run(ctx)
+	err := rt.Run(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -113,7 +100,7 @@ func TestNewRoutingTableSizeTask(t *testing.T) {
 		t.Fatalf("want LastValueData, got %+v\n", data)
 	}
 
-	if int(dis.Value) != 0 {
+	if int(dis.Value) != 1 {
 		t.Fatal("incorrect value recorded")
 	}
 }
@@ -122,18 +109,7 @@ func TestNewUniquePeersTask(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	var hyperLock sync.Mutex
-	hyperlog := hyperloglog.New()
-
-	rand.Seed(time.Now().UTC().UnixNano())
-	count := rand.Intn(100) + 1
-
-	for i := 0; i < count; i++ {
-		hyperlog.Insert([]byte(fmt.Sprintf("peer%d", i)))
-	}
-
-	hy := Hydra{hyperLock: &hyperLock, hyperlog: hyperlog}
-	rt := newUniquePeersTask(&hy, time.Second)
+	rt := NewUniquePeersTask(func() uint64 { return 1 }, time.Second)
 
 	if rt.Interval != time.Second {
 		t.Fatal("invalid interval")
@@ -164,7 +140,7 @@ func TestNewUniquePeersTask(t *testing.T) {
 		t.Fatalf("want LastValueData, got %+v\n", data)
 	}
 
-	if int(dis.Value) != count {
+	if int(dis.Value) != 1 {
 		t.Fatal("incorrect value recorded")
 	}
 }

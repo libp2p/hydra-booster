@@ -40,6 +40,7 @@ func main() {
 	idOffset := flag.Int("id-offset", -1, "What offset in the sequence of keys generated from random-seed to start from")
 	dbpath := flag.String("db", "", "Datastore directory (for LevelDB store) or postgresql:// connection URI (for PostgreSQL store)")
 	pstorePath := flag.String("pstore", "", "Peerstore directory for LevelDB store (defaults to in-memory store)")
+	providerStore := flag.String("provider-store", "", "A non-default provider store to use, \"dynamodb,table=<string>,ttl=<ttl-in-seconds>,queryLimit=<int>\"")
 	httpAPIAddr := flag.String("httpapi-addr", defaultHTTPAPIAddr, "Specify an IP and port to run the HTTP API server on")
 	delegateAddr := flag.String("delegate-addr", "", "API endpoint for delegated routing")
 	delegateTimeout := flag.Int("delegate-timeout", 0, "Timeout for delegated routing in seconds")
@@ -110,6 +111,9 @@ func main() {
 	if *pstorePath == "" {
 		*pstorePath = os.Getenv("HYDRA_PSTORE")
 	}
+	if *providerStore == "" {
+		*providerStore = os.Getenv("HYDRA_PROVIDER_STORE")
+	}
 	if *delegateAddr == "" {
 		*delegateAddr = os.Getenv("HYDRA_DELEGATED_ROUTING_ADDR")
 	}
@@ -159,6 +163,7 @@ func main() {
 		Name:              *name,
 		DatastorePath:     *dbpath,
 		PeerstorePath:     *pstorePath,
+		ProviderStore:     *providerStore,
 		DelegateAddr:      *delegateAddr,
 		DelegateTimeout:   time.Millisecond * time.Duration(*delegateTimeout),
 		StoreTheIndexAddr: *stiAddr,
