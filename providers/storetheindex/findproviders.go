@@ -27,14 +27,14 @@ func (c *client) FindProviders(ctx context.Context, mh multihash.Multihash) ([]p
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		if resp.StatusCode == http.StatusNotFound {
 			return []peer.AddrInfo{}, nil
 		}
-		return nil, fmt.Errorf("find query failed: %v", http.StatusText(resp.StatusCode))
+		return nil, fmt.Errorf("http_%d", resp.StatusCode)
 	}
 
-	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err

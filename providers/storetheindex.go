@@ -39,7 +39,11 @@ func (s *StoreTheIndexProviderStore) GetProviders(ctx context.Context, key []byt
 	t0 := time.Now()
 	infos, err := s.c.FindProviders(ctx, h)
 	dur := time.Now().Sub(t0)
-	recordSTIFindProvsComplete(ctx, statusFromErr(err), metrics.STIFindProvsDuration.M(float64(dur)))
+	status := "success"
+	if err != nil {
+		status = err.Error()
+	}
+	recordSTIFindProvsComplete(ctx, status, metrics.STIFindProvsDuration.M(float64(dur)))
 	return infos, err
 }
 
