@@ -6,15 +6,22 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
+	"time"
 
-	logging "github.com/ipfs/go-log"
 	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/hydra-booster/metrics"
 	"github.com/multiformats/go-multihash"
+	"go.opencensus.io/stats"
+	"go.opencensus.io/tag"
 )
 
-var logger = logging.Logger("sti/client")
-
 func (c *client) FindProviders(ctx context.Context, mh multihash.Multihash) ([]peer.AddrInfo, error) {
+	httpStatusCode := 0
+	start := time.Now()
+	defer func() {
+		recordSTIFindProvsComplete(ctx, httpStatusCode, time.Since(start))
+	}()
 	// encode request in URL
 	u := fmt.Sprint(c.endpoint.String(), "/", mh.B58String())
 	httpReq, err := http.NewRequestWithContext(ctx, "GET", u, nil)
@@ -28,11 +35,12 @@ func (c *client) FindProviders(ctx context.Context, mh multihash.Multihash) ([]p
 		return nil, err
 	}
 	defer resp.Body.Close()
+	httpStatusCode = resp.StatusCode
 	if resp.StatusCode != http.StatusOK {
 		if resp.StatusCode == http.StatusNotFound {
 			return []peer.AddrInfo{}, nil
 		}
-		return nil, fmt.Errorf("http_%d", resp.StatusCode)
+		return nil, fmt.Errorf("find query failed: %v", http.StatusText(resp.StatusCode))
 	}
 
 	body, err := io.ReadAll(resp.Body)
@@ -66,7 +74,16 @@ type indexMultihashResult struct {
 }
 
 type indexProviderResult struct {
-	ContextID []byte
-	Metadata  json.RawMessage
-	Provider  peer.AddrInfo
+	Provider peer.AddrInfo
+}
+
+func recordSTIFindProvsComplete(ctx context.Context, statusCode int, duration time.Duration) {
+	stats.RecordWithTags(
+		ctx,
+		[]tag.Mutator{tag.Upsert(metrics.KeyStatus, strconv.Itoa(statusCode))},
+		[]stats.Measurement{
+			metrics.STIFindProvs.M(1),
+			metrics.STIFindProvsDuration.M(float64(duration)),
+		}...,
+	)
 }

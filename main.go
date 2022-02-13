@@ -42,7 +42,6 @@ func main() {
 	pstorePath := flag.String("pstore", "", "Peerstore directory for LevelDB store (defaults to in-memory store)")
 	providerStore := flag.String("provider-store", "", "A non-default provider store to use, \"dynamodb,table=<string>,ttl=<ttl-in-seconds>,queryLimit=<int>\"")
 	httpAPIAddr := flag.String("httpapi-addr", defaultHTTPAPIAddr, "Specify an IP and port to run the HTTP API server on")
-	delegateAddr := flag.String("delegate-addr", "", "API endpoint for delegated routing")
 	delegateTimeout := flag.Int("delegate-timeout", 0, "Timeout for delegated routing in milliseconds")
 	stiAddr := flag.String("store-the-index-addr", "", "StoreTheIndex API endpoint for delegated routing")
 	inmem := flag.Bool("mem", false, "Use an in-memory database. This overrides the -db option")
@@ -114,9 +113,6 @@ func main() {
 	if *providerStore == "" {
 		*providerStore = os.Getenv("HYDRA_PROVIDER_STORE")
 	}
-	if *delegateAddr == "" {
-		*delegateAddr = os.Getenv("HYDRA_DELEGATED_ROUTING_ADDR")
-	}
 	if *delegateTimeout == 0 {
 		*delegateTimeout = mustGetEnvInt("HYDRA_DELEGATED_ROUTING_TIMEOUT", 1000)
 	}
@@ -164,7 +160,6 @@ func main() {
 		DatastorePath:     *dbpath,
 		PeerstorePath:     *pstorePath,
 		ProviderStore:     *providerStore,
-		DelegateAddr:      *delegateAddr,
 		DelegateTimeout:   time.Millisecond * time.Duration(*delegateTimeout),
 		StoreTheIndexAddr: *stiAddr,
 		EnableRelay:       *enableRelay,

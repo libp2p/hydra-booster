@@ -19,6 +19,9 @@ func (m *mockProviderStore) AddProvider(ctx context.Context, key []byte, prov pe
 	if m.err != nil {
 		return m.err
 	}
+	if m.providers == nil {
+		m.providers = map[string][]peer.AddrInfo{}
+	}
 	m.providers[string(key)] = append(m.providers[string(key)], prov)
 	return nil
 }
@@ -46,36 +49,33 @@ func TestCachingProviderStore_GetProviders(t *testing.T) {
 		name string
 		mh   string
 
-		delegateErr       error
-		delegateProviders map[string][]peer.AddrInfo
-		routerProviders   map[string][]peer.AddrInfo
-		finderProviders   map[string][]peer.AddrInfo
+		delegateErr     error
+		readProviders   map[string][]peer.AddrInfo
+		routerProviders map[string][]peer.AddrInfo
+		finderProviders map[string][]peer.AddrInfo
 
-		expProviders         []peer.AddrInfo
-		expDelegateProviders map[string][]peer.AddrInfo
-		expErr               error
+		expProviders      []peer.AddrInfo
+		expWriteProviders map[string][]peer.AddrInfo
+		expErr            error
 	}{
 		{
 			name: "returns providers when delegate has them",
 			mh:   "mh1",
-			delegateProviders: map[string][]peer.AddrInfo{
+			readProviders: map[string][]peer.AddrInfo{
 				"mh1": {peer.AddrInfo{ID: peer.ID([]byte("peer1"))}},
 			},
 			expProviders: []peer.AddrInfo{
 				{ID: peer.ID([]byte("peer1"))},
 			},
-			expDelegateProviders: map[string][]peer.AddrInfo{
-				"mh1": {peer.AddrInfo{ID: peer.ID([]byte("peer1"))}},
-			},
 		},
 		{
-			name:              "finds and caches providers when delegate doesn't have them",
-			mh:                "mh1",
-			delegateProviders: map[string][]peer.AddrInfo{},
+			name:          "finds and caches providers when delegate doesn't have them",
+			mh:            "mh1",
+			readProviders: map[string][]peer.AddrInfo{},
 			finderProviders: map[string][]peer.AddrInfo{
 				"mh1": {peer.AddrInfo{ID: peer.ID([]byte("peer1"))}},
 			},
-			expDelegateProviders: map[string][]peer.AddrInfo{
+			expWriteProviders: map[string][]peer.AddrInfo{
 				"mh1": {peer.AddrInfo{ID: peer.ID([]byte("peer1"))}},
 			},
 		},
@@ -90,20 +90,23 @@ func TestCachingProviderStore_GetProviders(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			ctx, stop := context.WithTimeout(context.Background(), 2*time.Second)
 			defer stop()
-			delegate := &mockProviderStore{
-				providers: c.delegateProviders,
+			writePS := &mockProviderStore{
+				err: c.delegateErr,
+			}
+			readPS := &mockProviderStore{
+				providers: c.readProviders,
 				err:       c.delegateErr,
 			}
 			finder := &mockFinder{
 				providers: c.finderProviders,
 			}
 
-			ps := NewCachingProviderStore(delegate, finder, nil)
+			ps := NewCachingProviderStore(readPS, writePS, finder, nil)
 
 			provs, err := ps.GetProviders(ctx, []byte(c.mh))
 			assert.Equal(t, c.expErr, err)
 			assert.Equal(t, c.expProviders, provs)
-			assert.Equal(t, c.expDelegateProviders, delegate.providers)
+			assert.Equal(t, c.expWriteProviders, writePS.providers)
 		})
 	}
 }
