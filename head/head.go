@@ -140,19 +140,35 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 	}
 
 	var cachingProviderStore *hproviders.CachingProviderStore
-	if cfg.ProvidersFinder != nil {
-		cachingProviderStore = hproviders.NewCachingProviderStore(providerStore, cfg.ProvidersFinder, nil)
+	if cfg.ProvidersFinder != nil && cfg.StoreTheIndexAddr == "" {
+		providerStore = hproviders.NewCachingProviderStore(providerStore, providerStore, cfg.ProvidersFinder, nil)
+	}
+	if cfg.ProvidersFinder != nil && cfg.StoreTheIndexAddr != "" {
+		stiProviderStore, err := hproviders.NewStoreTheIndexProviderStore(cfg.DelegateHTTPClient, cfg.StoreTheIndexAddr)
+		if err != nil {
+			return nil, nil, fmt.Errorf("creating StoreTheIndex providerstore: %w", err)
+		}
+
+		cachingProviderStore = hproviders.NewCachingProviderStore(
+			hproviders.CombineProviders(providerStore, stiProviderStore),
+			providerStore,
+			cfg.ProvidersFinder,
+			nil,
+		)
+
+		// we still want to use the caching provider store instead of the provider store directly b/c it publishes cache metrics
+		fmt.Printf("Will delegate to %v with timeout %v.\n", cfg.StoreTheIndexAddr, cfg.DelegateHTTPClient.Timeout)
 		providerStore = cachingProviderStore
 	}
-
-	if cfg.DelegateAddr != "" {
-		log.Infof("will delegate to %v with timeout %v", cfg.DelegateAddr, cfg.DelegateTimeout)
-		delegateProvider, err := hproviders.DelegateProvider(cfg.DelegateAddr, cfg.DelegateTimeout)
+	if cfg.ProvidersFinder == nil && cfg.StoreTheIndexAddr != "" {
+		stiPS, err := hproviders.NewStoreTheIndexProviderStore(cfg.DelegateHTTPClient, cfg.StoreTheIndexAddr)
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to instantiate delegation client (%w)", err)
+			return nil, nil, fmt.Errorf("creating StoreTheIndex provider store: %w", err)
 		}
-		providerStore = hproviders.CombineProviders(providerStore, hproviders.AddProviderNotSupported(delegateProvider))
+		fmt.Printf("Will delegate to %v with timeout %v.\n", cfg.StoreTheIndexAddr, cfg.DelegateHTTPClient.Timeout)
+		providerStore = stiPS
 	}
+
 	dhtOpts = append(dhtOpts, dht.ProviderStore(providerStore))
 
 	dhtNode, err := dht.New(ctx, node, dhtOpts...)

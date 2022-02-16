@@ -80,7 +80,9 @@ func mergeAddrInfos(infos []peer.AddrInfo) []peer.AddrInfo {
 	}
 	var r []peer.AddrInfo
 	for k, v := range m {
-		r = append(r, peer.AddrInfo{ID: k, Addrs: v})
+		if k.Validate() == nil {
+			r = append(r, peer.AddrInfo{ID: k, Addrs: v})
+		}
 	}
 	return r
 }

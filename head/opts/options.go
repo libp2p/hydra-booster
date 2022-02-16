@@ -2,7 +2,7 @@ package opts
 
 import (
 	"fmt"
-	"time"
+	"net/http"
 
 	ds "github.com/ipfs/go-datastore"
 	dssync "github.com/ipfs/go-datastore/sync"
@@ -24,8 +24,8 @@ type Options struct {
 	Datastore            ds.Batching
 	Peerstore            peerstore.Peerstore
 	ProviderStoreBuilder ProviderStoreBuilderFunc
-	DelegateAddr         string
-	DelegateTimeout      time.Duration
+	StoreTheIndexAddr    string
+	DelegateHTTPClient   *http.Client
 	RoutingTable         *kbucket.RoutingTable
 	EnableRelay          bool
 	Addrs                []multiaddr.Multiaddr
@@ -92,19 +92,18 @@ func ProviderStoreBuilder(builder func(Options, host.Host) (providers.ProviderSt
 	}
 }
 
-// DelegateAddr configures the Hydra Head to delegate routing also to this addr.
-// Defaults to empty string which indicates no delegation.
-func DelegateAddr(addr string) Option {
+func DelegateHTTPClient(c *http.Client) Option {
 	return func(o *Options) error {
-		o.DelegateAddr = addr
+		o.DelegateHTTPClient = c
 		return nil
 	}
 }
 
-// DelegateTimeout configures the Hydra Head timeout for delegate routing requests.
-func DelegateTimeout(timeout time.Duration) Option {
+// StoreTheIndexAddr configures the Hydra Head to delegate routing also to this storetheindex addr.
+// Defaults to empty string which indicates no delegation.
+func StoreTheIndexAddr(addr string) Option {
 	return func(o *Options) error {
-		o.DelegateTimeout = timeout
+		o.StoreTheIndexAddr = addr
 		return nil
 	}
 }

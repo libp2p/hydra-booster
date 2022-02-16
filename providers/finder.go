@@ -26,9 +26,9 @@ type ProvidersFinder interface {
 	Find(ctx context.Context, router ReadContentRouting, key []byte, onProvider onProviderFunc) error
 }
 
-func NewAsyncProvidersFinder(timeout time.Duration, queueSize int, negativeCacheTTL time.Duration) *AsyncProvidersFinder {
+func NewAsyncProvidersFinder(timeout time.Duration, queueSize int, negativeCacheTTL time.Duration) *asyncProvidersFinder {
 	clock := clock.New()
-	return &AsyncProvidersFinder{
+	return &asyncProvidersFinder{
 		log:                logging.Logger("hydra/prefetch"),
 		clock:              clock,
 		metricsTicker:      clock.Ticker(metricsPublishingInterval),
@@ -57,8 +57,8 @@ type findRequest struct {
 	onProvider onProviderFunc
 }
 
-// AsyncProvidersFinder finds providers asynchronously using a bounded work queue and a bounded number of workers.
-type AsyncProvidersFinder struct {
+// asyncProvidersFinder finds providers asynchronously using a bounded work queue and a bounded number of workers.
+type asyncProvidersFinder struct {
 	log              logging.EventLogger
 	clock            clock.Clock
 	metricsTicker    *clock.Ticker
@@ -79,7 +79,7 @@ type AsyncProvidersFinder struct {
 // Find finds the providers for a given key using the passed content router asynchronously.
 // It schedules work and returns immediately, invoking the callback concurrently as results are found.
 // If the work queue is full, this does not block--it drops the request on the floor and immediately returns.
-func (a *AsyncProvidersFinder) Find(ctx context.Context, router ReadContentRouting, key []byte, onProvider onProviderFunc) error {
+func (a *asyncProvidersFinder) Find(ctx context.Context, router ReadContentRouting, key []byte, onProvider onProviderFunc) error {
 	a.pendingMut.Lock()
 	defer a.pendingMut.Unlock()
 	ks := string(key)
@@ -103,7 +103,7 @@ func (a *AsyncProvidersFinder) Find(ctx context.Context, router ReadContentRouti
 
 // Run runs a set of goroutine workers that process Find() calls asynchronously.
 // The workers shut down gracefully when the context is canceled.
-func (a *AsyncProvidersFinder) Run(ctx context.Context, numWorkers int) {
+func (a *asyncProvidersFinder) Run(ctx context.Context, numWorkers int) {
 	a.ctx = ctx
 	for i := 0; i < numWorkers; i++ {
 		go func() {
@@ -140,7 +140,7 @@ func (a *AsyncProvidersFinder) Run(ctx context.Context, numWorkers int) {
 	}()
 }
 
-func (a *AsyncProvidersFinder) handleRequest(ctx context.Context, req findRequest) {
+func (a *asyncProvidersFinder) handleRequest(ctx context.Context, req findRequest) {
 	defer func() {
 		a.onReqDone(req)
 		a.pendingMut.Lock()
@@ -173,6 +173,14 @@ func (a *AsyncProvidersFinder) handleRequest(ctx context.Context, req findReques
 	}
 
 	recordPrefetches(ctx, "succeeded", metrics.PrefetchDuration.M(float64(findTime.Milliseconds())))
+}
+
+func recordPrefetches(ctx context.Context, status string, extraMeasures ...stats.Measurement) {
+	stats.RecordWithTags(
+		ctx,
+		[]tag.Mutator{tag.Upsert(metrics.KeyStatus, status)},
+		append([]stats.Measurement{metrics.Prefetches.M(1)}, extraMeasures...)...,
+	)
 }
 
 // idempotentTimeCache wraps a timecache and adds thread safety and idempotency.

@@ -3,12 +3,12 @@ package testing
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/ipfs/go-cid"
-	"github.com/ipfs/go-delegated-routing/client"
-	"github.com/ipfs/go-delegated-routing/server"
 	ipfsutil "github.com/ipfs/go-ipfs-util"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -19,13 +19,20 @@ import (
 	"github.com/libp2p/go-tcp-transport"
 	"github.com/libp2p/hydra-booster/head"
 	"github.com/libp2p/hydra-booster/head/opts"
+	"github.com/libp2p/hydra-booster/providers/storetheindex"
 	"github.com/multiformats/go-multiaddr"
 	"github.com/stretchr/testify/require"
 )
 
 func TestDelegatedRoutingEndToEnd(t *testing.T) {
+	key := cid.NewCidV0(ipfsutil.Hash([]byte("testkey")))
+	fmt.Printf("cid: %s\n", key.String())
 	// start mock delegated routing server
-	s := httptest.NewServer(server.FindProvidersAsyncHandler(testFindProvidersAsyncFunc))
+
+	mockServer := storetheindex.NewMockServer(map[cid.Cid][]peer.AddrInfo{
+		key: {testAddrInfo},
+	})
+	s := httptest.NewServer(mockServer)
 	defer s.Close()
 
 	// start hydra head
@@ -33,7 +40,8 @@ func TestDelegatedRoutingEndToEnd(t *testing.T) {
 	head, err := head.SpawnTestHead(
 		context.Background(),
 		opts.Addrs([]multiaddr.Multiaddr{headTcpAddr}),
-		opts.DelegateAddr(s.URL),
+		opts.StoreTheIndexAddr(s.URL),
+		opts.DelegateHTTPClient(&http.Client{Timeout: 1 * time.Second}),
 	)
 	if err != nil {
 		t.Fatal(err)
@@ -72,24 +80,17 @@ func TestDelegatedRoutingEndToEnd(t *testing.T) {
 	t.Logf("connected dht to hydra")
 
 	// query hydra head
-	key := cid.NewCidV1(cid.Raw, ipfsutil.Hash([]byte("testkey")))
 	infos, err := d.FindProviders(dhtCtx, key)
 	require.NoError(t, err)
-	if len(infos) != 1 {
-		t.Fatalf("expecting a single provider")
+	if len(infos) < 1 {
+		t.Fatalf("expecting at least one provider, got %d: %v", len(infos), infos)
 	}
-	if !equalAddrInfos(infos[0], testAddrInfo) {
-		t.Errorf("expecting %v, got %v", testAddrInfo, infos[0])
+	for _, ai := range infos {
+		if equalAddrInfos(ai, testAddrInfo) {
+			return
+		}
 	}
-}
-
-// testFindProvidersAsyncFunc responds with the same provider for any query key.
-func testFindProvidersAsyncFunc(key cid.Cid, ch chan<- client.FindProvidersAsyncResult) error {
-	go func() {
-		ch <- client.FindProvidersAsyncResult{AddrInfo: []peer.AddrInfo{testAddrInfo}}
-		close(ch)
-	}()
-	return nil
+	t.Errorf("expecting %v in %v", testAddrInfo, infos)
 }
 
 func equalAddrInfos(x, y peer.AddrInfo) bool {

@@ -57,6 +57,9 @@ var (
 	DelegatedFindProvs         = stats.Int64("delegated_find_provs_total", "Total delegated find provider attempts that were found locally, or not found locally and succeeded, failed or were discarded", stats.UnitDimensionless)
 	DelegatedFindProvsDuration = stats.Float64("delegated_find_provs_duration", "The time it took delegated find provider attempts from the network to succeed or fail because of timeout or completion", stats.UnitMilliseconds)
 
+	STIFindProvs         = stats.Int64("sti_find_provs_total", "Total store the index find provider attempts that were found locally, or not found locally and succeeded, failed or were discarded", stats.UnitDimensionless)
+	STIFindProvsDuration = stats.Float64("sti_find_provs_duration_nanoseconds", "The time it took storetheindex finds from the network to succeed or fail because of timeout or completion", stats.UnitSeconds)
+
 	AWSRequests              = stats.Int64("aws_requests", "Requests made to AWS", stats.UnitDimensionless)
 	AWSRequestDurationMillis = stats.Float64("aws_request_duration", "The time it took to make an AWS request and receive a response", stats.UnitMilliseconds)
 	AWSRequestRetries        = stats.Int64("aws_retries", "Retried requests to AWS", stats.UnitDimensionless)
@@ -159,6 +162,16 @@ var (
 		TagKeys:     []tag.Key{KeyName},
 		Aggregation: view.Sum(),
 	}
+	STIFindProvsView = &view.View{
+		Measure:     STIFindProvs,
+		TagKeys:     []tag.Key{KeyName, KeyStatus},
+		Aggregation: view.Sum(),
+	}
+	STIFindProvsDurationView = &view.View{
+		Measure:     STIFindProvsDuration,
+		TagKeys:     []tag.Key{KeyName, KeyStatus},
+		Aggregation: view.Sum(),
+	}
 	// DHT views
 	ReceivedMessagesView = &view.View{
 		Measure:     dhtmetrics.ReceivedMessages,
@@ -221,6 +234,8 @@ var DefaultViews = []*view.View{
 	UniquePeersView,
 	RoutingTableSizeView,
 	ProviderRecordsView,
+	STIFindProvsView,
+	STIFindProvsDurationView,
 	ProviderRecordsPerKeyView,
 	PrefetchesView,
 	PrefetchDurationMillisView,

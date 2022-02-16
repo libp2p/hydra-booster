@@ -136,6 +136,11 @@ func (d *dynamoDBProviderStore) GetProviders(ctx context.Context, key []byte) ([
 	}
 
 	stats.Record(ctx, stats.Measurement(metrics.ProviderRecordsPerKey.M(int64(len(providers)))))
+
+	if len(providers) > 0 {
+		recordPrefetches(ctx, "local")
+	}
+
 	return providers, nil
 }
 

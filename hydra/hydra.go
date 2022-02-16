@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -59,8 +60,8 @@ type Options struct {
 	DatastorePath     string
 	PeerstorePath     string
 	ProviderStore     string
-	DelegateAddr      string
 	DelegateTimeout   time.Duration
+	StoreTheIndexAddr string
 	GetPort           func() int
 	NHeads            int
 	ProtocolPrefix    protocol.ID
@@ -128,6 +129,9 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	providersFinder := hproviders.NewAsyncProvidersFinder(10*time.Second, options.NHeads, 1*time.Hour)
 	providersFinder.Run(ctx, 1000)
 
+	// reuse the HTTP client across all the heads
+	delegateHTTPClient := &http.Client{Timeout: options.DelegateTimeout}
+
 	for i := 0; i < options.NHeads; i++ {
 		time.Sleep(options.Stagger)
 		fmt.Fprintf(os.Stderr, ".")
@@ -148,8 +152,8 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 			opts.Limiter(limiter),
 			opts.ID(priv),
 			opts.BootstrapPeers(options.BootstrapPeers),
-			opts.DelegateAddr(options.DelegateAddr),
-			opts.DelegateTimeout(options.DelegateTimeout),
+			opts.DelegateHTTPClient(delegateHTTPClient),
+			opts.StoreTheIndexAddr(options.StoreTheIndexAddr),
 		}
 		if options.EnableRelay {
 			hdOpts = append(hdOpts, opts.EnableRelay())
