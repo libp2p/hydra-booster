@@ -75,8 +75,8 @@ func (d *dynamoDBProviderStore) AddProvider(ctx context.Context, key []byte, pro
 	var ccfe *types.ConditionalCheckFailedException
 	if errors.As(err, &ccfe) {
 		// the item already exists which means we tried to write >1 providers for a CID at the exact same millisecond
-		// record a metric and move on
-		stats.Record(ctx, metrics.AWSRequestDurationMillis.M(1))
+		// nothing to do, move on
+		// (there is a metric recorded for this, since all error codes are recorded)
 		return nil
 	}
 	return err

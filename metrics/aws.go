@@ -2,12 +2,14 @@ package metrics
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
 
 	awsmiddle "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/retry"
+	"github.com/aws/smithy-go"
 	smithymiddle "github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 	"go.opencensus.io/stats"
@@ -29,9 +31,15 @@ func (m *AWSMetricsMiddleware) HandleFinalize(ctx context.Context, in smithymidd
 	if httpResp, ok := awsmiddle.GetRawResponse(md).(*smithyhttp.Response); ok {
 		httpCode = httpResp.StatusCode
 	}
+	errCode := "none"
+	var apiErr smithy.APIError
+	if errors.As(err, &apiErr) {
+		errCode = apiErr.ErrorCode()
+	}
 	tags := []tag.Mutator{
 		tag.Upsert(KeyOperation, fmt.Sprintf("%s.%s", service, operation)),
 		tag.Upsert(KeyHTTPCode, strconv.Itoa(httpCode)),
+		tag.Upsert(KeyErrorCode, errCode),
 	}
 
 	t, ok := awsmiddle.GetResponseAt(md)

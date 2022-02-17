@@ -22,6 +22,7 @@ var (
 	KeyStatus, _    = tag.NewKey("status")
 	KeyHTTPCode, _  = tag.NewKey("http_code")
 	KeyOperation, _ = tag.NewKey("operation")
+	KeyErrorCode, _ = tag.NewKey("err_code")
 )
 
 // Measures
@@ -144,7 +145,7 @@ var (
 	}
 	AWSRequestsView = &view.View{
 		Measure:     AWSRequests,
-		TagKeys:     []tag.Key{KeyName, KeyOperation, KeyHTTPCode},
+		TagKeys:     []tag.Key{KeyName, KeyOperation, KeyHTTPCode, KeyErrorCode},
 		Aggregation: view.Sum(),
 	}
 	AWSRequestsDurationView = &view.View{
@@ -154,7 +155,7 @@ var (
 	}
 	AWSRequestRetriesView = &view.View{
 		Measure:     AWSRequestRetries,
-		TagKeys:     []tag.Key{KeyName, KeyOperation, KeyHTTPCode},
+		TagKeys:     []tag.Key{KeyName, KeyOperation, KeyHTTPCode, KeyErrorCode},
 		Aggregation: view.Sum(),
 	}
 	ProviderDDBCollisionsView = &view.View{
