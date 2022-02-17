@@ -126,7 +126,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		return nil, err
 	}
 
-	providersFinder := hproviders.NewAsyncProvidersFinder(10*time.Second, 1000, 1*time.Hour)
+	providersFinder := hproviders.NewAsyncProvidersFinder(5*time.Second, 1000, 1*time.Hour)
 	providersFinder.Run(ctx, 1000)
 
 	// reuse the HTTP client across all the heads
