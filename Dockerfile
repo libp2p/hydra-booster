@@ -1,6 +1,6 @@
 FROM golang:1.16-alpine AS build
 
-RUN apk add --no-cache openssl-dev git build-base curl
+RUN apk add --no-cache openssl-dev git build-base
 
 WORKDIR /hydra-booster
 
@@ -29,7 +29,7 @@ RUN go install -tags=openssl -v ./...
 
 # Create single-layer run image
 FROM alpine
-RUN apk add --no-cache openssl
+RUN apk add --no-cache openssl curl  # curl is for health checking
 COPY --from=build /go/bin/hydra-booster /hydra-booster
 COPY --from=build /go/bin/mock-routing-server /mock-routing-server
 # HTTP API
