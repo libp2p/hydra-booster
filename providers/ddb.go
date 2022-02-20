@@ -57,7 +57,7 @@ func (d *dynamoDBProviderStore) AddProvider(ctx context.Context, key []byte, pro
 		d.Peerstore.AddAddrs(prov.ID, prov.Addrs, peerstore.ProviderAddrTTL)
 	}
 
-	ttlEpoch := d.clock.Now().Add(d.TTL).UnixNano() / 1e6
+	ttlEpoch := d.clock.Now().Add(d.TTL).UnixNano() / 1e9
 	ttlEpochStr := strconv.FormatInt(ttlEpoch, 10)
 	_, err := d.DDBClient.PutItem(ctx, &dynamodb.PutItemInput{
 		TableName: &d.TableName,

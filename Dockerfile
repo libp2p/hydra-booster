@@ -1,6 +1,6 @@
 FROM golang:1.16-alpine AS build
 
-RUN apk add --no-cache openssl-dev git build-base
+RUN apk add --no-cache openssl-dev git build-base curl
 
 WORKDIR /hydra-booster
 
