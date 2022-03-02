@@ -175,7 +175,7 @@ func TestProviderStore_ddb_local(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		mockClock.Add(1 * time.Millisecond)
+		mockClock.Add(1 * time.Second)
 	}
 
 	provs, err := provStore.GetProviders(ctx, key)
