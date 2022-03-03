@@ -15,11 +15,16 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws/retry"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go/aws/session"
+	ddbv1 "github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/axiomhq/hyperloglog"
+	ddbds "github.com/guseggert/go-ds-dynamodb"
 	"github.com/ipfs/go-datastore"
+	"github.com/ipfs/go-datastore/mount"
 	leveldb "github.com/ipfs/go-ds-leveldb"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/network"
+	"github.com/libp2p/go-libp2p-core/peerstore"
 	"github.com/libp2p/go-libp2p-core/protocol"
 	"github.com/libp2p/go-libp2p-kad-dht/providers"
 	"github.com/libp2p/go-libp2p-peerstore/pstoreds"
@@ -94,6 +99,15 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	if strings.HasPrefix(options.DatastorePath, "postgresql://") {
 		fmt.Fprintf(os.Stderr, "🐘 Using PostgreSQL datastore\n")
 		ds, err = hyds.NewPostgreSQLDatastore(ctx, options.DatastorePath, !options.DisableDBCreate)
+	} else if strings.HasPrefix(options.DatastorePath, "dynamodb://") {
+		optsStr := strings.TrimPrefix(options.DatastorePath, "dynamodb://")
+		table, err := parseDDBTable(optsStr)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Fprintf(os.Stderr, "Using DynamoDB datastore with table '%s'\n", table)
+		ddbClient := ddbv1.New(session.Must(session.NewSession()))
+		ds = ddbds.New(ddbClient, table, ddbds.WithScanParallelism(5))
 	} else {
 		fmt.Fprintf(os.Stderr, "🥞 Using LevelDB datastore\n")
 		ds, err = leveldb.NewDatastore(options.DatastorePath, nil)
@@ -103,12 +117,6 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	}
 
 	var hds []*head.Head
-
-	if options.PeerstorePath == "" {
-		fmt.Fprintf(os.Stderr, "💭 Using in-memory peerstore\n")
-	} else {
-		fmt.Fprintf(os.Stderr, "🥞 Using LevelDB peerstore (EXPERIMENTAL)\n")
-	}
 
 	if options.IDGenerator == nil {
 		options.IDGenerator = idgen.HydraIdentityGenerator
@@ -175,7 +183,22 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		if !options.DisablePrefetch {
 			hdOpts = append(hdOpts, opts.ProvidersFinder(providersFinder))
 		}
-		if options.PeerstorePath != "" {
+		if options.PeerstorePath == "" {
+			fmt.Fprintf(os.Stderr, "💭 Head %d using in-memory peerstore\n", i)
+		} else if strings.HasPrefix(options.PeerstorePath, "dynamodb://") {
+			optsStr := strings.TrimPrefix(options.PeerstorePath, "dynamodb://")
+			tables, err := parseDDBPeerstoreTables(optsStr)
+			if err != nil {
+				return nil, err
+			}
+			fmt.Fprintf(os.Stderr, "Head %d using DynamoDB peerstore with tables %v \n", i, tables)
+			pstore, err := newDDBPeerstore(ctx, tables)
+			if err != nil {
+				return nil, err
+			}
+			hdOpts = append(hdOpts, opts.Peerstore(pstore))
+		} else {
+			fmt.Fprintf(os.Stderr, "🥞 Head %d using LevelDB peerstore (EXPERIMENTAL)\n", i)
 			pstoreDs, err := leveldb.NewDatastore(fmt.Sprintf("%s/head-%d", options.PeerstorePath, i), nil)
 			if err != nil {
 				return nil, fmt.Errorf("failed to create peerstore datastore: %w", err)
@@ -242,9 +265,9 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 }
 
 func newProviderStoreBuilder(ctx context.Context, options Options) (opts.ProviderStoreBuilderFunc, error) {
-	if strings.HasPrefix(options.ProviderStore, "dynamodb,") {
+	if strings.HasPrefix(options.ProviderStore, "dynamodb://") {
 		// dynamodb,table=<table>,ttl=<ttl>,queryLimit=<queryLimit>
-		ddbOpts, err := utils.ParseOptsString(strings.TrimPrefix(options.ProviderStore, "dynamodb,"))
+		ddbOpts, err := utils.ParseOptsString(strings.TrimPrefix(options.ProviderStore, "dynamodb://"))
 		if err != nil {
 			return nil, fmt.Errorf("parsing DynamoDB config string: %w", err)
 		}
@@ -300,6 +323,89 @@ func handleBootstrapStatus(ctx context.Context, ch chan head.BootstrapStatus) {
 			stats.Record(ctx, metrics.BootstrappedHeads.M(1))
 		}
 	}
+}
+
+func parseDDBTable(optsStr string) (string, error) {
+	opts, err := utils.ParseOptsString(optsStr)
+	if err != nil {
+		return "", fmt.Errorf("parsing DynamoDB config string: %w", err)
+	}
+	table, ok := opts["table"]
+	if !ok {
+		return "", errors.New("must specify table in DynamoDB opts string")
+	}
+	return table, nil
+}
+
+type peerstoreTables struct {
+	metadata string
+	addrs    string
+	keys     string
+}
+
+func parseDDBPeerstoreTables(optsStr string) (peerstoreTables, error) {
+	opts, err := utils.ParseOptsString(optsStr)
+	if err != nil {
+		return peerstoreTables{}, fmt.Errorf("parsing DynamoDB Peerstore config string: %w", err)
+	}
+	fmt.Printf("opts: %v\n", opts)
+	metadata, ok := opts["metadata"]
+	if !ok || metadata == "" {
+		return peerstoreTables{}, errors.New("must specify metadata table in DynamoDB opts string")
+	}
+	addrs, ok := opts["addrs"]
+	if !ok || addrs == "" {
+		return peerstoreTables{}, errors.New("must specify addrs table in DynamoDB opts string")
+	}
+	keys, ok := opts["keys"]
+	if !ok || keys == "" {
+		return peerstoreTables{}, errors.New("must specify keys table in DynamoDB opts string")
+	}
+
+	return peerstoreTables{
+		metadata: metadata,
+		addrs:    addrs,
+		keys:     keys,
+	}, nil
+}
+
+func newDDBPeerstore(ctx context.Context, tables peerstoreTables) (peerstore.Peerstore, error) {
+	ddbClient := ddbv1.New(session.Must(session.NewSession()))
+	ds := mount.New([]mount.Mount{
+		{
+			Prefix: datastore.NewKey("/peers/metadata"),
+			Datastore: ddbds.New(
+				ddbClient,
+				tables.metadata,
+				ddbds.WithPartitionkey("PeerID"),
+			),
+		},
+		// puts on /peers/addrs/<peerid>
+		// queries on /peers/addrs
+		{
+			Prefix: datastore.NewKey("/peers/addrs"),
+			Datastore: ddbds.New(
+				ddbClient,
+				tables.addrs,
+				ddbds.WithPartitionkey("PeerID"),
+			),
+		},
+		// puts on /peers/keys/<peerid>/priv and /peers/keys/<peerid>/pub
+		// queries on /peers/keys
+		{
+			Prefix: datastore.NewKey("/peers/keys"),
+			Datastore: ddbds.New(
+				ddbClient,
+				tables.keys,
+				ddbds.WithPartitionkey("PeerID"),
+			),
+		},
+	})
+	pstore, err := pstoreds.NewPeerstore(ctx, ds, pstoreds.DefaultOpts())
+	if err != nil {
+		return nil, fmt.Errorf("failed to create DynamoDB peerstore: %w", err)
+	}
+	return pstore, nil
 }
 
 // GetUniquePeersCount retrieves the current total for unique peers

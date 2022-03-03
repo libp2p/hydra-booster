@@ -3,6 +3,7 @@ module github.com/libp2p/hydra-booster
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.3.0
 	github.com/alanshaw/prom-metrics-client v0.3.0
+	github.com/aws/aws-sdk-go v1.43.1
 	github.com/aws/aws-sdk-go-v2 v1.13.0
 	github.com/aws/aws-sdk-go-v2/config v1.12.0
 	github.com/aws/aws-sdk-go-v2/credentials v1.7.0
@@ -14,6 +15,7 @@ require (
 	github.com/go-kit/log v0.2.0
 	github.com/gopherjs/gopherjs v0.0.0-20190812055157-5d271430af9f // indirect
 	github.com/gorilla/mux v1.8.0
+	github.com/guseggert/go-ds-dynamodb v0.0.0-20220302171230-f90d2c5f38c6
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hnlq715/golang-lru v0.2.1-0.20200422024707-82ba7badf9a6
 	github.com/ipfs/go-cid v0.0.7
@@ -48,8 +50,6 @@ require (
 	github.com/whyrusleeping/timecache v0.0.0-20160911033111-cfcb2f1abfee
 	go.opencensus.io v0.23.0
 	golang.org/x/crypto v0.0.0-20210813211128-0a44fdfbc16e
-	golang.org/x/lint v0.0.0-20201208152925-83fdc39ff7b5 // indirect
-	golang.org/x/net v0.0.0-20211216030914-fe4d6282115f // indirect
 )
 
 go 1.16
