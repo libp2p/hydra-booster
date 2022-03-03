@@ -108,3 +108,21 @@ func NewUniquePeersTask(getUniquePeersCount func() uint64, d time.Duration) peri
 		},
 	}
 }
+
+type entryCounter interface {
+	EntryCount(context.Context) (uint64, error)
+}
+
+func NewIPNSRecordsTask(c entryCounter, d time.Duration) periodictasks.PeriodicTask {
+	return periodictasks.PeriodicTask{
+		Interval: d,
+		Run: func(ctx context.Context) error {
+			count, err := c.EntryCount(ctx)
+			if err != nil {
+				return err
+			}
+			stats.Record(ctx, metrics.IPNSRecords.M(int64(count)))
+			return nil
+		},
+	}
+}

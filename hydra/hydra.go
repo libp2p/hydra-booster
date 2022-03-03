@@ -15,7 +15,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws/retry"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go/aws/session"
+	ddbv1 "github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/axiomhq/hyperloglog"
+	ddbds "github.com/guseggert/go-ds-dynamodb"
 	"github.com/ipfs/go-datastore"
 	leveldb "github.com/ipfs/go-ds-leveldb"
 	"github.com/libp2p/go-libp2p-core/host"
@@ -40,8 +43,9 @@ import (
 // Default intervals between periodic task runs, more cpu/memory intensive tasks are run less frequently
 // TODO: expose these as command line options?
 const (
-	routingTableSizeTaskInterval = time.Second * 5
-	uniquePeersTaskInterval      = time.Second * 5
+	routingTableSizeTaskInterval = 5 * time.Second
+	uniquePeersTaskInterval      = 5 * time.Second
+	ipnsRecordsTaskInterval      = 15 * time.Minute
 )
 
 // Hydra is a container for heads and their shared belly bits.
@@ -94,6 +98,17 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	if strings.HasPrefix(options.DatastorePath, "postgresql://") {
 		fmt.Fprintf(os.Stderr, "🐘 Using PostgreSQL datastore\n")
 		ds, err = hyds.NewPostgreSQLDatastore(ctx, options.DatastorePath, !options.DisableDBCreate)
+	} else if strings.HasPrefix(options.DatastorePath, "dynamodb://") {
+		optsStr := strings.TrimPrefix(options.DatastorePath, "dynamodb://")
+		table, err := parseDDBTable(optsStr)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Fprintf(os.Stderr, "Using DynamoDB datastore with table '%s'\n", table)
+		ddbClient := ddbv1.New(session.Must(session.NewSession()))
+		ddbDS := ddbds.New(ddbClient, table, ddbds.WithScanParallelism(5))
+		ds = ddbDS
+		periodictasks.RunTasks(ctx, []periodictasks.PeriodicTask{metricstasks.NewIPNSRecordsTask(ddbDS, ipnsRecordsTaskInterval)})
 	} else {
 		fmt.Fprintf(os.Stderr, "🥞 Using LevelDB datastore\n")
 		ds, err = leveldb.NewDatastore(options.DatastorePath, nil)
@@ -242,9 +257,9 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 }
 
 func newProviderStoreBuilder(ctx context.Context, options Options) (opts.ProviderStoreBuilderFunc, error) {
-	if strings.HasPrefix(options.ProviderStore, "dynamodb,") {
+	if strings.HasPrefix(options.ProviderStore, "dynamodb://") {
 		// dynamodb,table=<table>,ttl=<ttl>,queryLimit=<queryLimit>
-		ddbOpts, err := utils.ParseOptsString(strings.TrimPrefix(options.ProviderStore, "dynamodb,"))
+		ddbOpts, err := utils.ParseOptsString(strings.TrimPrefix(options.ProviderStore, "dynamodb://"))
 		if err != nil {
 			return nil, fmt.Errorf("parsing DynamoDB config string: %w", err)
 		}
@@ -300,6 +315,18 @@ func handleBootstrapStatus(ctx context.Context, ch chan head.BootstrapStatus) {
 			stats.Record(ctx, metrics.BootstrappedHeads.M(1))
 		}
 	}
+}
+
+func parseDDBTable(optsStr string) (string, error) {
+	opts, err := utils.ParseOptsString(optsStr)
+	if err != nil {
+		return "", fmt.Errorf("parsing DynamoDB config string: %w", err)
+	}
+	table, ok := opts["table"]
+	if !ok {
+		return "", errors.New("must specify table in DynamoDB opts string")
+	}
+	return table, nil
 }
 
 // GetUniquePeersCount retrieves the current total for unique peers

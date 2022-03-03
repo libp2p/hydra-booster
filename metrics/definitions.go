@@ -32,6 +32,7 @@ var (
 	ConnectedPeers        = stats.Int64("connected_peers", "Peers connected to all heads", stats.UnitDimensionless)
 	UniquePeers           = stats.Int64("unique_peers_total", "Total unique peers seen across all heads", stats.UnitDimensionless)
 	RoutingTableSize      = stats.Int64("routing_table_size", "Number of peers in the routing table", stats.UnitDimensionless)
+	IPNSRecords           = stats.Int64("ipns_records", "Number of IPNS records in the IPNS datastore", stats.UnitDimensionless)
 	ProviderRecords       = stats.Int64("provider_records", "Number of provider records in the datastore shared by all heads", stats.UnitDimensionless)
 	ProviderRecordsPerKey = stats.Int64("provider_records_per_key", "Number of provider records returned per key", stats.UnitDimensionless)
 	// Augmented with "status" label:
@@ -91,6 +92,11 @@ var (
 	}
 	RoutingTableSizeView = &view.View{
 		Measure:     RoutingTableSize,
+		TagKeys:     []tag.Key{KeyName},
+		Aggregation: view.LastValue(),
+	}
+	IPNSRecordsView = &view.View{
+		Measure:     IPNSRecords,
 		TagKeys:     []tag.Key{KeyName},
 		Aggregation: view.LastValue(),
 	}
@@ -234,6 +240,7 @@ var DefaultViews = []*view.View{
 	ConnectedPeersView,
 	UniquePeersView,
 	RoutingTableSizeView,
+	IPNSRecordsView,
 	ProviderRecordsView,
 	STIFindProvsView,
 	STIFindProvsDurationView,
