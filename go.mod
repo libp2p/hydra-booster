@@ -15,12 +15,12 @@ require (
 	github.com/go-kit/log v0.2.0
 	github.com/gopherjs/gopherjs v0.0.0-20190812055157-5d271430af9f // indirect
 	github.com/gorilla/mux v1.8.0
-	github.com/guseggert/go-ds-dynamodb v0.0.0-20220304162827-e7d473330642
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hnlq715/golang-lru v0.2.1-0.20200422024707-82ba7badf9a6
 	github.com/ipfs/go-cid v0.0.7
 	github.com/ipfs/go-datastore v0.5.1
 	github.com/ipfs/go-delegated-routing v0.1.3
+	github.com/ipfs/go-ds-dynamodb v0.1.0
 	github.com/ipfs/go-ds-leveldb v0.5.0
 	github.com/ipfs/go-ipfs-util v0.0.2
 	github.com/ipfs/go-ipns v0.1.2
