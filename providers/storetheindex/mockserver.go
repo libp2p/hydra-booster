@@ -36,7 +36,10 @@ func (m *mockServer) ServeHTTP(writer http.ResponseWriter, request *http.Request
 
 	provResults := []indexProviderResult{}
 	for _, ai := range ais {
-		provResults = append(provResults, indexProviderResult{Provider: ai})
+		provResults = append(provResults, indexProviderResult{
+			Metadata: bitswapPrefix,
+			Provider: ai,
+		})
 	}
 
 	resp := indexFindResponse{
