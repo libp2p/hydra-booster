@@ -1,6 +1,7 @@
 package storetheindex
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -13,11 +14,16 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/hydra-booster/metrics"
 	"github.com/multiformats/go-multihash"
+	"github.com/multiformats/go-varint"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 )
 
 var log = logging.Logger("hydra/storetheindex")
+
+const bitswap = 0x900
+
+var bitswapPrefix = varint.ToUvarint(bitswap)
 
 func (c *client) FindProviders(ctx context.Context, mh multihash.Multihash) ([]peer.AddrInfo, error) {
 	httpStatusCode := 0
@@ -64,9 +70,11 @@ func (c *client) FindProviders(ctx context.Context, mh multihash.Multihash) ([]p
 	if len(parsedResponse.MultihashResults) != 1 {
 		return nil, fmt.Errorf("unexpected number of responses")
 	}
-	result := make([]peer.AddrInfo, len(parsedResponse.MultihashResults[0].ProviderResults))
+	result := make([]peer.AddrInfo, 0, len(parsedResponse.MultihashResults[0].ProviderResults))
 	for _, m := range parsedResponse.MultihashResults[0].ProviderResults {
-		result = append(result, m.Provider)
+		if bytes.HasPrefix(m.Metadata, bitswapPrefix) {
+			result = append(result, m.Provider)
+		}
 	}
 
 	return result, nil
@@ -82,6 +90,7 @@ type indexMultihashResult struct {
 }
 
 type indexProviderResult struct {
+	Metadata []byte
 	Provider peer.AddrInfo
 }
 
