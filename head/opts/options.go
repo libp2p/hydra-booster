@@ -24,7 +24,7 @@ type Options struct {
 	Datastore            ds.Batching
 	Peerstore            peerstore.Peerstore
 	ProviderStoreBuilder ProviderStoreBuilderFunc
-	StoreTheIndexAddr    string
+	ReframeAddr          string
 	DelegateHTTPClient   *http.Client
 	RoutingTable         *kbucket.RoutingTable
 	EnableRelay          bool
@@ -99,11 +99,11 @@ func DelegateHTTPClient(c *http.Client) Option {
 	}
 }
 
-// StoreTheIndexAddr configures the Hydra Head to delegate routing also to this storetheindex addr.
+// ReframeAddr configures the Hydra Head to delegate routing also to this storetheindex addr.
 // Defaults to empty string which indicates no delegation.
-func StoreTheIndexAddr(addr string) Option {
+func ReframeAddr(addr string) Option {
 	return func(o *Options) error {
-		o.StoreTheIndexAddr = addr
+		o.ReframeAddr = addr
 		return nil
 	}
 }
