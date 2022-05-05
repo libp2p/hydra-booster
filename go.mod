@@ -36,6 +36,7 @@ require (
 	github.com/libp2p/go-libp2p-peerstore v0.6.0
 	github.com/libp2p/go-libp2p-quic-transport v0.15.2
 	github.com/libp2p/go-libp2p-record v0.1.3
+	github.com/libp2p/go-libp2p-routing v0.1.0
 	github.com/libp2p/go-libp2p-tls v0.3.1
 	github.com/libp2p/go-tcp-transport v0.4.0
 	github.com/multiformats/go-multiaddr v0.5.0
@@ -51,6 +52,7 @@ require (
 	github.com/whyrusleeping/timecache v0.0.0-20160911033111-cfcb2f1abfee
 	go.opencensus.io v0.23.0
 	golang.org/x/crypto v0.0.0-20210813211128-0a44fdfbc16e
+	google.golang.org/appengine v1.6.6
 )
 
 go 1.16

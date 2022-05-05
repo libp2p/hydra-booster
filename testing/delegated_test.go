@@ -19,7 +19,7 @@ import (
 	"github.com/libp2p/go-tcp-transport"
 	"github.com/libp2p/hydra-booster/head"
 	"github.com/libp2p/hydra-booster/head/opts"
-	"github.com/libp2p/hydra-booster/providers/storetheindex"
+	"github.com/libp2p/hydra-booster/testing/reframe"
 	"github.com/multiformats/go-multiaddr"
 	"github.com/stretchr/testify/require"
 )
@@ -29,7 +29,7 @@ func TestDelegatedRoutingEndToEnd(t *testing.T) {
 	fmt.Printf("cid: %s\n", key.String())
 	// start mock delegated routing server
 
-	mockServer := storetheindex.NewMockServer(map[cid.Cid][]peer.AddrInfo{
+	mockServer := reframe.NewMockServer(map[cid.Cid][]peer.AddrInfo{
 		key: {testAddrInfo},
 	})
 	s := httptest.NewServer(mockServer)
@@ -40,7 +40,7 @@ func TestDelegatedRoutingEndToEnd(t *testing.T) {
 	head, err := head.SpawnTestHead(
 		context.Background(),
 		opts.Addrs([]multiaddr.Multiaddr{headTcpAddr}),
-		opts.StoreTheIndexAddr(s.URL),
+		opts.ReframeAddr(s.URL),
 		opts.DelegateHTTPClient(&http.Client{Timeout: 1 * time.Second}),
 	)
 	if err != nil {
