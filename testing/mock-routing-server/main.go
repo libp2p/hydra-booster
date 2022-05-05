@@ -9,6 +9,7 @@ import (
 	"github.com/ipfs/go-delegated-routing/server"
 	logging "github.com/ipfs/go-log"
 	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p-core/routing"
 )
 
 var log = logging.Logger("hydra/test-routing-server")
@@ -28,7 +29,7 @@ func main() {
 	log.Info("starting test routing server")
 
 	mx := http.NewServeMux()
-	mx.HandleFunc(*httpAPIPath, server.FindProvidersAsyncHandler(testFindProvidersAsyncFunc))
+	mx.HandleFunc(*httpAPIPath, server.DelegatedRoutingAsyncHandler(mockServer{}))
 
 	s := &http.Server{
 		Addr:    *httpAPIAddr,
@@ -38,13 +39,16 @@ func main() {
 	log.Errorf("server died with error (%v)", err)
 }
 
-// testFindProvidersAsyncFunc fulfills find provider requests by returning no results.
+type mockServer struct{}
+
+// FindProviders fulfills find provider requests by returning no results.
 // NOTE: Since it is intended to run in production, as a placeholder delegated routing server for hydra,
 // we probably don't want to return any results as this would:
 //	(a) degrade user experience by pointing to an unresponsive destination
 //	(b) create heavy connection request load (from clients trying to download content) in some IP network.
 //	This could be a problem, if this system is not ours.
-func testFindProvidersAsyncFunc(key cid.Cid, ch chan<- client.FindProvidersAsyncResult) error {
+func (mockServer) FindProviders(key cid.Cid) (<-chan client.FindProvidersAsyncResult, error) {
+	ch := make(chan client.FindProvidersAsyncResult)
 	// ma := multiaddr.StringCast("/ip4/7.7.7.7/tcp/4242/p2p/QmYyQSo1c1Ym7orWxLYvCrM2EmxFTANf8wXmmE7DWjhx5N")
 	// ai, err := peer.AddrInfoFromP2pAddr(ma)
 	// if err != nil {
@@ -55,5 +59,13 @@ func testFindProvidersAsyncFunc(key cid.Cid, ch chan<- client.FindProvidersAsync
 		ch <- client.FindProvidersAsyncResult{AddrInfo: []peer.AddrInfo{ /* *ai */ }}
 		close(ch)
 	}()
-	return nil
+	return ch, nil
+}
+
+func (mockServer) GetIPNS(id []byte) (<-chan client.GetIPNSAsyncResult, error) {
+	return nil, routing.ErrNotSupported
+}
+
+func (mockServer) PutIPNS(id []byte, record []byte) (<-chan client.PutIPNSAsyncResult, error) {
+	return nil, routing.ErrNotSupported
 }
