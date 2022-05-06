@@ -27,8 +27,8 @@ import (
 func TestDelegatedRoutingEndToEnd(t *testing.T) {
 	key := cid.NewCidV0(ipfsutil.Hash([]byte("testkey")))
 	fmt.Printf("cid: %s\n", key.String())
-	// start mock delegated routing server
 
+	// start mock delegated routing server
 	mockServer := reframe.NewMockServer(map[cid.Cid][]peer.AddrInfo{
 		key: {testAddrInfo},
 	})
