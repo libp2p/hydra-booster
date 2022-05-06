@@ -19,7 +19,7 @@ require (
 	github.com/hnlq715/golang-lru v0.2.1-0.20200422024707-82ba7badf9a6
 	github.com/ipfs/go-cid v0.0.7
 	github.com/ipfs/go-datastore v0.5.1
-	github.com/ipfs/go-delegated-routing v0.1.3
+	github.com/ipfs/go-delegated-routing v0.1.4-0.20220504205146-3325fa287956
 	github.com/ipfs/go-ds-dynamodb v0.1.0
 	github.com/ipfs/go-ds-leveldb v0.5.0
 	github.com/ipfs/go-ipfs-util v0.0.2
@@ -36,11 +36,12 @@ require (
 	github.com/libp2p/go-libp2p-peerstore v0.6.0
 	github.com/libp2p/go-libp2p-quic-transport v0.15.2
 	github.com/libp2p/go-libp2p-record v0.1.3
+	github.com/libp2p/go-libp2p-routing v0.1.0
 	github.com/libp2p/go-libp2p-tls v0.3.1
 	github.com/libp2p/go-tcp-transport v0.4.0
-	github.com/multiformats/go-multiaddr v0.4.0
+	github.com/multiformats/go-multiaddr v0.5.0
 	github.com/multiformats/go-multicodec v0.4.0
-	github.com/multiformats/go-multihash v0.0.15
+	github.com/multiformats/go-multihash v0.1.0
 	github.com/multiformats/go-varint v0.0.6
 	github.com/ncabatoff/process-exporter v0.7.10
 	github.com/prometheus/client_golang v1.11.0
@@ -51,6 +52,7 @@ require (
 	github.com/whyrusleeping/timecache v0.0.0-20160911033111-cfcb2f1abfee
 	go.opencensus.io v0.23.0
 	golang.org/x/crypto v0.0.0-20210813211128-0a44fdfbc16e
+	google.golang.org/appengine v1.6.6
 )
 
 go 1.16

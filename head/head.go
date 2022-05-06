@@ -140,33 +140,33 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 	}
 
 	var cachingProviderStore *hproviders.CachingProviderStore
-	if cfg.ProvidersFinder != nil && cfg.StoreTheIndexAddr == "" {
+	if cfg.ProvidersFinder != nil && cfg.ReframeAddr == "" {
 		providerStore = hproviders.NewCachingProviderStore(providerStore, providerStore, cfg.ProvidersFinder, nil)
 	}
-	if cfg.ProvidersFinder != nil && cfg.StoreTheIndexAddr != "" {
-		stiProviderStore, err := hproviders.NewStoreTheIndexProviderStore(cfg.DelegateHTTPClient, cfg.StoreTheIndexAddr)
+	if cfg.ProvidersFinder != nil && cfg.ReframeAddr != "" {
+		reframeProviderStore, err := hproviders.NewReframeProviderStore(cfg.DelegateHTTPClient, cfg.ReframeAddr)
 		if err != nil {
-			return nil, nil, fmt.Errorf("creating StoreTheIndex providerstore: %w", err)
+			return nil, nil, fmt.Errorf("creating Reframe providerstore: %w", err)
 		}
 
 		cachingProviderStore = hproviders.NewCachingProviderStore(
-			hproviders.CombineProviders(providerStore, stiProviderStore),
+			hproviders.CombineProviders(providerStore, reframeProviderStore),
 			providerStore,
 			cfg.ProvidersFinder,
 			nil,
 		)
 
 		// we still want to use the caching provider store instead of the provider store directly b/c it publishes cache metrics
-		fmt.Printf("Will delegate to %v with timeout %v.\n", cfg.StoreTheIndexAddr, cfg.DelegateHTTPClient.Timeout)
+		fmt.Printf("Will delegate to %v with timeout %v.\n", cfg.ReframeAddr, cfg.DelegateHTTPClient.Timeout)
 		providerStore = cachingProviderStore
 	}
-	if cfg.ProvidersFinder == nil && cfg.StoreTheIndexAddr != "" {
-		stiPS, err := hproviders.NewStoreTheIndexProviderStore(cfg.DelegateHTTPClient, cfg.StoreTheIndexAddr)
+	if cfg.ProvidersFinder == nil && cfg.ReframeAddr != "" {
+		reframePS, err := hproviders.NewReframeProviderStore(cfg.DelegateHTTPClient, cfg.ReframeAddr)
 		if err != nil {
-			return nil, nil, fmt.Errorf("creating StoreTheIndex provider store: %w", err)
+			return nil, nil, fmt.Errorf("creating Reframe provider store: %w", err)
 		}
-		fmt.Printf("Will delegate to %v with timeout %v.\n", cfg.StoreTheIndexAddr, cfg.DelegateHTTPClient.Timeout)
-		providerStore = stiPS
+		fmt.Printf("Will delegate to %v with timeout %v.\n", cfg.ReframeAddr, cfg.DelegateHTTPClient.Timeout)
+		providerStore = reframePS
 	}
 
 	dhtOpts = append(dhtOpts, dht.ProviderStore(providerStore))
