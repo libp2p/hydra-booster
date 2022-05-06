@@ -14,7 +14,12 @@ import (
 var log = logging.Logger("hydra/test-reframe-server")
 
 func NewMockServer(index map[cid.Cid][]peer.AddrInfo) http.HandlerFunc {
-	return server.DelegatedRoutingAsyncHandler(MockServer{Index: index})
+	// rewrite the cids to v1/raw, because reframe sends v1/raw cids on the wire
+	index2 := map[cid.Cid][]peer.AddrInfo{}
+	for k, v := range index {
+		index2[cid.NewCidV1(cid.Raw, k.Hash())] = v
+	}
+	return server.DelegatedRoutingAsyncHandler(MockServer{Index: index2})
 }
 
 type MockServer struct {
