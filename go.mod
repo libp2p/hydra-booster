@@ -19,7 +19,7 @@ require (
 	github.com/hnlq715/golang-lru v0.2.1-0.20200422024707-82ba7badf9a6
 	github.com/ipfs/go-cid v0.0.7
 	github.com/ipfs/go-datastore v0.5.1
-	github.com/ipfs/go-delegated-routing v0.2.0
+	github.com/ipfs/go-delegated-routing v0.2.1
 	github.com/ipfs/go-ds-dynamodb v0.1.0
 	github.com/ipfs/go-ds-leveldb v0.5.0
 	github.com/ipfs/go-ipfs-util v0.0.2
@@ -52,7 +52,6 @@ require (
 	github.com/whyrusleeping/timecache v0.0.0-20160911033111-cfcb2f1abfee
 	go.opencensus.io v0.23.0
 	golang.org/x/crypto v0.0.0-20210813211128-0a44fdfbc16e
-	google.golang.org/appengine v1.6.6
 )
 
 go 1.16

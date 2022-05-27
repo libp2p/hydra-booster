@@ -4,12 +4,16 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-delegated-routing/client"
 	"github.com/ipfs/go-delegated-routing/gen/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/hydra-booster/metrics"
 	"github.com/multiformats/go-multihash"
+	"go.opencensus.io/stats"
+	"go.opencensus.io/tag"
 )
 
 func NewReframeProviderStore(httpClient *http.Client, endpointURL string) (*reframeProvider, error) {
@@ -36,5 +40,23 @@ func (x *reframeProvider) GetProviders(ctx context.Context, key []byte) ([]peer.
 		return nil, err
 	}
 	cid1 := cid.NewCidV1(cid.Raw, mh)
-	return x.reframe.FindProviders(ctx, cid1)
+	start := time.Now()
+	peers, err := x.reframe.FindProviders(ctx, cid1)
+	if err != nil {
+		recordReframeFindProvsComplete(ctx, "reframe server returned an error", time.Since(start))
+	} else {
+		recordReframeFindProvsComplete(ctx, "success", time.Since(start))
+	}
+	return peers, err
+}
+
+func recordReframeFindProvsComplete(ctx context.Context, status string, duration time.Duration) {
+	stats.RecordWithTags(
+		ctx,
+		[]tag.Mutator{tag.Upsert(metrics.KeyStatus, status)},
+		[]stats.Measurement{
+			metrics.STIFindProvs.M(1),
+			metrics.STIFindProvsDuration.M(float64(duration)),
+		}...,
+	)
 }
