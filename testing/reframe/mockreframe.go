@@ -1,6 +1,7 @@
 package reframe
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/ipfs/go-cid"
@@ -26,7 +27,7 @@ type MockServer struct {
 	Index map[cid.Cid][]peer.AddrInfo
 }
 
-func (x MockServer) FindProviders(key cid.Cid) (<-chan client.FindProvidersAsyncResult, error) {
+func (x MockServer) FindProviders(ctx context.Context, key cid.Cid) (<-chan client.FindProvidersAsyncResult, error) {
 	ch := make(chan client.FindProvidersAsyncResult)
 	log.Infof("serving find providers request for %v", key.String())
 	go func() {
@@ -36,10 +37,10 @@ func (x MockServer) FindProviders(key cid.Cid) (<-chan client.FindProvidersAsync
 	return ch, nil
 }
 
-func (x MockServer) GetIPNS(id []byte) (<-chan client.GetIPNSAsyncResult, error) {
+func (x MockServer) GetIPNS(ctx context.Context, id []byte) (<-chan client.GetIPNSAsyncResult, error) {
 	return nil, routing.ErrNotSupported
 }
 
-func (x MockServer) PutIPNS(id []byte, record []byte) (<-chan client.PutIPNSAsyncResult, error) {
+func (x MockServer) PutIPNS(ctx context.Context, id []byte, record []byte) (<-chan client.PutIPNSAsyncResult, error) {
 	return nil, routing.ErrNotSupported
 }
