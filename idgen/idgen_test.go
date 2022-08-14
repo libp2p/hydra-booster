@@ -12,14 +12,14 @@ func TestBalancedGeneration(t *testing.T) {
 	genBalanced := NewBalancedIdentityGenerator()
 	for i := 0; i < N; i++ {
 		if _, err := genBalanced.AddBalanced(); err != nil {
-			t.Errorf("adding balanced ID, %w", err)
+			t.Errorf("adding balanced ID, %s", err)
 		}
 	}
 
 	genUnbalanced := NewBalancedIdentityGenerator()
 	for i := 0; i < N; i++ {
 		if _, err := genUnbalanced.AddUnbalanced(); err != nil {
-			t.Errorf("adding unbalanced ID, %w", err)
+			t.Errorf("adding unbalanced ID, %s", err)
 		}
 	}
 
