@@ -2,13 +2,16 @@ package providers
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"time"
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-delegated-routing/client"
 	"github.com/ipfs/go-delegated-routing/gen/proto"
+	"github.com/ipld/edelweiss/services"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/hydra-booster/metrics"
 	"github.com/multiformats/go-multihash"
@@ -43,11 +46,58 @@ func (x *reframeProvider) GetProviders(ctx context.Context, key []byte) ([]peer.
 	start := time.Now()
 	peers, err := x.reframe.FindProviders(ctx, cid1)
 	if err != nil {
-		recordReframeFindProvsComplete(ctx, "reframe server returned an error", time.Since(start))
+		log.Errorf("reframe error: %s", err)
+		recordReframeFindProvsComplete(ctx, metricsErrStr(err), time.Since(start))
 	} else {
-		recordReframeFindProvsComplete(ctx, "success", time.Since(start))
+		recordReframeFindProvsComplete(ctx, "Success", time.Since(start))
 	}
 	return peers, err
+}
+
+// metricsErrStr returns a string to use for recording metrics from an error.
+// We shouldn't use the error string itself as that can result in high-cardinality metrics.
+// For more specific root causing, check the logs.
+func metricsErrStr(err error) string {
+	if errors.Is(err, context.DeadlineExceeded) {
+		return "DeadlineExceeded"
+	}
+	if errors.Is(err, context.Canceled) {
+		return "Canceled"
+	}
+	if errors.Is(err, services.ErrSchema) {
+		return "Schema"
+	}
+
+	var serviceErr *services.ErrService
+	if errors.As(err, &serviceErr) {
+		return "Service"
+	}
+
+	var protoErr *services.ErrProto
+	if errors.As(err, &protoErr) {
+		return "Proto"
+	}
+
+	var dnsErr *net.DNSError
+	if errors.As(err, &dnsErr) {
+		if dnsErr.IsNotFound {
+			return "DNSNotFound"
+		}
+		if dnsErr.IsTimeout {
+			return "DNSTimeout"
+		}
+		return "DNS"
+	}
+
+	var netErr net.Error
+	if errors.As(err, &netErr) {
+		if netErr.Timeout() {
+			return "NetTimeout"
+		}
+		return "Net"
+	}
+
+	return "Other"
 }
 
 func recordReframeFindProvsComplete(ctx context.Context, status string, duration time.Duration) {
