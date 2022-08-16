@@ -22,10 +22,12 @@ import (
 	kbucket "github.com/libp2p/go-libp2p-kbucket"
 	noise "github.com/libp2p/go-libp2p-noise"
 	record "github.com/libp2p/go-libp2p-record"
+	rcmgr "github.com/libp2p/go-libp2p-resource-manager"
 	tls "github.com/libp2p/go-libp2p-tls"
 	quic "github.com/libp2p/go-libp2p/p2p/transport/quic"
 	tcp "github.com/libp2p/go-libp2p/p2p/transport/tcp"
 	"github.com/libp2p/hydra-booster/head/opts"
+	"github.com/libp2p/hydra-booster/metrics"
 	"github.com/libp2p/hydra-booster/metricstasks"
 	"github.com/libp2p/hydra-booster/periodictasks"
 	hproviders "github.com/libp2p/hydra-booster/providers"
@@ -70,6 +72,20 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		ua += "+relay"
 	}
 
+	limits := rcmgr.DefaultLimits
+	libp2p.SetDefaultServiceLimits(&limits)
+	rcmgrMetrics, err := metrics.CreateRcmgrMetrics(ctx)
+	if err != nil {
+		return nil, nil, fmt.Errorf("creating Resource Manager metrics: %w", err)
+	}
+	mgr, err := rcmgr.NewResourceManager(
+		rcmgr.NewFixedLimiter(limits.AutoScale()),
+		rcmgr.WithMetrics(rcmgrMetrics),
+	)
+	if err != nil {
+		return nil, nil, fmt.Errorf("constructing resource manager: %w", err)
+	}
+
 	libp2pOpts := []libp2p.Option{
 		libp2p.UserAgent(version.UserAgent),
 		libp2p.ListenAddrs(cfg.Addrs...),
@@ -82,6 +98,7 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		libp2p.Transport(tcp.NewTCPTransport),
 		libp2p.Security(tls.ID, tls.New),
 		libp2p.Security(noise.ID, noise.New),
+		libp2p.ResourceManager(mgr),
 	}
 	if cfg.Peerstore != nil {
 		libp2pOpts = append(libp2pOpts, libp2p.Peerstore(cfg.Peerstore))
