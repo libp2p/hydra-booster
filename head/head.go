@@ -141,7 +141,8 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 
 	var cachingProviderStore *hproviders.CachingProviderStore
 	if cfg.ProvidersFinder != nil && cfg.ReframeAddr == "" {
-		providerStore = hproviders.NewCachingProviderStore(providerStore, providerStore, cfg.ProvidersFinder, nil)
+		cachingProviderStore = hproviders.NewCachingProviderStore(providerStore, providerStore, cfg.ProvidersFinder, nil)
+		providerStore = cachingProviderStore
 	}
 	if cfg.ProvidersFinder != nil && cfg.ReframeAddr != "" {
 		reframeProviderStore, err := hproviders.NewReframeProviderStore(cfg.DelegateHTTPClient, cfg.ReframeAddr)
