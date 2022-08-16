@@ -23,6 +23,7 @@ import (
 	noise "github.com/libp2p/go-libp2p-noise"
 	record "github.com/libp2p/go-libp2p-record"
 	rcmgr "github.com/libp2p/go-libp2p-resource-manager"
+	"github.com/libp2p/go-libp2p-resource-manager/obs"
 	tls "github.com/libp2p/go-libp2p-tls"
 	quic "github.com/libp2p/go-libp2p/p2p/transport/quic"
 	tcp "github.com/libp2p/go-libp2p/p2p/transport/tcp"
@@ -72,6 +73,7 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		ua += "+relay"
 	}
 
+	// TODO: default to infinite limits, add flag for turning on limits (backwards compat)
 	limits := rcmgr.DefaultLimits
 	libp2p.SetDefaultServiceLimits(&limits)
 	rcmgrMetrics, err := metrics.CreateRcmgrMetrics(ctx)
@@ -80,6 +82,7 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 	}
 	mgr, err := rcmgr.NewResourceManager(
 		rcmgr.NewFixedLimiter(limits.AutoScale()),
+		rcmgr.WithTraceReporter(obs.StatsTraceReporter{}),
 		rcmgr.WithMetrics(rcmgrMetrics),
 	)
 	if err != nil {

@@ -45,6 +45,7 @@ func (r rcmgrMetrics) AllowConn(dir network.Direction, usefd bool) {
 			tag.Upsert(KeyUsesFD, strconv.FormatBool(usefd)),
 		},
 		RcmgrConnsAllowed.M(1),
+		RcmgrConnsBlocked.M(0),
 	)
 }
 
@@ -56,6 +57,7 @@ func (r rcmgrMetrics) BlockConn(dir network.Direction, usefd bool) {
 			tag.Upsert(KeyDirection, getDirection(dir)),
 			tag.Update(KeyUsesFD, strconv.FormatBool(usefd)),
 		},
+		RcmgrConnsAllowed.M(0),
 		RcmgrConnsBlocked.M(1),
 	)
 }
@@ -68,6 +70,7 @@ func (r rcmgrMetrics) AllowStream(_ peer.ID, dir network.Direction) {
 			tag.Upsert(KeyDirection, getDirection(dir)),
 		},
 		RcmgrStreamsAllowed.M(1),
+		RcmgrStreamsBlocked.M(0),
 	)
 }
 
@@ -78,6 +81,7 @@ func (r rcmgrMetrics) BlockStream(_ peer.ID, dir network.Direction) {
 			tag.Upsert(KeyName, r.name),
 			tag.Upsert(KeyDirection, getDirection(dir)),
 		},
+		RcmgrStreamsAllowed.M(0),
 		RcmgrStreamsBlocked.M(1),
 	)
 }
@@ -89,6 +93,7 @@ func (r rcmgrMetrics) AllowPeer(_ peer.ID) {
 			tag.Upsert(KeyName, r.name),
 		},
 		RcmgrPeersAllowed.M(1),
+		RcmgrPeersBlocked.M(0),
 	)
 }
 
@@ -98,6 +103,7 @@ func (r rcmgrMetrics) BlockPeer(_ peer.ID) {
 		[]tag.Mutator{
 			tag.Upsert(KeyName, r.name),
 		},
+		RcmgrPeersAllowed.M(0),
 		RcmgrPeersBlocked.M(1),
 	)
 }
@@ -110,6 +116,7 @@ func (r rcmgrMetrics) AllowProtocol(proto protocol.ID) {
 			tag.Upsert(KeyProtocol, string(proto)),
 		},
 		RcmgrProtocolsAllowed.M(1),
+		RcmgrProtocolsBlocked.M(0),
 	)
 }
 
@@ -120,6 +127,7 @@ func (r rcmgrMetrics) BlockProtocol(proto protocol.ID) {
 			tag.Upsert(KeyName, r.name),
 			tag.Upsert(KeyProtocol, string(proto)),
 		},
+		RcmgrProtocolsAllowed.M(0),
 		RcmgrProtocolsBlocked.M(1),
 	)
 }
@@ -140,9 +148,10 @@ func (r rcmgrMetrics) AllowService(svc string) {
 		context.Background(),
 		[]tag.Mutator{
 			tag.Upsert(KeyName, r.name),
-			tag.Upsert(KeyProtocol, svc),
+			tag.Upsert(KeyService, svc),
 		},
 		RcmgrServiceAllowed.M(1),
+		RcmgrServiceBlocked.M(0),
 	)
 }
 
@@ -151,8 +160,9 @@ func (r rcmgrMetrics) BlockService(svc string) {
 		context.Background(),
 		[]tag.Mutator{
 			tag.Upsert(KeyName, r.name),
-			tag.Upsert(KeyProtocol, svc),
+			tag.Upsert(KeyService, svc),
 		},
+		RcmgrServiceAllowed.M(0),
 		RcmgrServiceBlocked.M(1),
 	)
 }
@@ -162,7 +172,7 @@ func (r rcmgrMetrics) BlockServicePeer(svc string, _ peer.ID) {
 		context.Background(),
 		[]tag.Mutator{
 			tag.Upsert(KeyName, r.name),
-			tag.Upsert(KeyProtocol, svc),
+			tag.Upsert(KeyService, svc),
 		},
 		RcmgrServicePeersBlocked.M(1),
 	)
@@ -175,6 +185,7 @@ func (r rcmgrMetrics) AllowMemory(_ int) {
 			tag.Upsert(KeyName, r.name),
 		},
 		RcmgrMemoryAllowed.M(1),
+		RcmgrMemoryBlocked.M(0),
 	)
 }
 
@@ -184,6 +195,7 @@ func (r rcmgrMetrics) BlockMemory(_ int) {
 		[]tag.Mutator{
 			tag.Upsert(KeyName, r.name),
 		},
+		RcmgrMemoryAllowed.M(0),
 		RcmgrMemoryBlocked.M(1),
 	)
 }
