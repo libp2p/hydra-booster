@@ -15,6 +15,7 @@ import (
 	"github.com/libp2p/go-libp2p"
 	connmgr "github.com/libp2p/go-libp2p-connmgr"
 	"github.com/libp2p/go-libp2p-core/host"
+	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/routing"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
@@ -61,6 +62,35 @@ type Head struct {
 	Routing   routing.Routing
 }
 
+func buildRcmgr(ctx context.Context) (network.ResourceManager, error) {
+	// TODO: default to infinite limits, add flag for turning on limits (for backwards compat)
+
+	limits := rcmgr.DefaultLimits
+
+	limits.SystemBaseLimit.ConnsOutbound = 128
+	limits.SystemBaseLimit.ConnsInbound = 128
+	limits.SystemBaseLimit.Conns = 256
+	limits.SystemLimitIncrease.Conns = 1024
+	limits.SystemLimitIncrease.ConnsInbound = 1024
+	limits.SystemLimitIncrease.ConnsOutbound = 1024
+
+	libp2p.SetDefaultServiceLimits(&limits)
+	rcmgrMetrics, err := metrics.CreateRcmgrMetrics(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("creating Resource Manager metrics: %w", err)
+	}
+	mgr, err := rcmgr.NewResourceManager(
+		rcmgr.NewFixedLimiter(limits.AutoScale()),
+		rcmgr.WithTraceReporter(obs.StatsTraceReporter{}),
+		rcmgr.WithMetrics(rcmgrMetrics),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("constructing resource manager: %w", err)
+	}
+
+	return mgr, nil
+}
+
 // NewHead constructs a new Hydra Booster head node
 func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan BootstrapStatus, error) {
 	cfg := opts.Options{}
@@ -73,20 +103,9 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		ua += "+relay"
 	}
 
-	// TODO: default to infinite limits, add flag for turning on limits (backwards compat)
-	limits := rcmgr.DefaultLimits
-	libp2p.SetDefaultServiceLimits(&limits)
-	rcmgrMetrics, err := metrics.CreateRcmgrMetrics(ctx)
+	rm, err := buildRcmgr(ctx)
 	if err != nil {
-		return nil, nil, fmt.Errorf("creating Resource Manager metrics: %w", err)
-	}
-	mgr, err := rcmgr.NewResourceManager(
-		rcmgr.NewFixedLimiter(limits.AutoScale()),
-		rcmgr.WithTraceReporter(obs.StatsTraceReporter{}),
-		rcmgr.WithMetrics(rcmgrMetrics),
-	)
-	if err != nil {
-		return nil, nil, fmt.Errorf("constructing resource manager: %w", err)
+		return nil, nil, err
 	}
 
 	libp2pOpts := []libp2p.Option{
@@ -101,7 +120,7 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		libp2p.Transport(tcp.NewTCPTransport),
 		libp2p.Security(tls.ID, tls.New),
 		libp2p.Security(noise.ID, noise.New),
-		libp2p.ResourceManager(mgr),
+		libp2p.ResourceManager(rm),
 	}
 	if cfg.Peerstore != nil {
 		libp2pOpts = append(libp2pOpts, libp2p.Peerstore(cfg.Peerstore))
