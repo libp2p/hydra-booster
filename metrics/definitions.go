@@ -23,6 +23,12 @@ var (
 	KeyHTTPCode, _  = tag.NewKey("http_code")
 	KeyOperation, _ = tag.NewKey("operation")
 	KeyErrorCode, _ = tag.NewKey("err_code")
+
+	// Resource Manager Keys
+	KeyDirection, _ = tag.NewKey("direction")
+	KeyUsesFD, _    = tag.NewKey("uses_fd")
+	KeyProtocol, _  = tag.NewKey("protocol")
+	KeyService, _   = tag.NewKey("service")
 )
 
 // Measures
@@ -66,6 +72,22 @@ var (
 	AWSRequestDurationMillis = stats.Float64("aws_req_duration", "The time it took to make an AWS request and receive a response", stats.UnitMilliseconds)
 	AWSRequestRetries        = stats.Int64("aws_retries", "Retried requests to AWS", stats.UnitDimensionless)
 	ProviderDDBCollisions    = stats.Int64("prov_ddb_collisions", "Number of key collisions when writing provider records into DynamoDB", stats.UnitDimensionless)
+
+	// libp2p Resource Manager
+	RcmgrConnsAllowed         = stats.Int64("libp2p_rcmgr_conns_allowed_total", "Total number of connections allowed by Resource Manager", stats.UnitDimensionless)
+	RcmgrConnsBlocked         = stats.Int64("libp2p_rcmgr_conns_blocked_total", "Total number of connections blocked by Resource Manager", stats.UnitDimensionless)
+	RcmgrStreamsAllowed       = stats.Int64("libp2p_rcmgr_conns_allowed_total", "Total number of streams allowed by Resource Manager", stats.UnitDimensionless)
+	RcmgrStreamsBlocked       = stats.Int64("libp2p_rcmgr_conns_blocked_total", "Total number of streams blocked by Resource Manager", stats.UnitDimensionless)
+	RcmgrPeersAllowed         = stats.Int64("libp2p_rcmgr_peers_allowed_total", "Total number of peers allowed by Resource Manager", stats.UnitDimensionless)
+	RcmgrPeersBlocked         = stats.Int64("libp2p_rcmgr_peers_blocked_total", "Total number of peers blocked by Resource Manager", stats.UnitDimensionless)
+	RcmgrProtocolsAllowed     = stats.Int64("libp2p_rcmgr_protocols_allowed_total", "Total number of streams attached to a protocol allowed by Resource Manager", stats.UnitDimensionless)
+	RcmgrProtocolsBlocked     = stats.Int64("libp2p_rcmgr_protocols_blocked_total", "Total number of streams attached to a protocol blocked by Resource Manager", stats.UnitDimensionless)
+	RcmgrProtocolPeersBlocked = stats.Int64("libp2p_rcmgr_protocols_for_peer_blocked_total", "Total number of streams attached to a protocol for a specific peer blocked by Resource Manager", stats.UnitDimensionless)
+	RcmgrServiceAllowed       = stats.Int64("libp2p_rcmgr_service_allowed_total", "Total number of streams attached to a service allowed by Resource Manager", stats.UnitDimensionless)
+	RcmgrServiceBlocked       = stats.Int64("libp2p_rcmgr_service_blocked_total", "Total number of streams attached to a service blocked by Resource Manager", stats.UnitDimensionless)
+	RcmgrServicePeersBlocked  = stats.Int64("libp2p_rcmgr_service_for_peer_blocked_total", "Total number of streams attached to a service for a specific peer blocked by Resource Manager", stats.UnitDimensionless)
+	RcmgrMemoryAllowed        = stats.Int64("libp2p_rcmgr_memory_allocations_allowed_total", "Total number of memory allocations allowed by Resource Manager", stats.UnitDimensionless)
+	RcmgrMemoryBlocked        = stats.Int64("libp2p_rcmgr_memory_allocations_blocked_total", "Total number of memory allocations blocked by Resource Manager", stats.UnitDimensionless)
 )
 
 // Views
@@ -230,6 +252,76 @@ var (
 		TagKeys:     []tag.Key{dhtmetrics.KeyMessageType},
 		Aggregation: defaultBytesDistribution,
 	}
+	RcmgrConnsAllowedView = &view.View{
+		Measure:     RcmgrConnsAllowed,
+		TagKeys:     []tag.Key{KeyName, KeyDirection, KeyUsesFD},
+		Aggregation: view.Sum(),
+	}
+	RcmgrConnsBlockedView = &view.View{
+		Measure:     RcmgrConnsBlocked,
+		TagKeys:     []tag.Key{KeyName, KeyDirection, KeyUsesFD},
+		Aggregation: view.Sum(),
+	}
+	RcmgrStreamsAllowedView = &view.View{
+		Measure:     RcmgrStreamsAllowed,
+		TagKeys:     []tag.Key{KeyName, KeyDirection},
+		Aggregation: view.Sum(),
+	}
+	RcmgrStreamsBlockedView = &view.View{
+		Measure:     RcmgrStreamsBlocked,
+		TagKeys:     []tag.Key{KeyName, KeyDirection},
+		Aggregation: view.Sum(),
+	}
+	RcmgrPeersAllowedView = &view.View{
+		Measure:     RcmgrPeersAllowed,
+		TagKeys:     []tag.Key{KeyName},
+		Aggregation: view.Sum(),
+	}
+	RcmgrPeersBlockedView = &view.View{
+		Measure:     RcmgrPeersBlocked,
+		TagKeys:     []tag.Key{KeyName},
+		Aggregation: view.Sum(),
+	}
+	RcmgrProtocolsAllowedView = &view.View{
+		Measure:     RcmgrProtocolsAllowed,
+		TagKeys:     []tag.Key{KeyName, KeyProtocol},
+		Aggregation: view.Sum(),
+	}
+	RcmgrProtocolsBlockedView = &view.View{
+		Measure:     RcmgrProtocolsBlocked,
+		TagKeys:     []tag.Key{KeyName, KeyProtocol},
+		Aggregation: view.Sum(),
+	}
+	RcmgrProtocolPeersBlockedView = &view.View{
+		Measure:     RcmgrProtocolPeersBlocked,
+		TagKeys:     []tag.Key{KeyName, KeyProtocol},
+		Aggregation: view.Sum(),
+	}
+	RcmgrServiceAllowedView = &view.View{
+		Measure:     RcmgrServiceAllowed,
+		TagKeys:     []tag.Key{KeyName, KeyService},
+		Aggregation: view.Sum(),
+	}
+	RcmgrServiceBlockedView = &view.View{
+		Measure:     RcmgrServiceBlocked,
+		TagKeys:     []tag.Key{KeyName, KeyService},
+		Aggregation: view.Sum(),
+	}
+	RcmgrServicePeersBlockedView = &view.View{
+		Measure:     RcmgrServicePeersBlocked,
+		TagKeys:     []tag.Key{KeyName, KeyService},
+		Aggregation: view.Sum(),
+	}
+	RcmgrMemoryAllowedView = &view.View{
+		Measure:     RcmgrMemoryAllowed,
+		TagKeys:     []tag.Key{KeyName},
+		Aggregation: view.Sum(),
+	}
+	RcmgrMemoryBlockedView = &view.View{
+		Measure:     RcmgrMemoryBlocked,
+		TagKeys:     []tag.Key{KeyName},
+		Aggregation: view.Sum(),
+	}
 )
 
 // DefaultViews with all views in it.
@@ -268,4 +360,19 @@ var DefaultViews = []*view.View{
 	SentRequestsView,
 	SentRequestErrorsView,
 	SentBytesView,
+
+	RcmgrConnsAllowedView,
+	RcmgrConnsBlockedView,
+	RcmgrStreamsAllowedView,
+	RcmgrStreamsBlockedView,
+	RcmgrPeersAllowedView,
+	RcmgrPeersBlockedView,
+	RcmgrProtocolsAllowedView,
+	RcmgrProtocolsBlockedView,
+	RcmgrProtocolPeersBlockedView,
+	RcmgrServiceAllowedView,
+	RcmgrServiceBlockedView,
+	RcmgrServicePeersBlockedView,
+	RcmgrMemoryAllowedView,
+	RcmgrMemoryBlockedView,
 }
