@@ -2,6 +2,7 @@ package metrics
 
 import (
 	dhtmetrics "github.com/libp2p/go-libp2p-kad-dht/metrics"
+	"github.com/libp2p/go-libp2p-resource-manager/obs"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
@@ -76,8 +77,8 @@ var (
 	// libp2p Resource Manager
 	RcmgrConnsAllowed         = stats.Int64("libp2p_rcmgr_conns_allowed_total", "Total number of connections allowed by Resource Manager", stats.UnitDimensionless)
 	RcmgrConnsBlocked         = stats.Int64("libp2p_rcmgr_conns_blocked_total", "Total number of connections blocked by Resource Manager", stats.UnitDimensionless)
-	RcmgrStreamsAllowed       = stats.Int64("libp2p_rcmgr_conns_allowed_total", "Total number of streams allowed by Resource Manager", stats.UnitDimensionless)
-	RcmgrStreamsBlocked       = stats.Int64("libp2p_rcmgr_conns_blocked_total", "Total number of streams blocked by Resource Manager", stats.UnitDimensionless)
+	RcmgrStreamsAllowed       = stats.Int64("libp2p_rcmgr_streams_allowed_total", "Total number of streams allowed by Resource Manager", stats.UnitDimensionless)
+	RcmgrStreamsBlocked       = stats.Int64("libp2p_rcmgr_streams_blocked_total", "Total number of streams blocked by Resource Manager", stats.UnitDimensionless)
 	RcmgrPeersAllowed         = stats.Int64("libp2p_rcmgr_peers_allowed_total", "Total number of peers allowed by Resource Manager", stats.UnitDimensionless)
 	RcmgrPeersBlocked         = stats.Int64("libp2p_rcmgr_peers_blocked_total", "Total number of peers blocked by Resource Manager", stats.UnitDimensionless)
 	RcmgrProtocolsAllowed     = stats.Int64("libp2p_rcmgr_protocols_allowed_total", "Total number of streams attached to a protocol allowed by Resource Manager", stats.UnitDimensionless)
@@ -375,4 +376,9 @@ var DefaultViews = []*view.View{
 	RcmgrServicePeersBlockedView,
 	RcmgrMemoryAllowedView,
 	RcmgrMemoryBlockedView,
+}
+
+func init() {
+	// add Resource Manager views
+	DefaultViews = append(DefaultViews, obs.DefaultViews...)
 }
