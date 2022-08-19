@@ -62,6 +62,8 @@ func main() {
 	disablePrefetch := flag.Bool("disable-prefetch", false, "Disables pre-fetching of discovered provider records (default false).")
 	disableProvCounts := flag.Bool("disable-prov-counts", false, "Disable counting provider records for metrics reporting (default false).")
 	disableDBCreate := flag.Bool("disable-db-create", false, "Don't create table and index in the target database (default false).")
+	disableResourceManager := flag.Bool("disable-rcmgr", false, "Disable libp2p Resource Manager by configuring it with infinite limits (default false).")
+	resourceManagerLimits := flag.String("rcmgr-limits", "", "Resource Manager limits JSON config (default none).")
 	flag.Parse()
 
 	fmt.Fprintf(os.Stderr, "🐉 Hydra Booster starting up...\n")
@@ -119,6 +121,12 @@ func main() {
 	if *reframeAddr == "" {
 		*reframeAddr = os.Getenv("HYDRA_REFRAME_ADDR")
 	}
+	if !*disableResourceManager {
+		*disableResourceManager = mustGetEnvBool("DISABLE_RCMGR", false)
+	}
+	if *resourceManagerLimits == "" {
+		*resourceManagerLimits = os.Getenv("RCMGR_LIMITS")
+	}
 
 	// Allow short keys. Otherwise, we'll refuse connections from the bootsrappers and break the network.
 	// TODO: Remove this when we shut those bootstrappers down.
@@ -156,27 +164,29 @@ func main() {
 	}
 
 	opts := hydra.Options{
-		Name:              *name,
-		DatastorePath:     *dbpath,
-		PeerstorePath:     *pstorePath,
-		ProviderStore:     *providerStore,
-		DelegateTimeout:   time.Millisecond * time.Duration(*delegateTimeout),
-		ReframeAddr:       *reframeAddr,
-		EnableRelay:       *enableRelay,
-		ProtocolPrefix:    protocol.ID(*protocolPrefix),
-		BucketSize:        *bucketSize,
-		GetPort:           utils.PortSelector(*portBegin),
-		NHeads:            *nheads,
-		BsCon:             *bootstrapConcurrency,
-		Stagger:           *stagger,
-		IDGenerator:       idGenerator,
-		DisableProvGC:     *disableProvGC,
-		DisableProviders:  *disableProviders,
-		DisableValues:     *disableValues,
-		BootstrapPeers:    mustConvertToMultiaddr(*bootstrapPeers),
-		DisablePrefetch:   *disablePrefetch,
-		DisableProvCounts: *disableProvCounts,
-		DisableDBCreate:   *disableDBCreate,
+		Name:                      *name,
+		DatastorePath:             *dbpath,
+		PeerstorePath:             *pstorePath,
+		ProviderStore:             *providerStore,
+		DelegateTimeout:           time.Millisecond * time.Duration(*delegateTimeout),
+		ReframeAddr:               *reframeAddr,
+		EnableRelay:               *enableRelay,
+		ProtocolPrefix:            protocol.ID(*protocolPrefix),
+		BucketSize:                *bucketSize,
+		GetPort:                   utils.PortSelector(*portBegin),
+		NHeads:                    *nheads,
+		BsCon:                     *bootstrapConcurrency,
+		Stagger:                   *stagger,
+		IDGenerator:               idGenerator,
+		DisableProvGC:             *disableProvGC,
+		DisableProviders:          *disableProviders,
+		DisableValues:             *disableValues,
+		BootstrapPeers:            mustConvertToMultiaddr(*bootstrapPeers),
+		DisablePrefetch:           *disablePrefetch,
+		DisableProvCounts:         *disableProvCounts,
+		DisableDBCreate:           *disableDBCreate,
+		DisableResourceManager:    *disableResourceManager,
+		ResourceManagerLimitsFile: *resourceManagerLimits,
 	}
 
 	go func() {

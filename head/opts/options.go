@@ -21,24 +21,26 @@ type ProviderStoreBuilderFunc func(opts Options, host host.Host) (providers.Prov
 
 // Options are Hydra Head options
 type Options struct {
-	Datastore            ds.Batching
-	Peerstore            peerstore.Peerstore
-	ProviderStoreBuilder ProviderStoreBuilderFunc
-	ReframeAddr          string
-	DelegateHTTPClient   *http.Client
-	RoutingTable         *kbucket.RoutingTable
-	EnableRelay          bool
-	Addrs                []multiaddr.Multiaddr
-	ProtocolPrefix       protocol.ID
-	BucketSize           int
-	Limiter              chan struct{}
-	BootstrapPeers       []multiaddr.Multiaddr
-	ID                   crypto.PrivKey
-	DisableProvGC        bool
-	DisableProvCounts    bool
-	DisableProviders     bool
-	DisableValues        bool
-	ProvidersFinder      hproviders.ProvidersFinder
+	Datastore                 ds.Batching
+	Peerstore                 peerstore.Peerstore
+	ProviderStoreBuilder      ProviderStoreBuilderFunc
+	ReframeAddr               string
+	DelegateHTTPClient        *http.Client
+	RoutingTable              *kbucket.RoutingTable
+	EnableRelay               bool
+	Addrs                     []multiaddr.Multiaddr
+	ProtocolPrefix            protocol.ID
+	BucketSize                int
+	Limiter                   chan struct{}
+	BootstrapPeers            []multiaddr.Multiaddr
+	ID                        crypto.PrivKey
+	DisableProvGC             bool
+	DisableProvCounts         bool
+	DisableProviders          bool
+	DisableValues             bool
+	ProvidersFinder           hproviders.ProvidersFinder
+	DisableResourceManager    bool
+	ResourceManagerLimitsFile string
 }
 
 // Option is the Hydra Head option type.
@@ -225,6 +227,20 @@ func DisableProvCounts() Option {
 func ProvidersFinder(f hproviders.ProvidersFinder) Option {
 	return func(o *Options) error {
 		o.ProvidersFinder = f
+		return nil
+	}
+}
+
+func DisableResourceManager(b bool) Option {
+	return func(o *Options) error {
+		o.DisableResourceManager = b
+		return nil
+	}
+}
+
+func ResourceManagerLimitsFile(f string) Option {
+	return func(o *Options) error {
+		o.ResourceManagerLimitsFile = f
 		return nil
 	}
 }

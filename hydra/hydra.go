@@ -60,27 +60,29 @@ type Hydra struct {
 
 // Options are configuration for a new hydra.
 type Options struct {
-	Name              string
-	DatastorePath     string
-	PeerstorePath     string
-	ProviderStore     string
-	DelegateTimeout   time.Duration
-	ReframeAddr       string
-	GetPort           func() int
-	NHeads            int
-	ProtocolPrefix    protocol.ID
-	BucketSize        int
-	BsCon             int
-	EnableRelay       bool
-	Stagger           time.Duration
-	IDGenerator       idgen.IdentityGenerator
-	DisableProvGC     bool
-	DisableProviders  bool
-	DisableValues     bool
-	BootstrapPeers    []multiaddr.Multiaddr
-	DisablePrefetch   bool
-	DisableProvCounts bool
-	DisableDBCreate   bool
+	Name                      string
+	DatastorePath             string
+	PeerstorePath             string
+	ProviderStore             string
+	DelegateTimeout           time.Duration
+	ReframeAddr               string
+	GetPort                   func() int
+	NHeads                    int
+	ProtocolPrefix            protocol.ID
+	BucketSize                int
+	BsCon                     int
+	EnableRelay               bool
+	Stagger                   time.Duration
+	IDGenerator               idgen.IdentityGenerator
+	DisableProvGC             bool
+	DisableProviders          bool
+	DisableValues             bool
+	BootstrapPeers            []multiaddr.Multiaddr
+	DisablePrefetch           bool
+	DisableProvCounts         bool
+	DisableDBCreate           bool
+	DisableResourceManager    bool
+	ResourceManagerLimitsFile string
 }
 
 // NewHydra creates a new Hydra with the passed options.
@@ -169,6 +171,8 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 			opts.BootstrapPeers(options.BootstrapPeers),
 			opts.DelegateHTTPClient(delegateHTTPClient),
 			opts.ReframeAddr(options.ReframeAddr),
+			opts.DisableResourceManager(options.DisableResourceManager),
+			opts.ResourceManagerLimitsFile(options.ResourceManagerLimitsFile),
 		}
 		if options.EnableRelay {
 			hdOpts = append(hdOpts, opts.EnableRelay())
