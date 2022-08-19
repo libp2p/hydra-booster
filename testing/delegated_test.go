@@ -1,7 +1,6 @@
 package testing
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -35,10 +34,12 @@ func TestDelegatedRoutingEndToEnd(t *testing.T) {
 	s := httptest.NewServer(mockServer)
 	defer s.Close()
 
+	ctx := NewContext()
+
 	// start hydra head
 	headTcpAddr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", 35121))
 	head, err := head.SpawnTestHead(
-		context.Background(),
+		ctx,
 		opts.Addrs([]multiaddr.Multiaddr{headTcpAddr}),
 		opts.ReframeAddr(s.URL),
 		opts.DelegateHTTPClient(&http.Client{Timeout: 1 * time.Second}),
@@ -49,7 +50,6 @@ func TestDelegatedRoutingEndToEnd(t *testing.T) {
 	t.Logf("started hydra %v at %v", head.Host.ID(), headTcpAddr)
 
 	// create DHT client
-	dhtCtx := context.Background()
 	dhtOpts := []dht.Option{
 		// dht.NamespacedValidator("v", blankValidator{}),
 		dht.DisableAutoRefresh(),
@@ -64,12 +64,12 @@ func TestDelegatedRoutingEndToEnd(t *testing.T) {
 	require.NoError(t, err)
 	defer host.Close()
 
-	d, err := dht.New(dhtCtx, host, dhtOpts...)
+	d, err := dht.New(ctx, host, dhtOpts...)
 	require.NoError(t, err)
 	t.Logf("started dht %v", host.ID())
 
 	// add the hydra head to the DHT routing table
-	err = host.Connect(context.Background(), peer.AddrInfo{ID: head.Host.ID(), Addrs: head.Host.Addrs()})
+	err = host.Connect(ctx, peer.AddrInfo{ID: head.Host.ID(), Addrs: head.Host.Addrs()})
 	if err != nil {
 		t.Fatalf("connecting dht to head (%v)", err)
 	}
@@ -80,7 +80,7 @@ func TestDelegatedRoutingEndToEnd(t *testing.T) {
 	t.Logf("connected dht to hydra")
 
 	// query hydra head
-	infos, err := d.FindProviders(dhtCtx, key)
+	infos, err := d.FindProviders(ctx, key)
 	require.NoError(t, err)
 	if len(infos) < 1 {
 		t.Fatalf("expecting at least one provider, got %d: %v", len(infos), infos)

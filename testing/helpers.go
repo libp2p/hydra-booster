@@ -1,5 +1,11 @@
 package testing
 
+import (
+	"context"
+
+	"go.opencensus.io/tag"
+)
+
 // ChanWriter is a writer that writes to a channel
 type ChanWriter struct {
 	C chan []byte
@@ -16,4 +22,13 @@ func (w *ChanWriter) Write(p []byte) (int, error) {
 	copy(d, p)
 	w.C <- d
 	return len(p), nil
+}
+
+func NewContext() context.Context {
+	ctx := context.Background()
+	ctx, err := tag.New(ctx, tag.Upsert(tag.MustNewKey("name"), "test"))
+	if err != nil {
+		panic(err)
+	}
+	return ctx
 }

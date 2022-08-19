@@ -17,10 +17,11 @@ import (
 	"github.com/libp2p/hydra-booster/head"
 	"github.com/libp2p/hydra-booster/hydra"
 	"github.com/libp2p/hydra-booster/idgen"
+	hydratesting "github.com/libp2p/hydra-booster/testing"
 )
 
 func TestHTTPAPIHeads(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(hydratesting.NewContext())
 	defer cancel()
 
 	hds, err := head.SpawnTestHeads(ctx, 2)
@@ -71,7 +72,7 @@ func TestHTTPAPIHeads(t *testing.T) {
 }
 
 func TestHTTPAPIRecordsListWithoutRecords(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(hydratesting.NewContext())
 	defer cancel()
 
 	hds, err := head.SpawnTestHeads(ctx, 1)
@@ -113,7 +114,7 @@ func TestHTTPAPIRecordsListWithoutRecords(t *testing.T) {
 }
 
 func TestHTTPAPIRecordsFetch(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(hydratesting.NewContext())
 	defer cancel()
 
 	hds, err := head.SpawnTestHeads(ctx, 1)
@@ -195,7 +196,7 @@ func TestHTTPAPIRecordsFetch(t *testing.T) {
 }
 
 func TestHTTPAPIRecordsFetchErrorStates(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(hydratesting.NewContext())
 	defer cancel()
 
 	hds, err := head.SpawnTestHeads(ctx, 1)
@@ -383,7 +384,7 @@ type hostPeer struct {
 }
 
 func TestHTTPAPISwarmPeers(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(hydratesting.NewContext())
 	defer cancel()
 
 	hds, err := head.SpawnTestHeads(ctx, 2)
@@ -441,7 +442,7 @@ func TestHTTPAPISwarmPeers(t *testing.T) {
 }
 
 func TestHTTPAPISwarmPeersHeadFilter(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(hydratesting.NewContext())
 	defer cancel()
 
 	hds, err := head.SpawnTestHeads(ctx, 2)
