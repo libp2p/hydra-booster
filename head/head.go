@@ -62,25 +62,40 @@ type Head struct {
 	Routing   routing.Routing
 }
 
-func buildRcmgr(ctx context.Context) (network.ResourceManager, error) {
-	// TODO: default to infinite limits, add flag for turning on limits (for backwards compat)
+func buildRcmgr(ctx context.Context, disableRM bool, limitsFile string) (network.ResourceManager, error) {
+	var limiter rcmgr.Limiter
 
-	limits := rcmgr.DefaultLimits
+	if disableRM {
+		limiter = rcmgr.NewFixedLimiter(rcmgr.InfiniteLimits)
+	} else if limitsFile != "" {
+		f, err := os.Open(limitsFile)
+		if err != nil {
+			return nil, fmt.Errorf("opening Resource Manager limits file: %w", err)
+		}
+		limiter, err = rcmgr.NewDefaultLimiterFromJSON(f)
+		if err != nil {
+			return nil, fmt.Errorf("creating Resource Manager limiter: %w", err)
+		}
+	} else {
+		limits := rcmgr.DefaultLimits
 
-	limits.SystemBaseLimit.ConnsOutbound = 128
-	limits.SystemBaseLimit.ConnsInbound = 128
-	limits.SystemBaseLimit.Conns = 256
-	limits.SystemLimitIncrease.Conns = 1024
-	limits.SystemLimitIncrease.ConnsInbound = 1024
-	limits.SystemLimitIncrease.ConnsOutbound = 1024
+		limits.SystemBaseLimit.ConnsOutbound = 128
+		limits.SystemBaseLimit.ConnsInbound = 128
+		limits.SystemBaseLimit.Conns = 256
+		limits.SystemLimitIncrease.Conns = 1024
+		limits.SystemLimitIncrease.ConnsInbound = 1024
+		limits.SystemLimitIncrease.ConnsOutbound = 1024
+		libp2p.SetDefaultServiceLimits(&limits)
 
-	libp2p.SetDefaultServiceLimits(&limits)
+		limiter = rcmgr.NewFixedLimiter(limits.AutoScale())
+	}
+
 	rcmgrMetrics, err := metrics.CreateRcmgrMetrics(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("creating Resource Manager metrics: %w", err)
 	}
 	mgr, err := rcmgr.NewResourceManager(
-		rcmgr.NewFixedLimiter(limits.AutoScale()),
+		limiter,
 		rcmgr.WithTraceReporter(obs.StatsTraceReporter{}),
 		rcmgr.WithMetrics(rcmgrMetrics),
 	)
@@ -103,7 +118,7 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		ua += "+relay"
 	}
 
-	rm, err := buildRcmgr(ctx)
+	rm, err := buildRcmgr(ctx, cfg.DisableResourceManager, cfg.ResourceManagerLimitsFile)
 	if err != nil {
 		return nil, nil, err
 	}
