@@ -7,12 +7,13 @@ import (
 	"time"
 
 	"github.com/libp2p/go-libp2p-core/peer"
+	hydratesting "github.com/libp2p/hydra-booster/testing"
 	"github.com/libp2p/hydra-booster/utils"
 	"github.com/multiformats/go-multiaddr"
 )
 
 func TestSpawnHydra(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(hydratesting.NewContext())
 	defer cancel()
 
 	hy, err := NewHydra(ctx, Options{
@@ -30,7 +31,7 @@ func TestSpawnHydra(t *testing.T) {
 }
 
 func TestGetUniquePeersCount(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(hydratesting.NewContext())
 	defer cancel()
 
 	hy, err := NewHydra(ctx, Options{
@@ -64,7 +65,7 @@ func TestGetUniquePeersCount(t *testing.T) {
 }
 
 func TestSpawnHydraWithCustomProtocolPrefix(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(hydratesting.NewContext())
 	defer cancel()
 
 	hy, err := NewHydra(ctx, Options{
@@ -84,7 +85,7 @@ func TestSpawnHydraWithCustomProtocolPrefix(t *testing.T) {
 }
 
 func TestSpawnHydraWithPeerstorePath(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(hydratesting.NewContext())
 	defer cancel()
 
 	hy, err := NewHydra(ctx, Options{
