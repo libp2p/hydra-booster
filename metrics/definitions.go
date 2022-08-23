@@ -68,6 +68,7 @@ var (
 
 	STIFindProvs         = stats.Int64("sti_find_provs_total", "Total store the index find provider attempts that were found locally, or not found locally and succeeded, failed or were discarded", stats.UnitDimensionless)
 	STIFindProvsDuration = stats.Float64("sti_find_provs_duration_nanoseconds", "The time it took storetheindex finds from the network to succeed or fail because of timeout or completion", stats.UnitSeconds)
+	STIFindProvsLength   = stats.Int64("sti_find_provs_length", "Number of providers returned for successful responses", stats.UnitDimensionless)
 
 	AWSRequests              = stats.Int64("aws_reqs", "Requests made to AWS", stats.UnitDimensionless)
 	AWSRequestDurationMillis = stats.Float64("aws_req_duration", "The time it took to make an AWS request and receive a response", stats.UnitMilliseconds)
@@ -201,6 +202,11 @@ var (
 		Measure:     STIFindProvsDuration,
 		TagKeys:     []tag.Key{KeyName, KeyStatus},
 		Aggregation: view.Sum(),
+	}
+	STIFindProvsLengthView = &view.View{
+		Measure:     STIFindProvsLength,
+		TagKeys:     []tag.Key{KeyName},
+		Aggregation: defaultProvidersDistribution,
 	}
 	// DHT views
 	ReceivedMessagesView = &view.View{
