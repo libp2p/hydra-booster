@@ -36,13 +36,21 @@ func TestDelegatedRoutingEndToEnd(t *testing.T) {
 
 	ctx := NewContext()
 
+	// Increase per-host connection pool since we are making lots of concurrent requests to a small number of hosts.
+	httpTransport := http.DefaultTransport.(*http.Transport)
+	httpTransport.MaxIdleConns = 200
+	httpTransport.MaxIdleConnsPerHost = 100
+
 	// start hydra head
 	headTcpAddr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", 35121))
 	head, err := head.SpawnTestHead(
 		ctx,
 		opts.Addrs([]multiaddr.Multiaddr{headTcpAddr}),
 		opts.ReframeAddr(s.URL),
-		opts.DelegateHTTPClient(&http.Client{Timeout: 1 * time.Second}),
+		opts.DelegateHTTPClient(&http.Client{
+			Timeout:   5 * time.Second,
+			Transport: httpTransport,
+		}),
 	)
 	if err != nil {
 		t.Fatal(err)

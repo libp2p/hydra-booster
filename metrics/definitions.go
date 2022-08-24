@@ -343,6 +343,7 @@ var DefaultViews = []*view.View{
 	ProviderRecordsView,
 	STIFindProvsView,
 	STIFindProvsDurationView,
+	STIFindProvsLengthView,
 	ProviderRecordsPerKeyView,
 	PrefetchesView,
 	PrefetchDurationMillisView,
