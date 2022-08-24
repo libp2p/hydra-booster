@@ -146,8 +146,16 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	providersFinder := hproviders.NewAsyncProvidersFinder(5*time.Second, 1000, 1*time.Hour)
 	providersFinder.Run(ctx, 1000)
 
-	// reuse the HTTP client across all the heads
-	delegateHTTPClient := &http.Client{Timeout: options.DelegateTimeout}
+	// Increase per-host connection pool since we are making lots of concurrent requests to a small number of hosts.
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.MaxIdleConns = 500
+	transport.MaxIdleConnsPerHost = 100
+
+	// Reuse the HTTP client across all the heads.
+	delegateHTTPClient := &http.Client{
+		Timeout:   options.DelegateTimeout,
+		Transport: transport,
+	}
 
 	for i := 0; i < options.NHeads; i++ {
 		time.Sleep(options.Stagger)
