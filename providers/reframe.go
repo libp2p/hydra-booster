@@ -107,7 +107,7 @@ func recordReframeFindProvsComplete(ctx context.Context, status string, duration
 		[]tag.Mutator{tag.Upsert(metrics.KeyStatus, status)},
 		[]stats.Measurement{
 			metrics.STIFindProvs.M(1),
-			metrics.STIFindProvsDuration.M(float64(duration)),
+			metrics.STIFindProvsDuration.M(float64(duration.Milliseconds())),
 		}...,
 	)
 }

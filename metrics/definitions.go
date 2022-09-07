@@ -67,7 +67,7 @@ var (
 	DelegatedFindProvsDuration = stats.Float64("delegated_find_provs_duration", "The time it took delegated find provider attempts from the network to succeed or fail because of timeout or completion", stats.UnitMilliseconds)
 
 	STIFindProvs         = stats.Int64("sti_find_provs_total", "Total store the index find provider attempts that were found locally, or not found locally and succeeded, failed or were discarded", stats.UnitDimensionless)
-	STIFindProvsDuration = stats.Float64("sti_find_provs_duration_nanoseconds", "The time it took storetheindex finds from the network to succeed or fail because of timeout or completion", stats.UnitSeconds)
+	STIFindProvsDuration = stats.Float64("sti_find_provs_duration", "The time it took storetheindex finds from the network to succeed or fail because of timeout or completion", stats.UnitMilliseconds)
 	STIFindProvsLength   = stats.Int64("sti_find_provs_length", "Number of providers returned for successful responses", stats.UnitDimensionless)
 
 	AWSRequests              = stats.Int64("aws_reqs", "Requests made to AWS", stats.UnitDimensionless)
@@ -201,7 +201,7 @@ var (
 	STIFindProvsDurationView = &view.View{
 		Measure:     STIFindProvsDuration,
 		TagKeys:     []tag.Key{KeyName, KeyStatus},
-		Aggregation: view.Sum(),
+		Aggregation: coarseMillisecondsDistribution,
 	}
 	STIFindProvsLengthView = &view.View{
 		Measure:     STIFindProvsLength,
