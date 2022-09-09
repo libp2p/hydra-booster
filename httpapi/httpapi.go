@@ -43,6 +43,7 @@ func NewRouter(hy *hydra.Hydra) *mux.Router {
 	mux.HandleFunc("/idgen/add", idgenAddHandler()).Methods("POST")
 	mux.HandleFunc("/idgen/remove", idgenRemoveHandler()).Methods("POST")
 	mux.HandleFunc("/swarm/peers", swarmPeersHandler(hy))
+	mux.HandleFunc("/pstore/list", pstoreListHandler(hy))
 	return mux
 }
 
@@ -121,6 +122,47 @@ func recordListHandler(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request)
 			enc.Encode(result.Entry)
 		}
 		results.Close()
+	}
+}
+
+type PeerInfo struct {
+	AddrInfo     peer.AddrInfo // separate field to allow proper (un)marshalling of multi addresses
+	HeadID       peer.ID
+	AgentVersion string
+	Protocols    []string
+}
+
+// "/pstore/list" lists all peer information the hydra heads store in their peer stores.
+func pstoreListHandler(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		enc := json.NewEncoder(w)
+		for _, head := range hy.Heads {
+			ps := head.Host.Peerstore()
+			for _, p := range ps.Peers() {
+				// get address information
+				pi := ps.PeerInfo(p)
+
+				// get all protocols
+				protocols, err := ps.GetProtocols(p)
+				if err != nil {
+					protocols = []string{}
+				}
+
+				// get agent version
+				var agentVersion string
+				if agent, err := ps.Get(p, "AgentVersion"); err == nil {
+					agentVersion = agent.(string)
+				}
+
+				// marshal and send response to client
+				enc.Encode(PeerInfo{
+					AddrInfo:     pi,
+					HeadID:       head.Host.ID(),
+					AgentVersion: agentVersion,
+					Protocols:    protocols,
+				})
+			}
+		}
 	}
 }
 
