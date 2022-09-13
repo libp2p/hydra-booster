@@ -24,9 +24,11 @@ func NewReframeProviderStore(httpClient *http.Client, endpointURL string) (*refr
 	if err != nil {
 		return nil, err
 	}
-	return &reframeProvider{
-		reframe: client.NewClient(q),
-	}, nil
+	cl, err := client.NewClient(q, nil, nil)
+	if err != nil {
+		return nil, fmt.Errorf("constructing delegated routing client: %w", err)
+	}
+	return &reframeProvider{reframe: cl}, nil
 }
 
 type reframeProvider struct {
