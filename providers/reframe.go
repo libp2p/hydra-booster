@@ -39,6 +39,13 @@ func (x *reframeProvider) AddProvider(ctx context.Context, key []byte, prov peer
 	return fmt.Errorf("reframe does not support adding providers")
 }
 
+func emptyIndicator(x int64) int64 {
+	if x == 0 {
+		return 1
+	}
+	return 0
+}
+
 func (x *reframeProvider) GetProviders(ctx context.Context, key []byte) ([]peer.AddrInfo, error) {
 	mh, err := multihash.Cast(key)
 	if err != nil {
@@ -47,12 +54,16 @@ func (x *reframeProvider) GetProviders(ctx context.Context, key []byte) ([]peer.
 	cid1 := cid.NewCidV1(cid.Raw, mh)
 	start := time.Now()
 	peers, err := x.reframe.FindProviders(ctx, cid1)
+
 	if err != nil {
 		log.Errorf("reframe error: %s", err)
 		recordReframeFindProvsComplete(ctx, metricsErrStr(err), time.Since(start))
 	} else {
 		recordReframeFindProvsComplete(ctx, "Success", time.Since(start))
-		stats.Record(ctx, metrics.STIFindProvsLength.M(int64(len(peers))))
+		numPeers := int64(len(peers))
+		stats.Record(ctx, metrics.STIFindProvsLength.M(numPeers))
+		stats.Record(ctx, metrics.STIFindProvsEmpty.M(emptyIndicator(numPeers)))
+		fmt.Printf("numPeers: %d\n", numPeers)
 	}
 	return peers, err
 }

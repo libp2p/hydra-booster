@@ -13,7 +13,7 @@ var (
 	defaultMillisecondsDistribution = view.Distribution(0.01, 0.05, 0.1, 0.3, 0.6, 0.8, 1, 2, 3, 4, 5, 6, 8, 10, 13, 16, 20, 25, 30, 40, 50, 65, 80, 100, 130, 160, 200, 250, 300, 400, 500, 650, 800, 1000, 2000, 5000, 10000, 20000, 50000, 100000)
 	// a coarser-grained milliseconds distribution for metrics with higher cardinality and where we don't need a more fine-grained distribution
 	coarseMillisecondsDistribution = view.Distribution(0, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000)
-	defaultProvidersDistribution   = view.Distribution(0, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000)
+	defaultProvidersDistribution   = view.Distribution(0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000)
 )
 
 // Keys
@@ -69,6 +69,7 @@ var (
 	STIFindProvs         = stats.Int64("sti_find_provs_total", "Total store the index find provider attempts that were found locally, or not found locally and succeeded, failed or were discarded", stats.UnitDimensionless)
 	STIFindProvsDuration = stats.Float64("sti_find_provs_duration", "The time it took storetheindex finds from the network to succeed or fail because of timeout or completion", stats.UnitMilliseconds)
 	STIFindProvsLength   = stats.Int64("sti_find_provs_length", "Number of providers returned for successful responses", stats.UnitDimensionless)
+	STIFindProvsEmpty    = stats.Int64("sti_find_provs_empty", "Number of empty responses returned", stats.UnitDimensionless)
 
 	AWSRequests              = stats.Int64("aws_reqs", "Requests made to AWS", stats.UnitDimensionless)
 	AWSRequestDurationMillis = stats.Float64("aws_req_duration", "The time it took to make an AWS request and receive a response", stats.UnitMilliseconds)
@@ -208,6 +209,11 @@ var (
 		TagKeys:     []tag.Key{KeyName},
 		Aggregation: defaultProvidersDistribution,
 	}
+	STIFindProvsEmptyView = &view.View{
+		Measure:     STIFindProvsEmpty,
+		TagKeys:     []tag.Key{KeyName},
+		Aggregation: view.Sum(),
+	}
 	// DHT views
 	ReceivedMessagesView = &view.View{
 		Measure:     dhtmetrics.ReceivedMessages,
@@ -344,6 +350,7 @@ var DefaultViews = []*view.View{
 	STIFindProvsView,
 	STIFindProvsDurationView,
 	STIFindProvsLengthView,
+	STIFindProvsEmptyView,
 	ProviderRecordsPerKeyView,
 	PrefetchesView,
 	PrefetchDurationMillisView,
