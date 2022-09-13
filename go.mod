@@ -18,14 +18,14 @@ require (
 	github.com/hnlq715/golang-lru v0.2.1-0.20200422024707-82ba7badf9a6
 	github.com/ipfs/go-cid v0.2.0
 	github.com/ipfs/go-datastore v0.5.1
-	github.com/ipfs/go-delegated-routing v0.3.0
+	github.com/ipfs/go-delegated-routing v0.5.1
 	github.com/ipfs/go-ds-dynamodb v0.1.0
 	github.com/ipfs/go-ds-leveldb v0.5.0
 	github.com/ipfs/go-ipfs-util v0.0.2
 	github.com/ipfs/go-ipns v0.1.2
 	github.com/ipfs/go-log v1.0.5
 	github.com/ipfs/ipfs-ds-postgres v0.2.0
-	github.com/ipld/edelweiss v0.1.5
+	github.com/ipld/edelweiss v0.2.0
 	github.com/jackc/pgx/v4 v4.9.0
 	github.com/libp2p/go-libp2p v0.21.0
 	github.com/libp2p/go-libp2p-connmgr v0.2.4
@@ -100,7 +100,7 @@ require (
 	github.com/huin/goupnp v1.0.3 // indirect
 	github.com/illumos/go-kstat v0.0.0-20210513183136-173c9b0a9973 // indirect
 	github.com/ipfs/go-log/v2 v2.5.1 // indirect
-	github.com/ipld/go-ipld-prime v0.17.0 // indirect
+	github.com/ipld/go-ipld-prime v0.18.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.7.0 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect

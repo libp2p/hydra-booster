@@ -44,3 +44,7 @@ func (x MockServer) GetIPNS(ctx context.Context, id []byte) (<-chan client.GetIP
 func (x MockServer) PutIPNS(ctx context.Context, id []byte, record []byte) (<-chan client.PutIPNSAsyncResult, error) {
 	return nil, routing.ErrNotSupported
 }
+
+func (x MockServer) Provide(ctx context.Context, req *client.ProvideRequest) (<-chan client.ProvideAsyncResult, error) {
+	panic("not implemented")
+}
