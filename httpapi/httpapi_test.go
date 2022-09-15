@@ -243,6 +243,48 @@ func TestHTTPAPIRecordsFetchErrorStates(t *testing.T) {
 	}
 }
 
+func TestHTTPAPIPStoreList(t *testing.T) {
+	ctx, cancel := context.WithCancel(hydratesting.NewContext())
+	defer cancel()
+
+	hds, err := head.SpawnTestHeads(ctx, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	listener, err := net.Listen("tcp", ":0")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	go http.Serve(listener, NewRouter(&hydra.Hydra{Heads: hds, SharedDatastore: hds[0].Datastore}))
+	defer listener.Close()
+
+	url := fmt.Sprintf("http://%s/pstore/list", listener.Addr().String())
+	res, err := http.Get(url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.StatusCode < 200 || res.StatusCode > 299 {
+		t.Fatal(fmt.Errorf("got non-2XX status code %d: %s", res.StatusCode, url))
+	}
+
+	dec := json.NewDecoder(res.Body)
+
+	var peerInfos []PeerInfo
+	for {
+		var pi PeerInfo
+		if err := dec.Decode(&pi); err != nil {
+			break
+		}
+		peerInfos = append(peerInfos, pi)
+	}
+
+	if len(peerInfos) == 0 {
+		t.Fatalf("Expected to have more than 0 peer records stored, found %d", len(peerInfos))
+	}
+}
+
 func TestIDGeneratorAdd(t *testing.T) {
 	listener, err := net.Listen("tcp", ":0")
 	if err != nil {
