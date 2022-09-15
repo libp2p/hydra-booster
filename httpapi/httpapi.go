@@ -3,7 +3,9 @@ package httpapi
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"strconv"
 	"time"
@@ -145,6 +147,7 @@ func pstoreListHandler(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request)
 				// get all protocols
 				protocols, err := ps.GetProtocols(p)
 				if err != nil {
+					fmt.Printf("error getting protocols: %s\n", err)
 					protocols = []string{}
 				}
 
@@ -155,12 +158,19 @@ func pstoreListHandler(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request)
 				}
 
 				// marshal and send response to client
-				enc.Encode(PeerInfo{
+				err = enc.Encode(PeerInfo{
 					AddrInfo:     pi,
 					HeadID:       head.Host.ID(),
 					AgentVersion: agentVersion,
 					Protocols:    protocols,
 				})
+				if err != nil {
+					fmt.Printf("error encoding peer info: %s\n", err)
+					var netErr net.Error
+					if errors.As(err, &netErr) {
+						return
+					}
+				}
 			}
 		}
 	}
