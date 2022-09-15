@@ -244,7 +244,7 @@ func TestHTTPAPIRecordsFetchErrorStates(t *testing.T) {
 }
 
 func TestHTTPAPIPStoreList(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(hydratesting.NewContext())
 	defer cancel()
 
 	hds, err := head.SpawnTestHeads(ctx, 1)
