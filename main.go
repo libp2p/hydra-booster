@@ -40,7 +40,7 @@ func main() {
 	idOffset := flag.Int("id-offset", -1, "What offset in the sequence of keys generated from random-seed to start from")
 	dbpath := flag.String("db", "", "Datastore directory (for LevelDB store) or postgresql:// connection URI (for PostgreSQL store) or 'dynamodb://table=<string>'")
 	pstorePath := flag.String("pstore", "", "Peerstore directory for LevelDB store (defaults to in-memory store)")
-	providerStore := flag.String("provider-store", "", "A non-default provider store to use, \"dynamodb://table=<string>,ttl=<ttl-in-seconds>,queryLimit=<int>\"")
+	providerStore := flag.String("provider-store", "", "A non-default provider store to use, either \"none\" or \"dynamodb://table=<string>,ttl=<ttl-in-seconds>,queryLimit=<int>\"")
 	httpAPIAddr := flag.String("httpapi-addr", defaultHTTPAPIAddr, "Specify an IP and port to run the HTTP API server on")
 	delegateTimeout := flag.Int("delegate-timeout", 0, "Timeout for delegated routing in milliseconds")
 	reframeAddr := flag.String("reframe-addr", "", "Reframe API endpoint for delegated routing")

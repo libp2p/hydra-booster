@@ -36,7 +36,9 @@ type reframeProvider struct {
 }
 
 func (x *reframeProvider) AddProvider(ctx context.Context, key []byte, prov peer.AddrInfo) error {
-	return fmt.Errorf("reframe does not support adding providers")
+	// This swallows adds so that this can be plugged in directly to the DHT implementation,
+	// which calls this method on incoming puts. In that case we just swallow the put and do nothing.
+	return nil
 }
 
 func emptyIndicator(x int64) int64 {
@@ -63,7 +65,6 @@ func (x *reframeProvider) GetProviders(ctx context.Context, key []byte) ([]peer.
 		numPeers := int64(len(peers))
 		stats.Record(ctx, metrics.STIFindProvsLength.M(numPeers))
 		stats.Record(ctx, metrics.STIFindProvsEmpty.M(emptyIndicator(numPeers)))
-		fmt.Printf("numPeers: %d\n", numPeers)
 	}
 	return peers, err
 }
