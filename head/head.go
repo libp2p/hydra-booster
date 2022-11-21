@@ -177,6 +177,7 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 	}
 
 	var providerStore providers.ProviderStore
+	golog.Println("providerstore")
 	if cfg.ProviderStoreBuilder == nil {
 		ps, err := newDefaultProviderStore(ctx, cfg, node)
 		if err != nil {
@@ -200,6 +201,7 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		cachingProviderStore = hproviders.NewCachingProviderStore(providerStore, providerStore, cfg.ProvidersFinder, nil)
 		providerStore = cachingProviderStore
 	}
+	golog.Println("Reframeproviderstore")
 	if cfg.ProvidersFinder != nil && cfg.ReframeAddr != "" {
 		reframeProviderStore, err := hproviders.NewReframeProviderStore(cfg.DelegateHTTPClient, cfg.ReframeAddr)
 		if err != nil {
