@@ -3,6 +3,7 @@ package head
 import (
 	"context"
 	"fmt"
+	golog "log"
 	"os"
 	"sync"
 	"time"
@@ -144,6 +145,7 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		libp2pOpts = append(libp2pOpts, libp2p.EnableRelay())
 	}
 
+	golog.Println("libp2p new")
 	node, err := libp2p.New(libp2pOpts...)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to spawn libp2p node: %w", err)
@@ -226,6 +228,7 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 
 	dhtOpts = append(dhtOpts, dht.ProviderStore(providerStore))
 
+	golog.Println("dhtnew")
 	dhtNode, err := dht.New(ctx, node, dhtOpts...)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to instantiate DHT: %w", err)
@@ -239,6 +242,7 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 	// bootstrap in the background
 	// it's safe to start doing this _before_ establishing any connections
 	// as we'll trigger a boostrap round as soon as we get a connection anyways.
+	golog.Println("bootstrap")
 	dhtNode.Bootstrap(ctx)
 
 	bsCh := make(chan BootstrapStatus)

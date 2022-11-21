@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -161,6 +162,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		time.Sleep(options.Stagger)
 		fmt.Fprintf(os.Stderr, ".")
 
+		log.Println("getport")
 		port := options.GetPort()
 		tcpAddr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", port))
 		quicAddr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/udp/%d/quic", port))
@@ -168,6 +170,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate balanced private key %w", err)
 		}
+		log.Println("generatekey")
 		hdOpts := []opts.Option{
 			opts.Datastore(ds),
 			opts.ProviderStoreBuilder(providerStoreBuilder),
@@ -214,10 +217,12 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 			hdOpts = append(hdOpts, opts.Peerstore(pstore))
 		}
 
+		log.Println("newhead")
 		hd, bsCh, err := head.NewHead(ctx, hdOpts...)
 		if err != nil {
 			return nil, fmt.Errorf("failed to spawn node with swarm addresses %v %v: %w", tcpAddr, quicAddr, err)
 		}
+		log.Println("newheadend")
 
 		hdCtx, err := tag.New(ctx, tag.Insert(metrics.KeyPeerID, hd.Host.ID().String()))
 		if err != nil {
