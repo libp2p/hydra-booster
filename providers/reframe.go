@@ -63,7 +63,6 @@ func (x *reframeProvider) GetProviders(ctx context.Context, key []byte) ([]peer.
 		numPeers := int64(len(peers))
 		stats.Record(ctx, metrics.STIFindProvsLength.M(numPeers))
 		stats.Record(ctx, metrics.STIFindProvsEmpty.M(emptyIndicator(numPeers)))
-		fmt.Printf("numPeers: %d\n", numPeers)
 	}
 	return peers, err
 }
