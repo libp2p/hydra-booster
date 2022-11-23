@@ -39,9 +39,6 @@ import (
 
 const (
 	providerRecordsTaskInterval = time.Minute * 5
-	lowWater                    = 1200
-	highWater                   = 1800
-	gracePeriod                 = time.Minute
 	provDisabledGCInterval      = time.Hour * 24 * 365 * 100 // set really high to be "disabled"
 	provCacheSize               = 256
 	provCacheExpiry             = time.Hour
@@ -111,9 +108,9 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 	cfg := opts.Options{}
 	cfg.Apply(append([]opts.Option{opts.Defaults}, options...)...)
 
-	cmgr, err := connmgr.NewConnManager(lowWater, highWater, connmgr.WithGracePeriod(gracePeriod))
+	cmgr, err := connmgr.NewConnManager(cfg.ConnMgrLowWater, cfg.ConnMgrHighWater, connmgr.WithGracePeriod(time.Duration(cfg.ConnMgrGracePeriod)*time.Millisecond))
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("building connmgr: %w", err)
 	}
 
 	ua := version.UserAgent
