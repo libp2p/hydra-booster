@@ -269,6 +269,11 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 }
 
 func newProviderStoreBuilder(ctx context.Context, options Options) (opts.ProviderStoreBuilderFunc, error) {
+	if options.ProviderStore == "none" {
+		return func(opts opts.Options, host host.Host) (providers.ProviderStore, error) {
+			return &hproviders.NoopProviderStore{}, nil
+		}, nil
+	}
 	if strings.HasPrefix(options.ProviderStore, "dynamodb://") {
 		// dynamodb,table=<table>,ttl=<ttl>,queryLimit=<queryLimit>
 		ddbOpts, err := utils.ParseOptsString(strings.TrimPrefix(options.ProviderStore, "dynamodb://"))
