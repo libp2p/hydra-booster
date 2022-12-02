@@ -140,7 +140,11 @@ func main() {
 	}
 
 	if *connMgrGracePeriod == defaultConnMgrGracePeriod {
-		*connMgrGracePeriod = mustGetEnvInt("HYDRA_CONNMGR_GRACE_LIMIT", defaultConnMgrGracePeriod)
+		*connMgrGracePeriod = os.Getenv("HYDRA_CONNMGR_GRACE_PERIOD", defaultConnMgrGracePeriod)
+	}
+	connMgrGracePeriodDuration, err := time.ParseDuration(*connMgrGracePeriod)
+	if err != nil {
+		log.Fatalf("parsing grace period duration: %s", err)
 	}
 
 	// Allow short keys. Otherwise, we'll refuse connections from the bootsrappers and break the network.
