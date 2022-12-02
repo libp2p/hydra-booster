@@ -255,7 +255,7 @@ func ConnMgrLowWater(n int) Option {
 	}
 }
 
-func ConnMgrGracePeriod(n int) Option {
+func ConnMgrGracePeriod(n time.Duration) Option {
 	return func(o *Options) error {
 		o.ConnMgrGracePeriod = n
 		return nil
