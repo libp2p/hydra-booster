@@ -68,7 +68,7 @@ func main() {
 	resourceManagerLimits := flag.String("rcmgr-limits", "", "Resource Manager limits JSON config (default none).")
 	connMgrHighWater := flag.Int("connmgr-high-water", defaultConnMgrHighWater, "High water limit for the connection manager.")
 	connMgrLowWater := flag.Int("connmgr-low-water", defaultConnMgrLowWater, "Low water limit for the connection manager.")
-	connMgrGracePeriod := flag.Int("connmgr-low-water", defaultConnMgrGracePeriod, "Grace period for connections (in ms).")
+	connMgrGracePeriod := flag.String("connmgr-grace-period", defaultConnMgrGracePeriod, "Grace period for connections as a Go duration string such as \"60s\".")
 
 	flag.Parse()
 
