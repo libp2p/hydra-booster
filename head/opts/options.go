@@ -42,7 +42,7 @@ type Options struct {
 	ResourceManagerLimitsFile string
 	ConnMgrHighWater          int
 	ConnMgrLowWater           int
-	ConnMgrGracePeriod        int
+	ConnMgrGracePeriod        time.Duration
 }
 
 // Option is the Hydra Head option type.
@@ -70,7 +70,7 @@ var Defaults = func(o *Options) error {
 	o.BootstrapPeers = dht.DefaultBootstrapPeers
 	o.ConnMgrHighWater = 1800
 	o.ConnMgrLowWater = 1200
-	o.ConnMgrGracePeriod = 60000
+	o.ConnMgrGracePeriod = time.Minute
 	return nil
 }
 

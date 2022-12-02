@@ -33,7 +33,7 @@ const (
 	defaultHTTPAPIAddr        = "127.0.0.1:7779"
 	defaultConnMgrHighWater   = 1800
 	defaultConnMgrLowWater    = 1200
-	defaultConnMgrGracePeriod = 60000
+	defaultConnMgrGracePeriod = "60s"
 )
 
 func main() {
@@ -208,7 +208,7 @@ func main() {
 
 		ConnMgrHighWater:   *connMgrHighWater,
 		ConnMgrLowWater:    *connMgrLowWater,
-		ConnMgrGracePeriod: *connMgrGracePeriod,
+		ConnMgrGracePeriod: connMgrGracePeriodDuration,
 	}
 
 	go func() {

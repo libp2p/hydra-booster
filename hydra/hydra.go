@@ -85,7 +85,7 @@ type Options struct {
 	ResourceManagerLimitsFile string
 	ConnMgrHighWater          int
 	ConnMgrLowWater           int
-	ConnMgrGracePeriod        int
+	ConnMgrGracePeriod        time.Duration
 }
 
 // NewHydra creates a new Hydra with the passed options.
