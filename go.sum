@@ -438,10 +438,8 @@ github.com/ipfs/go-ipfs-util v0.0.2 h1:59Sswnk1MFaiq+VcaknX7aYEyGyGDAA73ilhEK2PO
 github.com/ipfs/go-ipfs-util v0.0.2/go.mod h1:CbPtkWJzjLdEcezDns2XYaehFVNXG9zrdrtMecczcsQ=
 github.com/ipfs/go-ipns v0.3.0 h1:ai791nTgVo+zTuq2bLvEGmWP1M0A6kGTXUsgv/Yq67A=
 github.com/ipfs/go-ipns v0.3.0/go.mod h1:3cLT2rbvgPZGkHJoPO1YMJeh6LtkxopCkKFcio/wE24=
-github.com/ipfs/go-libipfs v0.0.0-20221206130039-8dda74356068 h1:f4aUGWf4cqWJuikcwCPk/9GegRXcFMUx3V4soQ8ipT4=
-github.com/ipfs/go-libipfs v0.0.0-20221206130039-8dda74356068/go.mod h1:gAc/IsxQh4HwAOeSCKM1ONfzCQfNbm9E8QqEVfiPfOU=
-github.com/ipfs/go-libipfs v0.0.0-20221207180439-c7e7738575f9 h1:rQkkhUmGyAMy1Pr/cSAmcp/0i+ur+koewOKfTD4UU3A=
-github.com/ipfs/go-libipfs v0.0.0-20221207180439-c7e7738575f9/go.mod h1:blLqyfvHD86wgXMJ8GR4QQWYeg1ZvFHOhX3DT340Nj8=
+github.com/ipfs/go-libipfs v0.0.0-20221208220359-356ce09dd4a1 h1:p/eMmtJfOliZh/SCVv239Wxj2lCo5IN4j5bdNmeGueM=
+github.com/ipfs/go-libipfs v0.0.0-20221208220359-356ce09dd4a1/go.mod h1:blLqyfvHD86wgXMJ8GR4QQWYeg1ZvFHOhX3DT340Nj8=
 github.com/ipfs/go-log v0.0.1/go.mod h1:kL1d2/hzSpI0thNYjiKfjanbVNU+IIGA/WnNESY9leM=
 github.com/ipfs/go-log v1.0.3/go.mod h1:OsLySYkwIbiSUR/yBTdv1qPtcE4FW3WPWk/ewz9Ru+A=
 github.com/ipfs/go-log v1.0.4/go.mod h1:oDCg2FkjogeFOhqqb+N39l2RpTNPL6F/StPkB3kPgcs=
