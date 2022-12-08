@@ -59,9 +59,9 @@ func (x *reframeProvider) GetProviders(ctx context.Context, key []byte) ([]peer.
 
 	if err != nil {
 		log.Errorf("reframe error: %s", err)
-		recordReframeFindProvsComplete(ctx, metricsErrStr(err), time.Since(start))
+		recordSTIFindProvsComplete(ctx, metricsErrStr(err), time.Since(start))
 	} else {
-		recordReframeFindProvsComplete(ctx, "Success", time.Since(start))
+		recordSTIFindProvsComplete(ctx, "Success", time.Since(start))
 		numPeers := int64(len(peers))
 		stats.Record(ctx, metrics.STIFindProvsLength.M(numPeers))
 		stats.Record(ctx, metrics.STIFindProvsEmpty.M(emptyIndicator(numPeers)))
@@ -115,7 +115,7 @@ func metricsErrStr(err error) string {
 	return "Other"
 }
 
-func recordReframeFindProvsComplete(ctx context.Context, status string, duration time.Duration) {
+func recordSTIFindProvsComplete(ctx context.Context, status string, duration time.Duration) {
 	stats.RecordWithTags(
 		ctx,
 		[]tag.Mutator{tag.Upsert(metrics.KeyStatus, status)},

@@ -21,6 +21,7 @@ import (
 	"github.com/ipfs/go-datastore"
 	ddbds "github.com/ipfs/go-ds-dynamodb"
 	leveldb "github.com/ipfs/go-ds-leveldb"
+	"github.com/ipfs/go-libipfs/routing/http/client"
 	"github.com/libp2p/go-libp2p-kad-dht/providers"
 	"github.com/libp2p/go-libp2p-peerstore/pstoreds"
 	"github.com/libp2p/go-libp2p/core/host"
@@ -138,7 +139,18 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	// What is a limiter?
 	limiter := make(chan struct{}, options.BsCon)
 
-	providerStoreBuilder, err := newProviderStoreBuilder(ctx, options)
+	// Increase per-host connection pool since we are making lots of concurrent requests to a small number of hosts.
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.MaxIdleConns = 500
+	transport.MaxIdleConnsPerHost = 100
+	limitedTransport := &client.ResponseBodyLimitedTransport{RoundTripper: transport, LimitBytes: 1 << 20}
+
+	delegateHTTPClient := &http.Client{
+		Timeout:   options.DelegateTimeout,
+		Transport: limitedTransport,
+	}
+
+	providerStoreBuilder, err := newProviderStoreBuilder(ctx, delegateHTTPClient, options)
 	if err != nil {
 		return nil, err
 	}
@@ -146,17 +158,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	providersFinder := hproviders.NewAsyncProvidersFinder(5*time.Second, 1000, 1*time.Hour)
 	providersFinder.Run(ctx, 1000)
 
-	// Increase per-host connection pool since we are making lots of concurrent requests to a small number of hosts.
-	transport := http.DefaultTransport.(*http.Transport).Clone()
-	transport.MaxIdleConns = 500
-	transport.MaxIdleConnsPerHost = 100
-
 	// Reuse the HTTP client across all the heads.
-	delegateHTTPClient := &http.Client{
-		Timeout:   options.DelegateTimeout,
-		Transport: transport,
-	}
-
 	for i := 0; i < options.NHeads; i++ {
 		time.Sleep(options.Stagger)
 		fmt.Fprintf(os.Stderr, ".")
@@ -268,10 +270,16 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	return &hydra, nil
 }
 
-func newProviderStoreBuilder(ctx context.Context, options Options) (opts.ProviderStoreBuilderFunc, error) {
+func newProviderStoreBuilder(ctx context.Context, httpClient *http.Client, options Options) (opts.ProviderStoreBuilderFunc, error) {
 	if options.ProviderStore == "none" {
 		return func(opts opts.Options, host host.Host) (providers.ProviderStore, error) {
 			return &hproviders.NoopProviderStore{}, nil
+		}, nil
+	}
+	if strings.HasPrefix(options.ProviderStore, "https://") {
+		return func(opts opts.Options, host host.Host) (providers.ProviderStore, error) {
+			fmt.Printf("Using HTTP provider store\n")
+			return hproviders.NewHTTPProviderStore(httpClient, options.ProviderStore)
 		}, nil
 	}
 	if strings.HasPrefix(options.ProviderStore, "dynamodb://") {

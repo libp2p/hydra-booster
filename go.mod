@@ -23,6 +23,7 @@ require (
 	github.com/ipfs/go-ds-leveldb v0.5.0
 	github.com/ipfs/go-ipfs-util v0.0.2
 	github.com/ipfs/go-ipns v0.3.0
+	github.com/ipfs/go-libipfs v0.0.0-20221207180439-c7e7738575f9
 	github.com/ipfs/go-log v1.0.5
 	github.com/ipfs/ipfs-ds-postgres v0.2.0
 	github.com/ipld/edelweiss v0.2.0
@@ -167,6 +168,7 @@ require (
 	github.com/prometheus/statsd_exporter v0.21.0 // indirect
 	github.com/raulk/go-watchdog v1.3.0 // indirect
 	github.com/safchain/ethtool v0.1.0 // indirect
+	github.com/samber/lo v1.36.0 // indirect
 	github.com/smartystreets/assertions v1.0.1 // indirect
 	github.com/soundcloud/go-runit v0.0.0-20150630195641-06ad41a06c4a // indirect
 	github.com/spacemonkeygo/spacelog v0.0.0-20180420211403-2296661a0572 // indirect
