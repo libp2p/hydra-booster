@@ -1,11 +1,10 @@
 FROM golang:1.18-alpine AS build
 
-RUN apk add --no-cache openssl-dev git build-base
+RUN apk add --no-cache build-base
 
 WORKDIR /hydra-booster
 
 COPY go.mod go.sum ./
-RUN go mod download -x
 
 # Copy the source from the current directory
 # to the Working Directory inside the container
@@ -25,11 +24,11 @@ COPY testing ./testing
 COPY main.go promconfig.yaml ./
 
 # Run the build and install
-RUN go install -tags=openssl -v ./...
+RUN go install ./...
 
 # Create single-layer run image
 FROM alpine@sha256:bc41182d7ef5ffc53a40b044e725193bc10142a1243f395ee852a8d9730fc2ad
-RUN apk add --no-cache openssl curl  # curl is for health checking
+RUN apk add --no-cache curl  # curl is for health checking
 COPY --from=build /go/bin/hydra-booster /hydra-booster
 # HTTP API
 COPY entrypoint.sh ./
