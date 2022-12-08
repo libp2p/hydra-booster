@@ -12,7 +12,7 @@ import (
 	"github.com/ipfs/go-delegated-routing/client"
 	"github.com/ipfs/go-delegated-routing/gen/proto"
 	"github.com/ipld/edelweiss/services"
-	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/libp2p/hydra-booster/metrics"
 	"github.com/multiformats/go-multihash"
 	"go.opencensus.io/stats"

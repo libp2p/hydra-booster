@@ -5,7 +5,7 @@ import (
 	"io"
 	"strings"
 
-	net "github.com/libp2p/go-libp2p-core/network"
+	net "github.com/libp2p/go-libp2p/core/network"
 	ma "github.com/multiformats/go-multiaddr"
 )
 
