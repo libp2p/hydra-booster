@@ -9,7 +9,7 @@ import (
 
 	"github.com/benbjohnson/clock"
 	"github.com/ipfs/go-cid"
-	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/libp2p/hydra-booster/metrics"
 	"github.com/stretchr/testify/assert"
 	"go.opencensus.io/stats/view"

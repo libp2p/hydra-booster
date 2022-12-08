@@ -3,7 +3,7 @@ package idgen
 import (
 	"testing"
 
-	"github.com/libp2p/go-libp2p-core/crypto"
+	"github.com/libp2p/go-libp2p/core/crypto"
 )
 
 func TestBalancedGeneration(t *testing.T) {
