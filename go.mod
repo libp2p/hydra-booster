@@ -21,7 +21,7 @@ require (
 	github.com/ipfs/go-ds-dynamodb v0.1.0
 	github.com/ipfs/go-ds-leveldb v0.5.0
 	github.com/ipfs/go-ipns v0.3.0
-	github.com/ipfs/go-libipfs v0.0.0-20221207180439-c7e7738575f9
+	github.com/ipfs/go-libipfs v0.0.0-20221208220359-356ce09dd4a1
 	github.com/ipfs/go-log v1.0.5
 	github.com/ipfs/ipfs-ds-postgres v0.2.0
 	github.com/jackc/pgx/v4 v4.9.0
