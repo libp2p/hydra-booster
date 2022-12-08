@@ -9,11 +9,13 @@ import (
 
 	"contrib.go.opencensus.io/exporter/prometheus"
 	"github.com/go-kit/log"
+	"github.com/ipfs/go-libipfs/routing/http/client"
 	"github.com/ncabatoff/process-exporter/collector"
 	"github.com/ncabatoff/process-exporter/config"
 	prom "github.com/prometheus/client_golang/prometheus"
 	necoll "github.com/prometheus/node_exporter/collector"
 	"go.opencensus.io/stats/view"
+	"go.opencensus.io/tag"
 	"go.opencensus.io/zpages"
 )
 
@@ -68,7 +70,15 @@ func ListenAndServe(address string) error {
 	}
 
 	view.RegisterExporter(pe)
-	if err := view.Register(DefaultViews...); err != nil {
+
+	views := DefaultViews
+	for _, view := range client.OpenCensusViews {
+		// add name tag to each view so we can distinguish hydra instances
+		view.TagKeys = append(view.TagKeys, tag.MustNewKey("name"))
+		views = append(views, view)
+	}
+
+	if err := view.Register(views...); err != nil {
 		return fmt.Errorf("failed to register hydra views: %w", err)
 	}
 
