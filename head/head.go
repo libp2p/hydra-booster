@@ -22,7 +22,6 @@ import (
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/libp2p/go-libp2p/core/routing"
 	rcmgr "github.com/libp2p/go-libp2p/p2p/host/resource-manager"
-	"github.com/libp2p/go-libp2p/p2p/host/resource-manager/obs"
 	connmgr "github.com/libp2p/go-libp2p/p2p/net/connmgr"
 	noise "github.com/libp2p/go-libp2p/p2p/security/noise"
 	tls "github.com/libp2p/go-libp2p/p2p/security/tls"
@@ -96,7 +95,6 @@ func buildRcmgr(ctx context.Context, disableRM bool, limitsFile string) (network
 	}
 	mgr, err := rcmgr.NewResourceManager(
 		limiter,
-		rcmgr.WithTraceReporter(obs.StatsTraceReporter{}),
 		rcmgr.WithMetrics(rcmgrMetrics),
 	)
 	if err != nil {
