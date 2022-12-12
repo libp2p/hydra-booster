@@ -78,12 +78,12 @@ func buildRcmgr(ctx context.Context, disableRM bool, limitsFile string) (network
 	} else {
 		limits := rcmgr.DefaultLimits
 
-		limits.SystemBaseLimit.ConnsOutbound = 128
-		limits.SystemBaseLimit.ConnsInbound = 128
-		limits.SystemBaseLimit.Conns = 256
-		limits.SystemLimitIncrease.Conns = 1024
-		limits.SystemLimitIncrease.ConnsInbound = 1024
-		limits.SystemLimitIncrease.ConnsOutbound = 1024
+		limits.SystemBaseLimit.ConnsOutbound = 1024
+		limits.SystemBaseLimit.ConnsInbound = 1024
+		limits.SystemBaseLimit.Conns = 2048
+		limits.SystemLimitIncrease.Conns = 2048
+		limits.SystemLimitIncrease.ConnsInbound = 2048
+		limits.SystemLimitIncrease.ConnsOutbound = 2048
 		libp2p.SetDefaultServiceLimits(&limits)
 
 		limiter = rcmgr.NewFixedLimiter(limits.AutoScale())
