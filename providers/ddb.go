@@ -54,7 +54,7 @@ func NewDynamoDBProviderStore(self peer.ID, peerstore peerStore, ddbClient ddbCl
 
 func (d *dynamoDBProviderStore) AddProvider(ctx context.Context, key []byte, prov peer.AddrInfo) error {
 	if prov.ID != d.Self { // don't add own addrs.
-		d.Peerstore.AddAddrs(prov.ID, prov.Addrs, peerstore.ProviderAddrTTL)
+		d.Peerstore.AddAddrs(prov.ID, prov.Addrs, peerstore.AddressTTL)
 	}
 
 	ttlEpoch := d.clock.Now().Add(d.TTL).UnixNano() / 1e9

@@ -14,9 +14,9 @@ import (
 	"syscall"
 	"time"
 
+	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p/core/crypto"
 	"github.com/libp2p/go-libp2p/core/protocol"
-	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/hydra-booster/httpapi"
 	"github.com/libp2p/hydra-booster/hydra"
 	"github.com/libp2p/hydra-booster/idgen"
@@ -43,7 +43,6 @@ func main() {
 	providerStore := flag.String("provider-store", "", "A non-default provider store to use, either \"none\" or \"dynamodb://table=<string>,ttl=<ttl-in-seconds>,queryLimit=<int>\"")
 	httpAPIAddr := flag.String("httpapi-addr", defaultHTTPAPIAddr, "Specify an IP and port to run the HTTP API server on")
 	delegateTimeout := flag.Int("delegate-timeout", 0, "Timeout for delegated routing in milliseconds")
-	reframeAddr := flag.String("reframe-addr", "", "Reframe API endpoint for delegated routing")
 	inmem := flag.Bool("mem", false, "Use an in-memory database. This overrides the -db option")
 	metricsAddr := flag.String("metrics-addr", defaultMetricsAddr, "Specify an IP and port to run Prometheus metrics and pprof HTTP server on")
 	enableRelay := flag.Bool("enable-relay", false, "Enable libp2p circuit relaying for this node (default false).")
@@ -118,9 +117,6 @@ func main() {
 	if *delegateTimeout == 0 {
 		*delegateTimeout = mustGetEnvInt("HYDRA_DELEGATED_ROUTING_TIMEOUT", 1000)
 	}
-	if *reframeAddr == "" {
-		*reframeAddr = os.Getenv("HYDRA_REFRAME_ADDR")
-	}
 	if !*disableResourceManager {
 		*disableResourceManager = mustGetEnvBool("DISABLE_RCMGR", false)
 	}
@@ -169,7 +165,6 @@ func main() {
 		PeerstorePath:             *pstorePath,
 		ProviderStore:             *providerStore,
 		DelegateTimeout:           time.Millisecond * time.Duration(*delegateTimeout),
-		ReframeAddr:               *reframeAddr,
 		EnableRelay:               *enableRelay,
 		ProtocolPrefix:            protocol.ID(*protocolPrefix),
 		BucketSize:                *bucketSize,
