@@ -66,7 +66,6 @@ type Options struct {
 	PeerstorePath             string
 	ProviderStore             string
 	DelegateTimeout           time.Duration
-	ReframeAddr               string
 	GetPort                   func() int
 	NHeads                    int
 	ProtocolPrefix            protocol.ID
@@ -180,7 +179,6 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 			opts.ID(priv),
 			opts.BootstrapPeers(options.BootstrapPeers),
 			opts.DelegateHTTPClient(delegateHTTPClient),
-			opts.ReframeAddr(options.ReframeAddr),
 			opts.DisableResourceManager(options.DisableResourceManager),
 			opts.ResourceManagerLimitsFile(options.ResourceManagerLimitsFile),
 		}

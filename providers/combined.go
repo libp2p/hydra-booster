@@ -4,10 +4,9 @@ import (
 	"context"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/ipfs/go-delegated-routing/client"
 	logging "github.com/ipfs/go-log"
-	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/libp2p/go-libp2p-kad-dht/providers"
+	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/multiformats/go-multiaddr"
 )
 
@@ -44,12 +43,17 @@ func (s *CombinedProviderStore) AddProvider(ctx context.Context, key []byte, pro
 	}
 }
 
+type findProvidersAsyncResult struct {
+	AddrInfo []peer.AddrInfo
+	Err      error
+}
+
 func (s *CombinedProviderStore) GetProviders(ctx context.Context, key []byte) ([]peer.AddrInfo, error) {
-	ch := make(chan client.FindProvidersAsyncResult, len(s.backends))
+	ch := make(chan findProvidersAsyncResult, len(s.backends))
 	for _, b := range s.backends {
 		go func(backend providers.ProviderStore) {
 			infos, err := backend.GetProviders(ctx, key)
-			ch <- client.FindProvidersAsyncResult{AddrInfo: infos, Err: err}
+			ch <- findProvidersAsyncResult{AddrInfo: infos, Err: err}
 		}(b)
 	}
 	infos := []peer.AddrInfo{}

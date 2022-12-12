@@ -4,8 +4,8 @@ import (
 	"context"
 
 	logging "github.com/ipfs/go-log"
-	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/libp2p/go-libp2p-kad-dht/providers"
+	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/libp2p/hydra-booster/metrics"
 	"go.opencensus.io/stats"
 )

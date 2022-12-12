@@ -30,7 +30,6 @@ RUN go install ./...
 FROM alpine@sha256:bc41182d7ef5ffc53a40b044e725193bc10142a1243f395ee852a8d9730fc2ad
 RUN apk add --no-cache curl  # curl is for health checking
 COPY --from=build /go/bin/hydra-booster /hydra-booster
-COPY --from=build /go/bin/mock-routing-server /mock-routing-server
 # HTTP API
 COPY entrypoint.sh ./
 RUN chmod a+x entrypoint.sh
