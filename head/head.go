@@ -18,18 +18,13 @@ import (
 	kbucket "github.com/libp2p/go-libp2p-kbucket"
 	record "github.com/libp2p/go-libp2p-record"
 	"github.com/libp2p/go-libp2p/core/host"
-	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/libp2p/go-libp2p/core/routing"
-	rcmgr "github.com/libp2p/go-libp2p/p2p/host/resource-manager"
-	"github.com/libp2p/go-libp2p/p2p/host/resource-manager/obs"
-	connmgr "github.com/libp2p/go-libp2p/p2p/net/connmgr"
 	noise "github.com/libp2p/go-libp2p/p2p/security/noise"
 	tls "github.com/libp2p/go-libp2p/p2p/security/tls"
 	quic "github.com/libp2p/go-libp2p/p2p/transport/quic"
 	tcp "github.com/libp2p/go-libp2p/p2p/transport/tcp"
 	"github.com/libp2p/hydra-booster/head/opts"
-	"github.com/libp2p/hydra-booster/metrics"
 	"github.com/libp2p/hydra-booster/metricstasks"
 	"github.com/libp2p/hydra-booster/periodictasks"
 	hproviders "github.com/libp2p/hydra-booster/providers"
@@ -59,74 +54,20 @@ type Head struct {
 	Routing   routing.Routing
 }
 
-func buildRcmgr(ctx context.Context, disableRM bool, limitsFile string) (network.ResourceManager, error) {
-	var limiter rcmgr.Limiter
-
-	if disableRM {
-		limiter = rcmgr.NewFixedLimiter(rcmgr.InfiniteLimits)
-	} else if limitsFile != "" {
-		f, err := os.Open(limitsFile)
-		if err != nil {
-			return nil, fmt.Errorf("opening Resource Manager limits file: %w", err)
-		}
-		limiter, err = rcmgr.NewDefaultLimiterFromJSON(f)
-		if err != nil {
-			return nil, fmt.Errorf("creating Resource Manager limiter: %w", err)
-		}
-	} else {
-		limits := rcmgr.DefaultLimits
-
-		limits.SystemBaseLimit.ConnsOutbound = 128
-		limits.SystemBaseLimit.ConnsInbound = 128
-		limits.SystemBaseLimit.Conns = 256
-		limits.SystemLimitIncrease.Conns = 1024
-		limits.SystemLimitIncrease.ConnsInbound = 1024
-		limits.SystemLimitIncrease.ConnsOutbound = 1024
-		libp2p.SetDefaultServiceLimits(&limits)
-
-		limiter = rcmgr.NewFixedLimiter(limits.AutoScale())
-	}
-
-	rcmgrMetrics, err := metrics.CreateRcmgrMetrics(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("creating Resource Manager metrics: %w", err)
-	}
-	mgr, err := rcmgr.NewResourceManager(
-		limiter,
-		rcmgr.WithTraceReporter(obs.StatsTraceReporter{}),
-		rcmgr.WithMetrics(rcmgrMetrics),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("constructing resource manager: %w", err)
-	}
-
-	return mgr, nil
-}
-
 // NewHead constructs a new Hydra Booster head node
 func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan BootstrapStatus, error) {
 	cfg := opts.Options{}
 	cfg.Apply(append([]opts.Option{opts.Defaults}, options...)...)
-
-	cmgr, err := connmgr.NewConnManager(cfg.ConnMgrLowWater, cfg.ConnMgrHighWater, connmgr.WithGracePeriod(cfg.ConnMgrGracePeriod))
-	if err != nil {
-		return nil, nil, fmt.Errorf("building connmgr: %w", err)
-	}
 
 	ua := version.UserAgent
 	if cfg.EnableRelay {
 		ua += "+relay"
 	}
 
-	rm, err := buildRcmgr(ctx, cfg.DisableResourceManager, cfg.ResourceManagerLimitsFile)
-	if err != nil {
-		return nil, nil, err
-	}
-
 	libp2pOpts := []libp2p.Option{
 		libp2p.UserAgent(version.UserAgent),
 		libp2p.ListenAddrs(cfg.Addrs...),
-		libp2p.ConnectionManager(cmgr),
+		libp2p.ConnectionManager(cfg.ConnManager),
 		libp2p.Identity(cfg.ID),
 		libp2p.EnableNATService(),
 		libp2p.AutoNATServiceRateLimit(0, 3, time.Minute),
@@ -135,7 +76,7 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		libp2p.Transport(tcp.NewTCPTransport),
 		libp2p.Security(tls.ID, tls.New),
 		libp2p.Security(noise.ID, noise.New),
-		libp2p.ResourceManager(rm),
+		libp2p.ResourceManager(cfg.ResourceManager),
 	}
 	if cfg.Peerstore != nil {
 		libp2pOpts = append(libp2pOpts, libp2p.Peerstore(cfg.Peerstore))
