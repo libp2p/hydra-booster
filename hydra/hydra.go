@@ -22,11 +22,15 @@ import (
 	ddbds "github.com/ipfs/go-ds-dynamodb"
 	leveldb "github.com/ipfs/go-ds-leveldb"
 	"github.com/ipfs/go-libipfs/routing/http/client"
+	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-kad-dht/providers"
 	"github.com/libp2p/go-libp2p-peerstore/pstoreds"
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/protocol"
+	rcmgr "github.com/libp2p/go-libp2p/p2p/host/resource-manager"
+	obs "github.com/libp2p/go-libp2p/p2p/host/resource-manager/obs"
+	"github.com/libp2p/go-libp2p/p2p/net/connmgr"
 	hyds "github.com/libp2p/hydra-booster/datastore"
 	"github.com/libp2p/hydra-booster/head"
 	"github.com/libp2p/hydra-booster/head/opts"
@@ -47,6 +51,10 @@ const (
 	routingTableSizeTaskInterval = 5 * time.Second
 	uniquePeersTaskInterval      = 5 * time.Second
 	ipnsRecordsTaskInterval      = 15 * time.Minute
+
+	lowWater    = 5000
+	highWater   = 10000
+	gracePeriod = time.Minute
 )
 
 // Hydra is a container for heads and their shared belly bits.
@@ -157,10 +165,19 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	providersFinder := hproviders.NewAsyncProvidersFinder(5*time.Second, 1000, 1*time.Hour)
 	providersFinder.Run(ctx, 1000)
 
+	resourceManager, err := buildRcmgr(ctx, options.DisableResourceManager, options.ResourceManagerLimitsFile)
+	if err != nil {
+		return nil, fmt.Errorf("building resource manager: %w", err)
+	}
+
+	cmgr, err := connmgr.NewConnManager(lowWater, highWater, connmgr.WithGracePeriod(gracePeriod))
+	if err != nil {
+		return nil, fmt.Errorf("building connection manager: %w", err)
+	}
+
 	// Reuse the HTTP client across all the heads.
 	for i := 0; i < options.NHeads; i++ {
 		time.Sleep(options.Stagger)
-		fmt.Fprintf(os.Stderr, ".")
 
 		port := options.GetPort()
 		tcpAddr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", port))
@@ -179,8 +196,8 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 			opts.ID(priv),
 			opts.BootstrapPeers(options.BootstrapPeers),
 			opts.DelegateHTTPClient(delegateHTTPClient),
-			opts.DisableResourceManager(options.DisableResourceManager),
-			opts.ResourceManagerLimitsFile(options.ResourceManagerLimitsFile),
+			opts.ResourceManager(resourceManager),
+			opts.ConnectionManager(cmgr),
 		}
 		if options.EnableRelay {
 			hdOpts = append(hdOpts, opts.EnableRelay())
@@ -266,6 +283,62 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	periodictasks.RunTasks(ctx, tasks)
 
 	return &hydra, nil
+}
+
+func buildRcmgr(ctx context.Context, disableRM bool, limitsFile string) (network.ResourceManager, error) {
+	var limiter rcmgr.Limiter
+
+	if disableRM {
+		limiter = rcmgr.NewFixedLimiter(rcmgr.InfiniteLimits)
+	} else if limitsFile != "" {
+		f, err := os.Open(limitsFile)
+		if err != nil {
+			return nil, fmt.Errorf("opening Resource Manager limits file: %w", err)
+		}
+		limiter, err = rcmgr.NewDefaultLimiterFromJSON(f)
+		if err != nil {
+			return nil, fmt.Errorf("creating Resource Manager limiter: %w", err)
+		}
+	} else {
+		limits := rcmgr.DefaultLimits
+
+		limits.SystemBaseLimit.ConnsOutbound = 10240
+		limits.SystemBaseLimit.ConnsInbound = 10240
+		limits.SystemBaseLimit.Conns = limits.SystemBaseLimit.ConnsOutbound + limits.SystemBaseLimit.ConnsInbound
+		limits.SystemLimitIncrease.Conns = 2048
+		limits.SystemLimitIncrease.ConnsInbound = 2048
+		limits.SystemLimitIncrease.ConnsOutbound = 2048
+
+		limits.PeerBaseLimit.Conns = 64
+		limits.PeerBaseLimit.ConnsOutbound = 64
+		limits.PeerBaseLimit.ConnsInbound = 64
+
+		limits.TransientBaseLimit.ConnsInbound = 512
+		limits.TransientBaseLimit.ConnsOutbound = 512
+		limits.TransientBaseLimit.Conns = 512
+
+		libp2p.SetDefaultServiceLimits(&limits)
+
+		limitConfig := limits.AutoScale()
+		fmt.Printf("Using resource manager limits: %+v\n", limitConfig)
+
+		limiter = rcmgr.NewFixedLimiter(limitConfig)
+	}
+
+	rcmgrMetrics, err := metrics.CreateRcmgrMetrics(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("creating Resource Manager metrics: %w", err)
+	}
+	mgr, err := rcmgr.NewResourceManager(
+		limiter,
+		rcmgr.WithMetrics(rcmgrMetrics),
+		rcmgr.WithTraceReporter(obs.StatsTraceReporter{}),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("constructing resource manager: %w", err)
+	}
+
+	return mgr, nil
 }
 
 func newProviderStoreBuilder(ctx context.Context, httpClient *http.Client, options Options) (opts.ProviderStoreBuilderFunc, error) {

@@ -9,8 +9,10 @@ import (
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p-kad-dht/providers"
 	kbucket "github.com/libp2p/go-libp2p-kbucket"
+	"github.com/libp2p/go-libp2p/core/connmgr"
 	"github.com/libp2p/go-libp2p/core/crypto"
 	"github.com/libp2p/go-libp2p/core/host"
+	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/peerstore"
 	"github.com/libp2p/go-libp2p/core/protocol"
 	hproviders "github.com/libp2p/hydra-booster/providers"
@@ -21,25 +23,25 @@ type ProviderStoreBuilderFunc func(opts Options, host host.Host) (providers.Prov
 
 // Options are Hydra Head options
 type Options struct {
-	Datastore                 ds.Batching
-	Peerstore                 peerstore.Peerstore
-	ProviderStoreBuilder      ProviderStoreBuilderFunc
-	DelegateHTTPClient        *http.Client
-	RoutingTable              *kbucket.RoutingTable
-	EnableRelay               bool
-	Addrs                     []multiaddr.Multiaddr
-	ProtocolPrefix            protocol.ID
-	BucketSize                int
-	Limiter                   chan struct{}
-	BootstrapPeers            []multiaddr.Multiaddr
-	ID                        crypto.PrivKey
-	DisableProvGC             bool
-	DisableProvCounts         bool
-	DisableProviders          bool
-	DisableValues             bool
-	ProvidersFinder           hproviders.ProvidersFinder
-	DisableResourceManager    bool
-	ResourceManagerLimitsFile string
+	Datastore            ds.Batching
+	Peerstore            peerstore.Peerstore
+	ProviderStoreBuilder ProviderStoreBuilderFunc
+	ConnManager          connmgr.ConnManager
+	ResourceManager      network.ResourceManager
+	DelegateHTTPClient   *http.Client
+	RoutingTable         *kbucket.RoutingTable
+	EnableRelay          bool
+	Addrs                []multiaddr.Multiaddr
+	ProtocolPrefix       protocol.ID
+	BucketSize           int
+	Limiter              chan struct{}
+	BootstrapPeers       []multiaddr.Multiaddr
+	ID                   crypto.PrivKey
+	DisableProvGC        bool
+	DisableProvCounts    bool
+	DisableProviders     bool
+	DisableValues        bool
+	ProvidersFinder      hproviders.ProvidersFinder
 }
 
 // Option is the Hydra Head option type.
@@ -221,16 +223,16 @@ func ProvidersFinder(f hproviders.ProvidersFinder) Option {
 	}
 }
 
-func DisableResourceManager(b bool) Option {
+func ResourceManager(r network.ResourceManager) Option {
 	return func(o *Options) error {
-		o.DisableResourceManager = b
+		o.ResourceManager = r
 		return nil
 	}
 }
 
-func ResourceManagerLimitsFile(f string) Option {
+func ConnectionManager(c connmgr.ConnManager) Option {
 	return func(o *Options) error {
-		o.ResourceManagerLimitsFile = f
+		o.ConnManager = c
 		return nil
 	}
 }
