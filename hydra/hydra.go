@@ -53,8 +53,8 @@ const (
 	uniquePeersTaskInterval      = 5 * time.Second
 	ipnsRecordsTaskInterval      = 15 * time.Minute
 
-	lowWater    = 5000
-	highWater   = 10000
+	lowWater    = 30000
+	highWater   = 40000
 	gracePeriod = time.Minute
 )
 
