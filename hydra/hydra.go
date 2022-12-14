@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"net/http"
 	"os"
 	"strconv"
@@ -302,20 +303,26 @@ func buildRcmgr(ctx context.Context, disableRM bool, limitsFile string) (network
 	} else {
 		limits := rcmgr.DefaultLimits
 
-		limits.SystemBaseLimit.ConnsOutbound = 10240
-		limits.SystemBaseLimit.ConnsInbound = 10240
-		limits.SystemBaseLimit.Conns = limits.SystemBaseLimit.ConnsOutbound + limits.SystemBaseLimit.ConnsInbound
-		limits.SystemLimitIncrease.Conns = 2048
-		limits.SystemLimitIncrease.ConnsInbound = 2048
-		limits.SystemLimitIncrease.ConnsOutbound = 2048
+		unbounded := math.MaxInt
 
-		limits.PeerBaseLimit.Conns = 64
-		limits.PeerBaseLimit.ConnsOutbound = 64
+		limits.SystemBaseLimit.ConnsOutbound = unbounded
+		limits.SystemBaseLimit.ConnsInbound = 10240
+		limits.SystemBaseLimit.Conns = unbounded
+		limits.SystemLimitIncrease.Conns = 0
+		limits.SystemLimitIncrease.ConnsInbound = 2048
+		limits.SystemLimitIncrease.ConnsOutbound = 0
+
+		limits.PeerBaseLimit.Conns = unbounded
+		limits.PeerBaseLimit.ConnsOutbound = unbounded
 		limits.PeerBaseLimit.ConnsInbound = 64
+		limits.PeerLimitIncrease.ConnsOutbound = 0
+		limits.PeerLimitIncrease.Conns = 0
 
 		limits.TransientBaseLimit.ConnsInbound = 512
-		limits.TransientBaseLimit.ConnsOutbound = 512
-		limits.TransientBaseLimit.Conns = 512
+		limits.TransientBaseLimit.ConnsOutbound = unbounded
+		limits.TransientBaseLimit.Conns = unbounded
+		limits.TransientLimitIncrease.ConnsOutbound = 0
+		limits.TransientLimitIncrease.Conns = 0
 
 		libp2p.SetDefaultServiceLimits(&limits)
 
