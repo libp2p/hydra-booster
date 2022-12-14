@@ -23,7 +23,6 @@ import (
 	ddbds "github.com/ipfs/go-ds-dynamodb"
 	leveldb "github.com/ipfs/go-ds-leveldb"
 	"github.com/ipfs/go-libipfs/routing/http/client"
-	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-kad-dht/providers"
 	"github.com/libp2p/go-libp2p-peerstore/pstoreds"
 	"github.com/libp2p/go-libp2p/core/host"
@@ -318,13 +317,16 @@ func buildRcmgr(ctx context.Context, disableRM bool, limitsFile string) (network
 		limits.PeerLimitIncrease.ConnsOutbound = 0
 		limits.PeerLimitIncrease.Conns = 0
 
+		limits.ServiceBaseLimit.Conns = unbounded
+		limits.ServiceBaseLimit.ConnsOutbound = unbounded
+		limits.ServiceLimitIncrease.Conns = 0
+		limits.ServiceLimitIncrease.ConnsOutbound = 0
+
 		limits.TransientBaseLimit.ConnsInbound = 512
 		limits.TransientBaseLimit.ConnsOutbound = unbounded
 		limits.TransientBaseLimit.Conns = unbounded
 		limits.TransientLimitIncrease.ConnsOutbound = 0
 		limits.TransientLimitIncrease.Conns = 0
-
-		libp2p.SetDefaultServiceLimits(&limits)
 
 		limitConfig := limits.AutoScale()
 		fmt.Printf("Using resource manager limits: %+v\n", limitConfig)
