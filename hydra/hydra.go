@@ -305,10 +305,10 @@ func buildRcmgr(ctx context.Context, disableRM bool, limitsFile string) (network
 		unbounded := math.MaxInt
 
 		limits.SystemBaseLimit.ConnsOutbound = unbounded
-		limits.SystemBaseLimit.ConnsInbound = 10240
+		limits.SystemBaseLimit.ConnsInbound = unbounded
 		limits.SystemBaseLimit.Conns = unbounded
 		limits.SystemLimitIncrease.Conns = 0
-		limits.SystemLimitIncrease.ConnsInbound = 2048
+		limits.SystemLimitIncrease.ConnsInbound = 0
 		limits.SystemLimitIncrease.ConnsOutbound = 0
 
 		limits.PeerBaseLimit.Conns = unbounded
@@ -325,6 +325,7 @@ func buildRcmgr(ctx context.Context, disableRM bool, limitsFile string) (network
 		limits.TransientBaseLimit.ConnsInbound = 512
 		limits.TransientBaseLimit.ConnsOutbound = unbounded
 		limits.TransientBaseLimit.Conns = unbounded
+		limits.TransientLimitIncrease.ConnsInbound = 128
 		limits.TransientLimitIncrease.ConnsOutbound = 0
 		limits.TransientLimitIncrease.Conns = 0
 
