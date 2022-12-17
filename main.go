@@ -125,10 +125,10 @@ func main() {
 		*delegateTimeout = mustGetEnvInt("HYDRA_DELEGATED_ROUTING_TIMEOUT", 1000)
 	}
 	if !*disableResourceManager {
-		*disableResourceManager = mustGetEnvBool("DISABLE_RCMGR", false)
+		*disableResourceManager = mustGetEnvBool("HYDRA_DISABLE_RCMGR", false)
 	}
 	if *resourceManagerLimits == "" {
-		*resourceManagerLimits = os.Getenv("RCMGR_LIMITS")
+		*resourceManagerLimits = os.Getenv("HYDRA_RCMGR_LIMITS")
 	}
 
 	if *connMgrHighWater == defaultConnMgrHighWater {
