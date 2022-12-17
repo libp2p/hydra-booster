@@ -88,7 +88,7 @@ type Options struct {
 	DisablePrefetch           bool
 	DisableProvCounts         bool
 	DisableDBCreate           bool
-	DisableResourceManager    bool
+	EnableResourceManager     bool
 	ResourceManagerLimitsFile string
 	ConnMgrHighWater          int
 	ConnMgrLowWater           int
@@ -167,12 +167,22 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	providersFinder := hproviders.NewAsyncProvidersFinder(5*time.Second, 1000, 1*time.Hour)
 	providersFinder.Run(ctx, 1000)
 
-	resourceManager, err := buildRcmgr(ctx, options.DisableResourceManager, options.ResourceManagerLimitsFile)
+	resourceManager, err := buildRcmgr(ctx, options.EnableResourceManager, options.ResourceManagerLimitsFile)
 	if err != nil {
 		return nil, fmt.Errorf("building resource manager: %w", err)
 	}
 
-	cmgr, err := connmgr.NewConnManager(lowWater, highWater, connmgr.WithGracePeriod(gracePeriod))
+	if options.ConnMgrHighWater == 0 {
+		options.ConnMgrHighWater = highWater
+	}
+	if options.ConnMgrLowWater == 0 {
+		options.ConnMgrLowWater = lowWater
+	}
+	if options.ConnMgrGracePeriod == 0 {
+		options.ConnMgrGracePeriod = gracePeriod
+	}
+
+	cmgr, err := connmgr.NewConnManager(options.ConnMgrLowWater, options.ConnMgrHighWater, connmgr.WithGracePeriod(options.ConnMgrGracePeriod))
 	if err != nil {
 		return nil, fmt.Errorf("building connection manager: %w", err)
 	}
@@ -287,10 +297,10 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	return &hydra, nil
 }
 
-func buildRcmgr(ctx context.Context, disableRM bool, limitsFile string) (network.ResourceManager, error) {
+func buildRcmgr(ctx context.Context, enableRM bool, limitsFile string) (network.ResourceManager, error) {
 	var limiter rcmgr.Limiter
 
-	if disableRM {
+	if !enableRM {
 		limiter = rcmgr.NewFixedLimiter(rcmgr.InfiniteLimits)
 	} else if limitsFile != "" {
 		f, err := os.Open(limitsFile)

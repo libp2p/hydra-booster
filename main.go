@@ -64,7 +64,7 @@ func main() {
 	disablePrefetch := flag.Bool("disable-prefetch", false, "Disables pre-fetching of discovered provider records (default false).")
 	disableProvCounts := flag.Bool("disable-prov-counts", false, "Disable counting provider records for metrics reporting (default false).")
 	disableDBCreate := flag.Bool("disable-db-create", false, "Don't create table and index in the target database (default false).")
-	disableResourceManager := flag.Bool("disable-rcmgr", false, "Disable libp2p Resource Manager by configuring it with infinite limits (default false).")
+	enableResourceManager := flag.Bool("disable-rcmgr", false, "Disable libp2p Resource Manager by configuring it with infinite limits (default false).")
 	resourceManagerLimits := flag.String("rcmgr-limits", "", "Resource Manager limits JSON config (default none).")
 	connMgrHighWater := flag.Int("connmgr-high-water", defaultConnMgrHighWater, "High water limit for the connection manager.")
 	connMgrLowWater := flag.Int("connmgr-low-water", defaultConnMgrLowWater, "Low water limit for the connection manager.")
@@ -124,8 +124,8 @@ func main() {
 	if *delegateTimeout == 0 {
 		*delegateTimeout = mustGetEnvInt("HYDRA_DELEGATED_ROUTING_TIMEOUT", 1000)
 	}
-	if !*disableResourceManager {
-		*disableResourceManager = mustGetEnvBool("HYDRA_DISABLE_RCMGR", false)
+	if !*enableResourceManager {
+		*enableResourceManager = mustGetEnvBool("HYDRA_ENABLE_RCMGR", false)
 	}
 	if *resourceManagerLimits == "" {
 		*resourceManagerLimits = os.Getenv("HYDRA_RCMGR_LIMITS")
@@ -206,7 +206,7 @@ func main() {
 		DisablePrefetch:           *disablePrefetch,
 		DisableProvCounts:         *disableProvCounts,
 		DisableDBCreate:           *disableDBCreate,
-		DisableResourceManager:    *disableResourceManager,
+		EnableResourceManager:     *enableResourceManager,
 		ResourceManagerLimitsFile: *resourceManagerLimits,
 
 		ConnMgrHighWater:   *connMgrHighWater,
