@@ -108,7 +108,7 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 	cfg := opts.Options{}
 	cfg.Apply(append([]opts.Option{opts.Defaults}, options...)...)
 
-	cmgr, err := connmgr.NewConnManager(cfg.ConnMgrLowWater, cfg.ConnMgrHighWater, connmgr.WithGracePeriod(time.Duration(cfg.ConnMgrGracePeriod)*time.Millisecond))
+	cmgr, err := connmgr.NewConnManager(cfg.ConnMgrLowWater, cfg.ConnMgrHighWater, connmgr.WithGracePeriod(cfg.ConnMgrGracePeriod))
 	if err != nil {
 		return nil, nil, fmt.Errorf("building connmgr: %w", err)
 	}

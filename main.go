@@ -140,7 +140,10 @@ func main() {
 	}
 
 	if *connMgrGracePeriod == defaultConnMgrGracePeriod {
-		*connMgrGracePeriod = os.Getenv("HYDRA_CONNMGR_GRACE_PERIOD", defaultConnMgrGracePeriod)
+		envVal := os.Getenv("HYDRA_CONNMGR_GRACE_PERIOD")
+		if envVal != "" {
+			*connMgrGracePeriod = envVal
+		}
 	}
 	connMgrGracePeriodDuration, err := time.ParseDuration(*connMgrGracePeriod)
 	if err != nil {
