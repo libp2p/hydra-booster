@@ -29,7 +29,6 @@ import (
 	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/protocol"
 	rcmgr "github.com/libp2p/go-libp2p/p2p/host/resource-manager"
-	obs "github.com/libp2p/go-libp2p/p2p/host/resource-manager/obs"
 	"github.com/libp2p/go-libp2p/p2p/net/connmgr"
 	hyds "github.com/libp2p/hydra-booster/datastore"
 	"github.com/libp2p/hydra-booster/head"
@@ -320,7 +319,6 @@ func buildRcmgr(ctx context.Context, disableRM bool, limitsFile string) (network
 	mgr, err := rcmgr.NewResourceManager(
 		limiter,
 		rcmgr.WithMetrics(rcmgrMetrics),
-		rcmgr.WithTraceReporter(obs.StatsTraceReporter{}),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("constructing resource manager: %w", err)
