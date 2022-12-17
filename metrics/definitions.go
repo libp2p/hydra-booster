@@ -2,7 +2,7 @@ package metrics
 
 import (
 	dhtmetrics "github.com/libp2p/go-libp2p-kad-dht/metrics"
-	"github.com/libp2p/go-libp2p-resource-manager/obs"
+	"github.com/libp2p/go-libp2p/p2p/host/resource-manager/obs"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"

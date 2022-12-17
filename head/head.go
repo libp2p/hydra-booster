@@ -13,19 +13,19 @@ import (
 	"github.com/ipfs/go-ipns"
 	logging "github.com/ipfs/go-log"
 	"github.com/libp2p/go-libp2p"
-	connmgr "github.com/libp2p/go-libp2p-connmgr"
+	dht "github.com/libp2p/go-libp2p-kad-dht"
+	"github.com/libp2p/go-libp2p-kad-dht/providers"
+	kbucket "github.com/libp2p/go-libp2p-kbucket"
+	record "github.com/libp2p/go-libp2p-record"
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/libp2p/go-libp2p/core/routing"
-	dht "github.com/libp2p/go-libp2p-kad-dht"
-	"github.com/libp2p/go-libp2p-kad-dht/providers"
-	kbucket "github.com/libp2p/go-libp2p-kbucket"
-	noise "github.com/libp2p/go-libp2p-noise"
-	record "github.com/libp2p/go-libp2p-record"
-	tls "github.com/libp2p/go-libp2p-tls"
 	rcmgr "github.com/libp2p/go-libp2p/p2p/host/resource-manager"
 	"github.com/libp2p/go-libp2p/p2p/host/resource-manager/obs"
+	connmgr "github.com/libp2p/go-libp2p/p2p/net/connmgr"
+	noise "github.com/libp2p/go-libp2p/p2p/security/noise"
+	tls "github.com/libp2p/go-libp2p/p2p/security/tls"
 	quic "github.com/libp2p/go-libp2p/p2p/transport/quic"
 	tcp "github.com/libp2p/go-libp2p/p2p/transport/tcp"
 	"github.com/libp2p/hydra-booster/head/opts"
@@ -111,7 +111,10 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 	cfg := opts.Options{}
 	cfg.Apply(append([]opts.Option{opts.Defaults}, options...)...)
 
-	cmgr := connmgr.NewConnManager(lowWater, highWater, gracePeriod)
+	cmgr, err := connmgr.NewConnManager(lowWater, highWater, connmgr.WithGracePeriod(gracePeriod))
+	if err != nil {
+		return nil, nil, err
+	}
 
 	ua := version.UserAgent
 	if cfg.EnableRelay {
@@ -194,34 +197,9 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 	}
 
 	var cachingProviderStore *hproviders.CachingProviderStore
-	if cfg.ProvidersFinder != nil && cfg.ReframeAddr == "" {
+	if cfg.ProvidersFinder != nil {
 		cachingProviderStore = hproviders.NewCachingProviderStore(providerStore, providerStore, cfg.ProvidersFinder, nil)
 		providerStore = cachingProviderStore
-	}
-	if cfg.ProvidersFinder != nil && cfg.ReframeAddr != "" {
-		reframeProviderStore, err := hproviders.NewReframeProviderStore(cfg.DelegateHTTPClient, cfg.ReframeAddr)
-		if err != nil {
-			return nil, nil, fmt.Errorf("creating Reframe providerstore: %w", err)
-		}
-
-		cachingProviderStore = hproviders.NewCachingProviderStore(
-			hproviders.CombineProviders(providerStore, reframeProviderStore),
-			providerStore,
-			cfg.ProvidersFinder,
-			nil,
-		)
-
-		// we still want to use the caching provider store instead of the provider store directly b/c it publishes cache metrics
-		fmt.Printf("Will delegate to %v with timeout %v.\n", cfg.ReframeAddr, cfg.DelegateHTTPClient.Timeout)
-		providerStore = cachingProviderStore
-	}
-	if cfg.ProvidersFinder == nil && cfg.ReframeAddr != "" {
-		reframePS, err := hproviders.NewReframeProviderStore(cfg.DelegateHTTPClient, cfg.ReframeAddr)
-		if err != nil {
-			return nil, nil, fmt.Errorf("creating Reframe provider store: %w", err)
-		}
-		fmt.Printf("Will delegate to %v with timeout %v.\n", cfg.ReframeAddr, cfg.DelegateHTTPClient.Timeout)
-		providerStore = reframePS
 	}
 
 	dhtOpts = append(dhtOpts, dht.ProviderStore(providerStore))
