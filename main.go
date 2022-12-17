@@ -28,9 +28,12 @@ import (
 )
 
 const (
-	defaultBucketSize  = 20
-	defaultMetricsAddr = "127.0.0.1:9758"
-	defaultHTTPAPIAddr = "127.0.0.1:7779"
+	defaultBucketSize         = 20
+	defaultMetricsAddr        = "127.0.0.1:9758"
+	defaultHTTPAPIAddr        = "127.0.0.1:7779"
+	defaultConnMgrHighWater   = 1800
+	defaultConnMgrLowWater    = 1200
+	defaultConnMgrGracePeriod = "60s"
 )
 
 func main() {
@@ -63,6 +66,10 @@ func main() {
 	disableDBCreate := flag.Bool("disable-db-create", false, "Don't create table and index in the target database (default false).")
 	disableResourceManager := flag.Bool("disable-rcmgr", false, "Disable libp2p Resource Manager by configuring it with infinite limits (default false).")
 	resourceManagerLimits := flag.String("rcmgr-limits", "", "Resource Manager limits JSON config (default none).")
+	connMgrHighWater := flag.Int("connmgr-high-water", defaultConnMgrHighWater, "High water limit for the connection manager.")
+	connMgrLowWater := flag.Int("connmgr-low-water", defaultConnMgrLowWater, "Low water limit for the connection manager.")
+	connMgrGracePeriod := flag.String("connmgr-grace-period", defaultConnMgrGracePeriod, "Grace period for connections as a Go duration string such as \"60s\".")
+
 	flag.Parse()
 
 	fmt.Fprintf(os.Stderr, "🐉 Hydra Booster starting up...\n")
@@ -124,6 +131,25 @@ func main() {
 		*resourceManagerLimits = os.Getenv("RCMGR_LIMITS")
 	}
 
+	if *connMgrHighWater == defaultConnMgrHighWater {
+		*connMgrHighWater = mustGetEnvInt("HYDRA_CONNMGR_HIGH_WATER", defaultConnMgrHighWater)
+	}
+
+	if *connMgrLowWater == defaultConnMgrLowWater {
+		*connMgrLowWater = mustGetEnvInt("HYDRA_CONNMGR_LOW_WATER", defaultConnMgrLowWater)
+	}
+
+	if *connMgrGracePeriod == defaultConnMgrGracePeriod {
+		envVal := os.Getenv("HYDRA_CONNMGR_GRACE_PERIOD")
+		if envVal != "" {
+			*connMgrGracePeriod = envVal
+		}
+	}
+	connMgrGracePeriodDuration, err := time.ParseDuration(*connMgrGracePeriod)
+	if err != nil {
+		log.Fatalf("parsing grace period duration: %s", err)
+	}
+
 	// Allow short keys. Otherwise, we'll refuse connections from the bootsrappers and break the network.
 	// TODO: Remove this when we shut those bootstrappers down.
 	crypto.MinRsaKeyBits = 1024
@@ -182,6 +208,10 @@ func main() {
 		DisableDBCreate:           *disableDBCreate,
 		DisableResourceManager:    *disableResourceManager,
 		ResourceManagerLimitsFile: *resourceManagerLimits,
+
+		ConnMgrHighWater:   *connMgrHighWater,
+		ConnMgrLowWater:    *connMgrLowWater,
+		ConnMgrGracePeriod: connMgrGracePeriodDuration,
 	}
 
 	go func() {

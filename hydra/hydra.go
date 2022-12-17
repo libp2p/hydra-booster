@@ -83,6 +83,9 @@ type Options struct {
 	DisableDBCreate           bool
 	DisableResourceManager    bool
 	ResourceManagerLimitsFile string
+	ConnMgrHighWater          int
+	ConnMgrLowWater           int
+	ConnMgrGracePeriod        time.Duration
 }
 
 // NewHydra creates a new Hydra with the passed options.
@@ -181,6 +184,9 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 			opts.DelegateHTTPClient(delegateHTTPClient),
 			opts.DisableResourceManager(options.DisableResourceManager),
 			opts.ResourceManagerLimitsFile(options.ResourceManagerLimitsFile),
+			opts.ConnMgrHighWater(options.ConnMgrHighWater),
+			opts.ConnMgrLowWater(options.ConnMgrLowWater),
+			opts.ConnMgrGracePeriod(options.ConnMgrGracePeriod),
 		}
 		if options.EnableRelay {
 			hdOpts = append(hdOpts, opts.EnableRelay())

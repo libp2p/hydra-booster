@@ -3,6 +3,7 @@ package opts
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	ds "github.com/ipfs/go-datastore"
 	dssync "github.com/ipfs/go-datastore/sync"
@@ -40,6 +41,9 @@ type Options struct {
 	ProvidersFinder           hproviders.ProvidersFinder
 	DisableResourceManager    bool
 	ResourceManagerLimitsFile string
+	ConnMgrHighWater          int
+	ConnMgrLowWater           int
+	ConnMgrGracePeriod        time.Duration
 }
 
 // Option is the Hydra Head option type.
@@ -65,6 +69,9 @@ var Defaults = func(o *Options) error {
 	o.ProtocolPrefix = dht.DefaultPrefix
 	o.BucketSize = 20
 	o.BootstrapPeers = dht.DefaultBootstrapPeers
+	o.ConnMgrHighWater = 1800
+	o.ConnMgrLowWater = 1200
+	o.ConnMgrGracePeriod = time.Minute
 	return nil
 }
 
@@ -231,6 +238,27 @@ func DisableResourceManager(b bool) Option {
 func ResourceManagerLimitsFile(f string) Option {
 	return func(o *Options) error {
 		o.ResourceManagerLimitsFile = f
+		return nil
+	}
+}
+
+func ConnMgrHighWater(n int) Option {
+	return func(o *Options) error {
+		o.ConnMgrHighWater = n
+		return nil
+	}
+}
+
+func ConnMgrLowWater(n int) Option {
+	return func(o *Options) error {
+		o.ConnMgrLowWater = n
+		return nil
+	}
+}
+
+func ConnMgrGracePeriod(n time.Duration) Option {
+	return func(o *Options) error {
+		o.ConnMgrGracePeriod = n
 		return nil
 	}
 }
