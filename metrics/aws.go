@@ -67,8 +67,7 @@ var _ smithymiddle.FinalizeMiddleware = (*AWSMetricsMiddleware)(nil)
 // Install the AWS metrics middleware onto an SDK stack.
 // Typically you use this on a config object like this:
 //
-//   awsCfg.APIOptions = append(awsCfg.APIOptions, metrics.AddAWSSDKMiddleware)
-//
+//	awsCfg.APIOptions = append(awsCfg.APIOptions, metrics.AddAWSSDKMiddleware)
 func AddAWSSDKMiddleware(stack *smithymiddle.Stack) error {
 	m := &AWSMetricsMiddleware{}
 	return stack.Finalize.Add(m, smithymiddle.Before)
