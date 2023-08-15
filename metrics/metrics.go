@@ -13,6 +13,7 @@ import (
 	"github.com/ncabatoff/process-exporter/collector"
 	"github.com/ncabatoff/process-exporter/config"
 	prom "github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
 	necoll "github.com/prometheus/node_exporter/collector"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
@@ -47,8 +48,8 @@ func buildProcCollector() (*collector.NamedProcessCollector, error) {
 func ListenAndServe(address string) error {
 	// setup Prometheus
 	registry := prom.NewRegistry()
-	goCollector := prom.NewGoCollector()
-	procCollector := prom.NewProcessCollector(prom.ProcessCollectorOpts{})
+	goCollector := collectors.NewGoCollector()
+	procCollector := collectors.NewProcessCollector(collectors.ProcessCollectorOpts{})
 
 	nodeCollector, err := necoll.NewNodeCollector(log.NewNopLogger())
 	if err != nil {
