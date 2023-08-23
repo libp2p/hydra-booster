@@ -44,8 +44,6 @@ const (
 	provCacheExpiry             = time.Hour
 )
 
-var log = logging.Logger("hydra/hydra")
-
 // BootstrapStatus describes the status of connecting to a bootstrap node.
 type BootstrapStatus struct {
 	Done bool
