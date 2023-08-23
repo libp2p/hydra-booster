@@ -11,7 +11,6 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-ipns"
-	logging "github.com/ipfs/go-log"
 	"github.com/libp2p/go-libp2p"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p-kad-dht/providers"
@@ -43,8 +42,6 @@ const (
 	provCacheSize               = 256
 	provCacheExpiry             = time.Hour
 )
-
-var log = logging.Logger("hydra/hydra")
 
 // BootstrapStatus describes the status of connecting to a bootstrap node.
 type BootstrapStatus struct {

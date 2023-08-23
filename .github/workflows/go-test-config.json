@@ -1,0 +1,5 @@
+{
+  "skip32bit": true,
+  "skipOSes": ["macos", "windows"],
+  "skipRace": true
+}
