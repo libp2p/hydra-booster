@@ -19,7 +19,7 @@ func TestNewProviderRecordsTask(t *testing.T) {
 	ds := datastore.NewMapDatastore()
 	defer ds.Close()
 
-	r := rand.NewRand(rand.NewSource(time.Now().UTC().UnixNano()))
+	r := rand.New(rand.NewSource(time.Now().UTC().UnixNano()))
 	count := r.Intn(100) + 1
 
 	for i := 0; i < count; i++ {
