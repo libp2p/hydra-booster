@@ -19,8 +19,8 @@ func TestNewProviderRecordsTask(t *testing.T) {
 	ds := datastore.NewMapDatastore()
 	defer ds.Close()
 
-	rand.Seed(time.Now().UTC().UnixNano())
-	count := rand.Intn(100) + 1
+	r := rand.NewRand(rand.NewSource(time.Now().UTC().UnixNano()))
+	count := r.Intn(100) + 1
 
 	for i := 0; i < count; i++ {
 		err := ds.Put(ctx, datastore.NewKey(fmt.Sprintf("/providers/%d", i)), []byte{})
