@@ -1,3 +1,10 @@
+> [!WARNING]
+> This repo was archived because Protocol Labs no longer operates Hydra Boosters for the IPFS network.
+> 
+> For more information, see: https://discuss.ipfs.tech/t/dht-hydra-peers-dialling-down-non-bridging-functionality-on-2022-12-01/15567
+
+----
+
 <p align="center">
   <img src="https://ipfs.io/ipfs/bafykbzacebddch6dpmgdyupxygcbi2pvmzwiz7edmvwbtskseldpu3ofj5xjy/hydra-booster.png" width="40%" alt="Hydra Booster Mascot" />
 </p>
